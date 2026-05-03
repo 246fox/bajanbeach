@@ -29,6 +29,14 @@ type MarineResponse = {
   };
 };
 
+type UnsplashSearchResponse = {
+  results?: Array<{
+    urls?: {
+      regular?: string;
+    };
+  }>;
+};
+
 type BeachConditions = {
   waveHeight: number | null;
   wavePeriod: number | null;
@@ -50,6 +58,35 @@ function formatValue(value: number | null, unit: string, digits = 1): string {
     return "N/A";
   }
   return `${value.toFixed(digits)} ${unit}`;
+}
+
+function degreesToCompass(degrees: number | null): string {
+  if (degrees === null || Number.isNaN(degrees)) {
+    return "N/A";
+  }
+
+  const directions = [
+    "N",
+    "NNE",
+    "NE",
+    "ENE",
+    "E",
+    "ESE",
+    "SE",
+    "SSE",
+    "S",
+    "SSW",
+    "SW",
+    "WSW",
+    "W",
+    "WNW",
+    "NW",
+    "NNW"
+  ];
+
+  const normalized = ((degrees % 360) + 360) % 360;
+  const index = Math.round(normalized / 22.5) % 16;
+  return directions[index];
 }
 
 function clampToRange(value: number, min: number, max: number): number {
@@ -127,6 +164,36 @@ async function fetchBeachConditions(beach: Beach): Promise<BeachConditions> {
       windDirection: null,
       swimScore: null
     };
+  }
+}
+
+async function fetchBeachPhoto(beach: Beach): Promise<string | null> {
+  const accessKey = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
+  if (!accessKey) {
+    return null;
+  }
+
+  const searchQuery = `${beach.name} Beach Barbados`;
+  const unsplashUrl =
+    `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}` +
+    "&orientation=landscape&per_page=1";
+
+  try {
+    const response = await fetch(unsplashUrl, {
+      headers: {
+        Authorization: `Client-ID ${accessKey}`
+      },
+      next: { revalidate: 3600 }
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = (await response.json()) as UnsplashSearchResponse;
+    return data.results?.[0]?.urls?.regular ?? null;
+  } catch {
+    return null;
   }
 }
 
@@ -227,7 +294,8 @@ export default async function Home() {
   const beachCards = await Promise.all(
     beaches.map(async (beach) => ({
       ...beach,
-      conditions: await fetchBeachConditions(beach)
+      conditions: await fetchBeachConditions(beach),
+      photoUrl: await fetchBeachPhoto(beach)
     }))
   );
 
@@ -251,7 +319,18 @@ export default async function Home() {
             key={beach.name}
             className="overflow-hidden rounded-2xl border border-ocean-100/70 bg-white/75 shadow-sm backdrop-blur-sm"
           >
-            <div className={`h-32 w-full ${beach.imageColor}`} />
+            <div
+              className={`h-32 w-full ${beach.imageColor}`}
+              style={
+                beach.photoUrl
+                  ? {
+                      backgroundImage: `url("${beach.photoUrl}")`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center"
+                    }
+                  : undefined
+              }
+            />
             <div className="space-y-4 p-5">
               <div className="flex items-start justify-between gap-3">
                 <h2 className="text-xl font-semibold text-slate-800">{beach.name}</h2>
@@ -283,7 +362,7 @@ export default async function Home() {
                 <MetricRow
                   icon={<CompassIcon />}
                   label="Wind direction"
-                  value={formatValue(beach.conditions.windDirection, "°", 0)}
+                  value={degreesToCompass(beach.conditions.windDirection)}
                 />
               </div>
             </div>
