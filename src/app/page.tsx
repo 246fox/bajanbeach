@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { headers } from "next/headers";
 
 type Beach = {
   name: string;
@@ -11,8 +12,10 @@ type WeatherResponse = {
   current_weather?: {
     windspeed?: number;
     winddirection?: number;
+    time?: string;
   };
   hourly?: {
+    time?: string[];
     windspeed_10m?: number[];
     winddirection_10m?: number[];
   };
@@ -22,19 +25,13 @@ type MarineResponse = {
   current?: {
     wave_height?: number;
     wave_period?: number;
+    time?: string;
   };
   hourly?: {
+    time?: string[];
     wave_height?: number[];
     wave_period?: number[];
   };
-};
-
-type UnsplashSearchResponse = {
-  results?: Array<{
-    urls?: {
-      regular?: string;
-    };
-  }>;
 };
 
 type BeachConditions = {
@@ -43,6 +40,7 @@ type BeachConditions = {
   windSpeed: number | null;
   windDirection: number | null;
   swimScore: number | null;
+  lastUpdatedAt: string | null;
 };
 
 const beaches: Beach[] = [
@@ -118,6 +116,45 @@ function scoreStyles(score: number | null): string {
   return "bg-rose-100 text-rose-700";
 }
 
+function parseOpenMeteoTimestamp(value: string | null | undefined): number | null {
+  if (!value) {
+    return null;
+  }
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+function formatUpdatedTime(timestamp: string | null): string {
+  if (!timestamp) {
+    return "Updated N/A";
+  }
+
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) {
+    return "Updated N/A";
+  }
+
+  const formatted = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Barbados",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true
+  }).format(date);
+
+  return `Updated ${formatted} AST`;
+}
+
+function isStaleTimestamp(timestamp: string | null, maxAgeMs: number): boolean {
+  if (!timestamp) {
+    return false;
+  }
+  const updatedAt = new Date(timestamp).getTime();
+  if (Number.isNaN(updatedAt)) {
+    return false;
+  }
+  return Date.now() - updatedAt > maxAgeMs;
+}
+
 async function fetchBeachConditions(beach: Beach): Promise<BeachConditions> {
   const weatherUrl =
     `https://api.open-meteo.com/v1/forecast?latitude=${beach.latitude}&longitude=${beach.longitude}` +
@@ -148,13 +185,24 @@ async function fetchBeachConditions(beach: Beach): Promise<BeachConditions> {
       null;
     const waveHeight = marineData.current?.wave_height ?? marineData.hourly?.wave_height?.[0] ?? null;
     const wavePeriod = marineData.current?.wave_period ?? marineData.hourly?.wave_period?.[0] ?? null;
+    const windTimestamp = parseOpenMeteoTimestamp(
+      weatherData.current_weather?.time ?? weatherData.hourly?.time?.[0]
+    );
+    const waveTimestamp = parseOpenMeteoTimestamp(
+      marineData.current?.time ?? marineData.hourly?.time?.[0]
+    );
+    const combinedTimestamp =
+      windTimestamp !== null && waveTimestamp !== null
+        ? Math.min(windTimestamp, waveTimestamp)
+        : windTimestamp ?? waveTimestamp;
 
     return {
       waveHeight,
       wavePeriod,
       windSpeed,
       windDirection,
-      swimScore: computeSwimScore(waveHeight, windSpeed)
+      swimScore: computeSwimScore(waveHeight, windSpeed),
+      lastUpdatedAt: combinedTimestamp !== null ? new Date(combinedTimestamp).toISOString() : null
     };
   } catch {
     return {
@@ -162,36 +210,25 @@ async function fetchBeachConditions(beach: Beach): Promise<BeachConditions> {
       wavePeriod: null,
       windSpeed: null,
       windDirection: null,
-      swimScore: null
+      swimScore: null,
+      lastUpdatedAt: null
     };
   }
 }
 
-async function fetchBeachPhoto(beach: Beach): Promise<string | null> {
-  const accessKey = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
-  if (!accessKey) {
-    return null;
-  }
-
-  const searchQuery = `${beach.name} Beach Barbados`;
-  const unsplashUrl =
-    `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}` +
-    "&orientation=landscape&per_page=1";
-
+async function fetchBeachPhoto(beach: Beach, baseUrl: string): Promise<string | null> {
   try {
-    const response = await fetch(unsplashUrl, {
-      headers: {
-        Authorization: `Client-ID ${accessKey}`
-      },
-      next: { revalidate: 3600 }
-    });
+    const response = await fetch(
+      `${baseUrl}/api/beach-photos?beach=${encodeURIComponent(beach.name)}`,
+      { next: { revalidate: 3600 } }
+    );
 
     if (!response.ok) {
       return null;
     }
 
-    const data = (await response.json()) as UnsplashSearchResponse;
-    return data.results?.[0]?.urls?.regular ?? null;
+    const data = (await response.json()) as { photoUrls?: string[] };
+    return data.photoUrls?.[0] ?? null;
   } catch {
     return null;
   }
@@ -291,11 +328,16 @@ function TimerIcon() {
 }
 
 export default async function Home() {
+  const requestHeaders = await headers();
+  const host = requestHeaders.get("host") ?? "localhost:3000";
+  const protocol = host.includes("localhost") ? "http" : "https";
+  const baseUrl = `${protocol}://${host}`;
+
   const beachCards = await Promise.all(
     beaches.map(async (beach) => ({
       ...beach,
       conditions: await fetchBeachConditions(beach),
-      photoUrl: await fetchBeachPhoto(beach)
+      photoUrl: await fetchBeachPhoto(beach, baseUrl)
     }))
   );
 
@@ -365,6 +407,15 @@ export default async function Home() {
                   value={degreesToCompass(beach.conditions.windDirection)}
                 />
               </div>
+              <p
+                className={`pt-1 text-xs ${
+                  isStaleTimestamp(beach.conditions.lastUpdatedAt, 2 * 60 * 60 * 1000)
+                    ? "text-amber-700"
+                    : "text-slate-500"
+                }`}
+              >
+                {formatUpdatedTime(beach.conditions.lastUpdatedAt)}
+              </p>
             </div>
           </article>
         ))}
