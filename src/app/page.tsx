@@ -1,10 +1,14 @@
 import type { ReactNode } from "react";
-import { headers } from "next/headers";
+import { getBeachPhotoUrls } from "@/lib/beach-photos";
 
 type Beach = {
   name: string;
+  slug: string;
   latitude: number;
   longitude: number;
+  coast: "West" | "South" | "East";
+  type: "calm" | "moderate" | "surf";
+  description: string;
   imageColor: string;
 };
 
@@ -44,11 +48,256 @@ type BeachConditions = {
 };
 
 const beaches: Beach[] = [
-  { name: "Mullins", latitude: 13.2531, longitude: -59.6411, imageColor: "bg-sky-300" },
-  { name: "Carlisle Bay", latitude: 13.0769, longitude: -59.6128, imageColor: "bg-cyan-300" },
-  { name: "Crane Beach", latitude: 13.1019, longitude: -59.45, imageColor: "bg-blue-300" },
-  { name: "Bathsheba", latitude: 13.2147, longitude: -59.5217, imageColor: "bg-teal-300" },
-  { name: "Accra Beach", latitude: 13.0742, longitude: -59.5808, imageColor: "bg-indigo-300" }
+  {
+    name: "Mullins",
+    slug: "mullins",
+    latitude: 13.2337937,
+    longitude: -59.6425256,
+    coast: "West",
+    type: "calm",
+    description: "A sheltered west-coast beach with gentle water and a relaxed, upscale vibe.",
+    imageColor: "bg-sky-300"
+  },
+  {
+    name: "Carlisle Bay",
+    slug: "carlisle-bay",
+    latitude: 13.087425,
+    longitude: -59.6154379,
+    coast: "South",
+    type: "calm",
+    description: "A broad bay near Bridgetown known for clear water, swimming, and easy-access reefs.",
+    imageColor: "bg-cyan-300"
+  },
+  {
+    name: "Crane Beach",
+    slug: "crane-beach",
+    latitude: 13.1066506,
+    longitude: -59.4437384,
+    coast: "East",
+    type: "moderate",
+    description: "A dramatic cliff-backed beach with pink-tinged sand and stronger Atlantic shore break.",
+    imageColor: "bg-blue-300"
+  },
+  {
+    name: "Bathsheba",
+    slug: "bathsheba",
+    latitude: 13.2129361,
+    longitude: -59.5227245,
+    coast: "East",
+    type: "surf",
+    description: "A rugged east-coast setting with boulders and consistent swell favored by surfers.",
+    imageColor: "bg-teal-300"
+  },
+  {
+    name: "Accra Beach",
+    slug: "accra-beach",
+    latitude: 13.0731047,
+    longitude: -59.588012,
+    coast: "South",
+    type: "moderate",
+    description: "A lively south-coast beach with mixed conditions, popular for both swimming and bodyboarding.",
+    imageColor: "bg-indigo-300"
+  },
+  {
+    name: "Holetown Beach",
+    slug: "holetown-beach",
+    latitude: 13.185621,
+    longitude: -59.6385289,
+    coast: "West",
+    type: "calm",
+    description: "A central west-coast shoreline in Holetown with generally calm water and easy access.",
+    imageColor: "bg-sky-300"
+  },
+  {
+    name: "Paynes Bay",
+    slug: "paynes-bay",
+    latitude: 13.1655349,
+    longitude: -59.6362336,
+    coast: "West",
+    type: "calm",
+    description: "A long, sandy west-coast bay with clear, usually gentle water ideal for snorkeling.",
+    imageColor: "bg-cyan-300"
+  },
+  {
+    name: "Sandy Lane Bay",
+    slug: "sandy-lane-bay",
+    latitude: 13.1682794,
+    longitude: -59.6372693,
+    coast: "West",
+    type: "calm",
+    description: "A protected west-coast bay with soft sand and consistently calm sea conditions.",
+    imageColor: "bg-blue-300"
+  },
+  {
+    name: "Brighton Beach",
+    slug: "brighton-beach",
+    latitude: 13.1211555,
+    longitude: -59.6303754,
+    coast: "West",
+    type: "calm",
+    description: "A local-favorite west-coast beach with gentle surf and broad sandy frontage.",
+    imageColor: "bg-teal-300"
+  },
+  {
+    name: "Brownes Beach",
+    slug: "brownes-beach",
+    latitude: 13.0856853,
+    longitude: -59.6097046,
+    coast: "South",
+    type: "calm",
+    description: "A wide, popular beach by Bridgetown with generally calm water and easy swimming.",
+    imageColor: "bg-indigo-300"
+  },
+  {
+    name: "Brandons Beach",
+    slug: "brandons-beach",
+    latitude: 13.1145398,
+    longitude: -59.6272748,
+    coast: "West",
+    type: "calm",
+    description: "A spacious west-coast stretch with mellow conditions and fewer crowds than central beaches.",
+    imageColor: "bg-sky-300"
+  },
+  {
+    name: "Miami Beach (Barbados)",
+    slug: "miami-beach-barbados",
+    latitude: 13.0605435,
+    longitude: -59.5407149,
+    coast: "South",
+    type: "moderate",
+    description: "A scenic south-coast beach with a calmer side for swimming and livelier waves nearby.",
+    imageColor: "bg-cyan-300"
+  },
+  {
+    name: "Silver Sands",
+    slug: "silver-sands",
+    latitude: 13.0473494,
+    longitude: -59.5222234,
+    coast: "South",
+    type: "surf",
+    description: "A breezy south-coast spot known for stronger wind and wave conditions.",
+    imageColor: "bg-blue-300"
+  },
+  {
+    name: "Long Beach",
+    slug: "long-beach",
+    latitude: 13.0659198,
+    longitude: -59.5047515,
+    coast: "East",
+    type: "surf",
+    description: "A remote Atlantic-facing beach with open exposure, stronger surf, and fewer facilities.",
+    imageColor: "bg-teal-300"
+  },
+  {
+    name: "Bottom Bay",
+    slug: "bottom-bay",
+    latitude: 13.139541,
+    longitude: -59.4269296,
+    coast: "East",
+    type: "surf",
+    description: "A picturesque cove below cliffs with beautiful sand but often rough Atlantic swell.",
+    imageColor: "bg-indigo-300"
+  },
+  {
+    name: "Foul Bay",
+    slug: "foul-bay",
+    latitude: 13.0966061,
+    longitude: -59.454875,
+    coast: "East",
+    type: "surf",
+    description: "A broad, open beach with energetic waves and a wild east-coast feel.",
+    imageColor: "bg-sky-300"
+  },
+  {
+    name: "Cattlewash",
+    slug: "cattlewash",
+    latitude: 13.2217907,
+    longitude: -59.5320141,
+    coast: "East",
+    type: "surf",
+    description: "A long east-coast strip with persistent Atlantic swell and dramatic scenery.",
+    imageColor: "bg-cyan-300"
+  },
+  {
+    name: "Soup Bowl",
+    slug: "soup-bowl",
+    latitude: 13.2145687,
+    longitude: -59.5231763,
+    coast: "East",
+    type: "surf",
+    description: "Barbados' iconic surf break with powerful, consistent waves near Bathsheba.",
+    imageColor: "bg-blue-300"
+  },
+  {
+    name: "Freights Bay",
+    slug: "freights-bay",
+    latitude: 13.0529211,
+    longitude: -59.5352343,
+    coast: "South",
+    type: "surf",
+    description: "A south-coast surf beach known for long, friendly right-hand waves.",
+    imageColor: "bg-teal-300"
+  },
+  {
+    name: "Surfers Point",
+    slug: "surfers-point",
+    latitude: 13.053152,
+    longitude: -59.5059623,
+    coast: "South",
+    type: "surf",
+    description: "A wind- and swell-exposed point area popular with surfers and kite or windsurfers.",
+    imageColor: "bg-indigo-300"
+  },
+  {
+    name: "Enterprise Beach",
+    slug: "enterprise-beach",
+    latitude: 13.0599465,
+    longitude: -59.538695,
+    coast: "South",
+    type: "moderate",
+    description: "A scenic south-coast beach with alternating calm pockets and active shore break.",
+    imageColor: "bg-sky-300"
+  },
+  {
+    name: "Rockley Beach",
+    slug: "rockley-beach",
+    latitude: 13.0731047,
+    longitude: -59.588012,
+    coast: "South",
+    type: "moderate",
+    description: "A busy south-coast beach with mixed sea state and plenty of nearby amenities.",
+    imageColor: "bg-cyan-300"
+  },
+  {
+    name: "Worthing Beach",
+    slug: "worthing-beach",
+    latitude: 13.0711426,
+    longitude: -59.5828412,
+    coast: "South",
+    type: "calm",
+    description: "A generally sheltered south-coast beach with easy swimming and a relaxed atmosphere.",
+    imageColor: "bg-blue-300"
+  },
+  {
+    name: "Maxwell Beach",
+    slug: "maxwell-beach",
+    latitude: 13.0647756,
+    longitude: -59.5616773,
+    coast: "South",
+    type: "moderate",
+    description: "A long south-coast beach where conditions vary from calm stretches to moderate surf.",
+    imageColor: "bg-teal-300"
+  },
+  {
+    name: "Oistins Bay",
+    slug: "oistins-bay",
+    latitude: 13.0634152,
+    longitude: -59.5426339,
+    coast: "South",
+    type: "calm",
+    description: "A sheltered bay area near Oistins with mostly gentle water and local activity.",
+    imageColor: "bg-indigo-300"
+  }
 ];
 
 function formatValue(value: number | null, unit: string, digits = 1): string {
@@ -91,16 +340,73 @@ function clampToRange(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-function computeSwimScore(waveHeight: number | null, windSpeed: number | null): number | null {
+function roundBeachScore(value: number): number {
+  return Math.round(clampToRange(value, 1, 10));
+}
+
+function computeBeachScore(
+  beachType: Beach["type"],
+  waveHeight: number | null,
+  wavePeriod: number | null,
+  windSpeed: number | null
+): number | null {
   if (waveHeight === null || windSpeed === null) {
     return null;
   }
 
-  // Lower wave height and lower wind speed produce a higher swim score.
-  const wavePenalty = clampToRange(waveHeight * 2.5, 0, 6);
-  const windPenalty = clampToRange(windSpeed / 10, 0, 3);
-  const score = 10 - wavePenalty - windPenalty;
-  return Math.round(clampToRange(score, 1, 10));
+  if (beachType === "calm") {
+    let score = 9;
+
+    if (waveHeight <= 0.8) score += 0.2;
+    else if (waveHeight <= 1.0) score += 0;
+    else if (waveHeight <= 1.25) score -= 1;
+    else if (waveHeight <= 1.5) score -= 2;
+    else if (waveHeight <= 2.0) score -= 3.5;
+    else score -= 5;
+
+    if (windSpeed > 25 && windSpeed <= 30) score -= 1;
+    else if (windSpeed > 30 && windSpeed <= 35) score -= 1.5;
+    else if (windSpeed > 35) score -= 2;
+
+    return roundBeachScore(score);
+  }
+
+  if (beachType === "moderate") {
+    let score = 7;
+
+    if (waveHeight <= 0.8) score += 0.5;
+    else if (waveHeight <= 1.5) score += 0;
+    else if (waveHeight <= 2.0) score -= 1.5;
+    else if (waveHeight <= 2.5) score -= 3;
+    else score -= 4.5;
+
+    if (windSpeed > 30 && windSpeed <= 35) score -= 1;
+    else if (windSpeed > 35 && windSpeed <= 40) score -= 1.5;
+    else if (windSpeed > 40) score -= 2;
+
+    return roundBeachScore(score);
+  }
+
+  let score = 3.5;
+
+  if (waveHeight < 0.7) score -= 2;
+  else if (waveHeight < 1.2) score -= 0.5;
+  else if (waveHeight <= 1.5) score += 1;
+  else if (waveHeight <= 3.0) score += 3;
+  else if (waveHeight <= 3.8) score += 1.5;
+  else score -= 1;
+
+  if (wavePeriod !== null) {
+    if (wavePeriod >= 10) score += 2;
+    else if (wavePeriod >= 8) score += 1.2;
+    else if (wavePeriod >= 6) score += 0.4;
+    else score -= 1.2;
+  }
+
+  if (windSpeed > 35 && windSpeed <= 45) score -= 0.5;
+  else if (windSpeed > 45) score -= 1;
+
+  return roundBeachScore(score);
 }
 
 function scoreStyles(score: number | null): string {
@@ -114,6 +420,39 @@ function scoreStyles(score: number | null): string {
     return "bg-amber-100 text-amber-700";
   }
   return "bg-rose-100 text-rose-700";
+}
+
+function coastChipStyles(coast: Beach["coast"]): string {
+  if (coast === "West") {
+    return "bg-sky-100 text-sky-700 ring-sky-200";
+  }
+  if (coast === "South") {
+    return "bg-amber-100 text-amber-700 ring-amber-200";
+  }
+  return "bg-emerald-100 text-emerald-700 ring-emerald-200";
+}
+
+function typeChipStyles(type: Beach["type"]): string {
+  if (type === "calm") {
+    return "bg-sky-100 text-sky-700 ring-sky-200";
+  }
+  if (type === "moderate") {
+    return "bg-amber-100 text-amber-700 ring-amber-200";
+  }
+  return "bg-teal-100 text-teal-700 ring-teal-200";
+}
+
+function missingScoreReason(conditions: BeachConditions): string | null {
+  if (conditions.waveHeight === null && conditions.windSpeed === null) {
+    return "Score unavailable: missing wave and wind data.";
+  }
+  if (conditions.waveHeight === null) {
+    return "Score unavailable: missing wave data.";
+  }
+  if (conditions.windSpeed === null) {
+    return "Score unavailable: missing wind data.";
+  }
+  return null;
 }
 
 function parseOpenMeteoTimestamp(value: string | null | undefined): number | null {
@@ -201,7 +540,7 @@ async function fetchBeachConditions(beach: Beach): Promise<BeachConditions> {
       wavePeriod,
       windSpeed,
       windDirection,
-      swimScore: computeSwimScore(waveHeight, windSpeed),
+      swimScore: computeBeachScore(beach.type, waveHeight, wavePeriod, windSpeed),
       lastUpdatedAt: combinedTimestamp !== null ? new Date(combinedTimestamp).toISOString() : null
     };
   } catch {
@@ -216,22 +555,25 @@ async function fetchBeachConditions(beach: Beach): Promise<BeachConditions> {
   }
 }
 
-async function fetchBeachPhoto(beach: Beach, baseUrl: string): Promise<string | null> {
-  try {
-    const response = await fetch(
-      `${baseUrl}/api/beach-photos?beach=${encodeURIComponent(beach.name)}`,
-      { next: { revalidate: 3600 } }
-    );
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  mapper: (item: T, index: number) => Promise<R>
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let nextIndex = 0;
 
-    if (!response.ok) {
-      return null;
+  async function worker() {
+    while (nextIndex < items.length) {
+      const i = nextIndex;
+      nextIndex += 1;
+      results[i] = await mapper(items[i], i);
     }
-
-    const data = (await response.json()) as { photoUrls?: string[] };
-    return data.photoUrls?.[0] ?? null;
-  } catch {
-    return null;
   }
+
+  const pool = Math.min(Math.max(1, concurrency), items.length);
+  await Promise.all(Array.from({ length: pool }, () => worker()));
+  return results;
 }
 
 function MetricRow({
@@ -328,18 +670,17 @@ function TimerIcon() {
 }
 
 export default async function Home() {
-  const requestHeaders = await headers();
-  const host = requestHeaders.get("host") ?? "localhost:3000";
-  const protocol = host.includes("localhost") ? "http" : "https";
-  const baseUrl = `${protocol}://${host}`;
-
-  const beachCards = await Promise.all(
-    beaches.map(async (beach) => ({
+  const beachCards = await mapWithConcurrency(beaches, 8, async (beach) => {
+    const [conditions, photoUrls] = await Promise.all([
+      fetchBeachConditions(beach),
+      getBeachPhotoUrls(beach.name)
+    ]);
+    return {
       ...beach,
-      conditions: await fetchBeachConditions(beach),
-      photoUrl: await fetchBeachPhoto(beach, baseUrl)
-    }))
-  );
+      conditions,
+      photoUrl: photoUrls[0] ?? null
+    };
+  });
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
@@ -358,7 +699,7 @@ export default async function Home() {
       <section className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {beachCards.map((beach) => (
           <article
-            key={beach.name}
+            key={beach.slug}
             className="overflow-hidden rounded-2xl border border-ocean-100/70 bg-white/75 shadow-sm backdrop-blur-sm"
           >
             <div
@@ -381,9 +722,13 @@ export default async function Home() {
                     beach.conditions.swimScore
                   )}`}
                 >
-                  Swim {beach.conditions.swimScore ?? "N/A"}/10
+                  {beach.type === "surf" ? "Surf" : "Swim"} {beach.conditions.swimScore ?? "N/A"}/10
                 </p>
               </div>
+              {beach.conditions.swimScore === null && (
+                <p className="text-xs text-slate-500">{missingScoreReason(beach.conditions)}</p>
+              )}
+              <p className="text-sm text-slate-600">{beach.description}</p>
 
               <div className="space-y-2.5">
                 <MetricRow
@@ -406,6 +751,22 @@ export default async function Home() {
                   label="Wind direction"
                   value={degreesToCompass(beach.conditions.windDirection)}
                 />
+              </div>
+              <div className="flex items-center gap-2 pt-0.5">
+                <span
+                  className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${coastChipStyles(
+                    beach.coast
+                  )}`}
+                >
+                  {beach.coast} coast
+                </span>
+                <span
+                  className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium capitalize ring-1 ring-inset ${typeChipStyles(
+                    beach.type
+                  )}`}
+                >
+                  {beach.type}
+                </span>
               </div>
               <p
                 className={`pt-1 text-xs ${
