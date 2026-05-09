@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import type { BeachCardData } from "@/types/beach";
+import type { BeachCardData, BeachCoast } from "@/types/beach";
 import {
   activityLabel,
   coastChipStyles,
@@ -15,6 +15,7 @@ import {
   scoreStyles,
   typeChipStyles
 } from "@/lib/beach-format";
+import { CoastIntroBanner } from "@/components/CoastIntroBanner";
 
 const COAST_FILTERS = ["All", "North", "West", "South", "Southeast", "East"] as const;
 
@@ -143,6 +144,20 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
     return beachCards.filter((b) => b.coast === coastFilter);
   }, [beachCards, coastFilter]);
 
+  const countsByCoast = useMemo(() => {
+    const counts: Record<BeachCoast, number> = {
+      North: 0,
+      West: 0,
+      South: 0,
+      Southeast: 0,
+      East: 0
+    };
+    for (const b of beachCards) {
+      counts[b.coast] += 1;
+    }
+    return counts;
+  }, [beachCards]);
+
   return (
     <>
       <div className="mt-10 flex flex-wrap items-center justify-center gap-2">
@@ -164,6 +179,14 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
           );
         })}
       </div>
+
+      {coastFilter !== "All" && (
+        <CoastIntroBanner
+          key={coastFilter}
+          coast={coastFilter}
+          count={countsByCoast[coastFilter]}
+        />
+      )}
 
       <section className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {visibleCards.map((beach) => (
