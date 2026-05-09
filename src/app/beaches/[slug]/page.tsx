@@ -66,6 +66,7 @@ export default async function BeachDetailPage({ params }: PageProps) {
 
   const heroUrl = photoUrls[0] ?? null;
   const hasWebcam = beach.webcamUrl.trim() !== "";
+  const isWarningNote = beach.notes.includes("⚠️");
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
@@ -108,33 +109,13 @@ export default async function BeachDetailPage({ params }: PageProps) {
           <BeachConditionPanel beach={beach} conditions={conditions} />
         </section>
 
-        <section className="rounded-2xl border border-ocean-100/80 bg-white/85 p-6 shadow-sm backdrop-blur-sm">
-          <h2 className="text-lg font-semibold text-slate-800">7-day wave forecast</h2>
-          <p className="mt-1 text-sm text-slate-600">
-            Maximum hourly wave height per day (Open-Meteo marine, America/Barbados).
-          </p>
-          <div className="mt-6">
-            <WaveForecastChart data={waveForecast} />
-          </div>
-        </section>
-
-        <section>
-          <h2 className="text-lg font-semibold text-slate-800">Best for</h2>
-          <p className="mt-3 text-base leading-relaxed text-slate-700">{beach.bestFor}</p>
-        </section>
-
-        <section>
-          <h2 className="text-lg font-semibold text-slate-800">Notes</h2>
-          <p className="mt-3 text-base leading-relaxed text-slate-600">{beach.notes}</p>
-        </section>
-
         {hasWebcam && (
           <section>
-            <h2 className="text-lg font-semibold text-slate-800">Live webcam</h2>
+            <h2 className="text-lg font-semibold text-slate-800">Live Cam</h2>
             <div className="mt-4 overflow-hidden rounded-2xl border border-ocean-100/80 bg-slate-900/5 shadow-inner">
               <iframe
                 src={beach.webcamUrl}
-                title={`Live webcam — ${beach.name}`}
+                title={`Live Cam — ${beach.name}`}
                 className="aspect-video w-full min-h-[240px]"
                 allow="autoplay; fullscreen"
                 loading="lazy"
@@ -152,6 +133,63 @@ export default async function BeachDetailPage({ params }: PageProps) {
               </a>
               .
             </p>
+          </section>
+        )}
+
+        <section className="rounded-2xl border border-ocean-100/80 bg-white/85 p-6 shadow-sm backdrop-blur-sm">
+          <h2 className="text-lg font-semibold text-slate-800">7-day wave forecast</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Maximum hourly wave height per day (Open-Meteo marine, America/Barbados).
+          </p>
+          <div className="mt-6">
+            <WaveForecastChart data={waveForecast} />
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-lg font-semibold text-slate-800">Best for</h2>
+          <p className="mt-3 text-base leading-relaxed text-slate-700">{beach.bestFor}</p>
+        </section>
+
+        {isWarningNote ? (
+          <section
+            role="note"
+            aria-label="Safety warning"
+            className="flex gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-5 shadow-sm"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              className="mt-0.5 h-6 w-6 flex-shrink-0 text-amber-600"
+            >
+              <path
+                d="M12 3 2.5 20h19L12 3Z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M12 10v5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <circle cx="12" cy="17.5" r="1" fill="currentColor" />
+            </svg>
+            <div>
+              <h2 className="text-base font-semibold text-amber-900">Safety notice</h2>
+              <p className="mt-1 text-sm leading-relaxed text-amber-900/90">
+                {beach.notes.replace(/^⚠️\s*/, "")}
+              </p>
+            </div>
+          </section>
+        ) : (
+          <section>
+            <h2 className="text-lg font-semibold text-slate-800">Notes</h2>
+            <p className="mt-3 text-base leading-relaxed text-slate-600">{beach.notes}</p>
           </section>
         )}
 
