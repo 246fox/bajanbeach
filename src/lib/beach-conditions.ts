@@ -106,7 +106,18 @@ function parseOpenMeteoTimestamp(value: string | null | undefined): number | nul
   if (!value) {
     return null;
   }
-  const parsed = Date.parse(value);
+  // Open-Meteo with `timezone=auto` returns Barbados-local timestamps with
+  // NO timezone offset, e.g. "2026-05-08T22:30". `Date.parse` would then
+  // interpret them in the host machine's timezone — fine on a localhost in
+  // AST, but on Vercel (UTC) the value lands 4 hours ahead. Barbados does
+  // not observe DST, so we can safely pin missing offsets to -04:00.
+  const hasTimezone = /Z$|[+-]\d{2}:?\d{2}$/.test(value);
+  let normalized = value;
+  if (!hasTimezone) {
+    const hasSeconds = /T\d{2}:\d{2}:\d{2}/.test(value);
+    normalized = `${value}${hasSeconds ? "" : ":00"}-04:00`;
+  }
+  const parsed = Date.parse(normalized);
   return Number.isNaN(parsed) ? null : parsed;
 }
 
