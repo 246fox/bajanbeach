@@ -59,9 +59,9 @@ export default async function Home() {
           <Image
             src="/logo.jpeg"
             alt="BajanBeach logo"
-            width={200}
-            height={64}
-            className="h-auto w-[150px] sm:w-[200px]"
+            width={400}
+            height={128}
+            className="h-auto w-[240px] sm:w-[320px]"
             priority
           />
         </div>
