@@ -173,8 +173,7 @@ export default async function BeachDetailPage({ params }: PageProps) {
             <SargassumBadge display={sargassumDisplay} />
           </div>
           <p className="mt-4 text-xs leading-relaxed text-slate-500">
-            Sargassum levels are coast-level estimates updated weekly. Conditions vary along beaches — check webcams or
-            call ahead for the current state.
+            Sargassum levels are coast-level estimates, updated weekly. Conditions may vary along beaches — check webcams if available.
           </p>
         </section>
 
