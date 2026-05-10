@@ -14,6 +14,18 @@ type PageProps = {
   params: { slug: string };
 };
 
+const META_DESCRIPTION_MAX = 155;
+
+function truncateMetaDescription(text: string, max = META_DESCRIPTION_MAX): string {
+  const trimmed = text.trim();
+  if (trimmed.length <= max) {
+    return trimmed;
+  }
+  const ellipsis = "...";
+  const cut = max - ellipsis.length;
+  return `${trimmed.slice(0, Math.max(0, cut))}${ellipsis}`;
+}
+
 export async function generateStaticParams() {
   return beaches.map((b) => ({ slug: b.slug }));
 }
@@ -23,9 +35,34 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!beach) {
     return { title: "Beach | BajanBeach" };
   }
+
+  const title = `${beach.name} Conditions Today | BajanBeach`;
+  const description = truncateMetaDescription(beach.description);
+  const photoUrls = await getBeachPhotoUrls(beach.name);
+  const ogImageUrl = photoUrls[0] ?? null;
+
   return {
-    title: `${beach.name} | BajanBeach`,
-    description: beach.description
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `/beaches/${beach.slug}`,
+      images: ogImageUrl
+        ? [
+            {
+              url: ogImageUrl,
+              alt: `${beach.name}, Barbados`
+            }
+          ]
+        : undefined
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: ogImageUrl ? [ogImageUrl] : undefined
+    }
   };
 }
 
