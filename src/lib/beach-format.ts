@@ -49,6 +49,13 @@ export function scoreStyles(score: number | null): string {
   return "bg-rose-100 text-rose-700";
 }
 
+export function formatScoreLabel(score: number | null): string {
+  if (score === null) {
+    return "Not available";
+  }
+  return `${score}/10`;
+}
+
 export function coastChipStyles(coast: BeachCoast): string {
   switch (coast) {
     case "North":

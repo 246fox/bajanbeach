@@ -10,6 +10,7 @@ import {
   degreesToCompass,
   formatUpdatedTime,
   formatValue,
+  formatScoreLabel,
   isStaleTimestamp,
   missingScoreReason,
   scoreStyles,
@@ -390,7 +391,7 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
                     beach.conditions.swimScore
                   )}`}
                 >
-                  {activityLabel(beach)} {beach.conditions.swimScore ?? "N/A"}/10
+                  {activityLabel(beach)} {formatScoreLabel(beach.conditions.swimScore)}
                 </p>
               </div>
               {beach.conditions.swimScore === null && (

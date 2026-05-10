@@ -3,6 +3,7 @@ import type { Beach, BeachConditions } from "@/types/beach";
 import {
   activityLabel,
   degreesToCompass,
+  formatScoreLabel,
   formatUpdatedTime,
   formatValue,
   isStaleTimestamp,
@@ -128,7 +129,7 @@ export function BeachConditionPanel({
               conditions.swimScore
             )}`}
           >
-            {conditions.swimScore ?? "N/A"}/10
+            {formatScoreLabel(conditions.swimScore)}
           </p>
         </div>
       </div>

@@ -26,6 +26,18 @@ type MarineResponse = {
   };
 };
 
+async function safeReadBodySnippet(response: Response): Promise<string | null> {
+  try {
+    const text = await response.text();
+    if (!text) {
+      return null;
+    }
+    return text.slice(0, 500);
+  } catch {
+    return null;
+  }
+}
+
 function clampToRange(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
@@ -137,6 +149,18 @@ export async function fetchBeachConditions(beach: Beach): Promise<BeachCondition
     ]);
 
     if (!weatherResponse.ok || !marineResponse.ok) {
+      const weatherErrorBody = weatherResponse.ok ? null : await safeReadBodySnippet(weatherResponse);
+      const marineErrorBody = marineResponse.ok ? null : await safeReadBodySnippet(marineResponse);
+      console.error("[beach-conditions] Open-Meteo request failed", {
+        beachSlug: beach.slug,
+        beachName: beach.name,
+        weatherStatus: weatherResponse.status,
+        weatherStatusText: weatherResponse.statusText,
+        weatherErrorBody,
+        marineStatus: marineResponse.status,
+        marineStatusText: marineResponse.statusText,
+        marineErrorBody
+      });
       throw new Error("Failed to fetch one or more APIs");
     }
 
@@ -162,6 +186,21 @@ export async function fetchBeachConditions(beach: Beach): Promise<BeachCondition
         ? Math.min(windTimestamp, waveTimestamp)
         : windTimestamp ?? waveTimestamp;
 
+    if (waveHeight === null || windSpeed === null) {
+      console.warn("[beach-conditions] Missing score inputs from Open-Meteo response", {
+        beachSlug: beach.slug,
+        beachName: beach.name,
+        waveHeight,
+        wavePeriod,
+        windSpeed,
+        windDirection,
+        weatherHasCurrent: Boolean(weatherData.current_weather),
+        marineHasCurrent: Boolean(marineData.current),
+        weatherHourlyCount: weatherData.hourly?.time?.length ?? 0,
+        marineHourlyCount: marineData.hourly?.time?.length ?? 0
+      });
+    }
+
     return {
       waveHeight,
       wavePeriod,
@@ -170,7 +209,12 @@ export async function fetchBeachConditions(beach: Beach): Promise<BeachCondition
       swimScore: computeBeachScore(beach.swellTolerance, waveHeight, wavePeriod, windSpeed),
       lastUpdatedAt: combinedTimestamp !== null ? new Date(combinedTimestamp).toISOString() : null
     };
-  } catch {
+  } catch (error) {
+    console.error("[beach-conditions] Failed to build beach conditions", {
+      beachSlug: beach.slug,
+      beachName: beach.name,
+      message: error instanceof Error ? error.message : "Unknown error"
+    });
     return {
       waveHeight: null,
       wavePeriod: null,
