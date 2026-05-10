@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import Image from "next/image";
 import { BeachBoard } from "@/components/BeachBoard";
@@ -8,6 +9,23 @@ import { fetchSargassumByCoast, rowToDisplay } from "@/lib/sargassum";
 import type { BeachCardData } from "@/types/beach";
 
 export const revalidate = 300;
+
+const HOME_SEO_TITLE = "BajanBeach — The Barbados Beach Guide";
+const HOME_SEO_DESCRIPTION =
+  "Local insights, live conditions, and sargassum updates for over 60 Barbados beaches. From calm West Coast swimming to Soup Bowl surf — find your perfect beach today.";
+
+export const metadata: Metadata = {
+  title: HOME_SEO_TITLE,
+  description: HOME_SEO_DESCRIPTION,
+  openGraph: {
+    title: HOME_SEO_TITLE,
+    description: HOME_SEO_DESCRIPTION
+  },
+  twitter: {
+    title: HOME_SEO_TITLE,
+    description: HOME_SEO_DESCRIPTION
+  }
+};
 
 const HERO_BG_CLASSES = [
   "bg-sky-300",
@@ -60,7 +78,7 @@ export default async function Home() {
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
       <section className="text-center">
         <p className="text-sm font-semibold uppercase tracking-[0.22em] text-ocean-700">
-          Barbados Beach Tracker
+          Barbados Beach Guide
         </p>
         <div className="mt-3 flex justify-center">
           <Image
@@ -73,7 +91,7 @@ export default async function Home() {
           />
         </div>
         <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
-          Live wave and wind conditions for your favorite Barbados beaches, refreshed every hour.
+          Local insights and live beach conditions for over 60 Barbados beaches. Updated hourly.
         </p>
       </section>
 
