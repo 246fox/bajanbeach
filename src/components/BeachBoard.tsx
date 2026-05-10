@@ -85,6 +85,30 @@ function parseCoastFromQuery(value: string | null): CoastFilter {
   return COAST_QUERY_TO_FILTER[value.toLowerCase()] ?? "All";
 }
 
+type SortOption = "coast" | "name" | "swim" | "surf";
+
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: "coast", label: "Coast" },
+  { value: "name", label: "Name (A-Z)" },
+  { value: "swim", label: "Best for swimming today" },
+  { value: "surf", label: "Best for surfing today" }
+];
+
+function compareScoreDesc(a: BeachCardData, b: BeachCardData): number {
+  const sa = a.conditions.swimScore;
+  const sb = b.conditions.swimScore;
+  if (sa === null && sb === null) {
+    return 0;
+  }
+  if (sa === null) {
+    return 1;
+  }
+  if (sb === null) {
+    return -1;
+  }
+  return sb - sa;
+}
+
 function MetricRow({
   icon,
   label,
@@ -204,18 +228,55 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
   const [coastFilter, setCoastFilter] = useState<CoastFilter>(() =>
     parseCoastFromQuery(searchParams.get("coast"))
   );
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOption, setSortOption] = useState<SortOption>("coast");
 
   useEffect(() => {
     const nextFilter = parseCoastFromQuery(searchParams.get("coast"));
     setCoastFilter((currentFilter) => (currentFilter === nextFilter ? currentFilter : nextFilter));
   }, [searchParams]);
 
-  const visibleCards = useMemo(() => {
+  const coastFiltered = useMemo(() => {
     if (coastFilter === "All") {
       return beachCards;
     }
     return beachCards.filter((b) => b.coast === coastFilter);
   }, [beachCards, coastFilter]);
+
+  const searchFiltered = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) {
+      return coastFiltered;
+    }
+    return coastFiltered.filter(
+      (b) =>
+        b.name.toLowerCase().includes(q) ||
+        b.parish.toLowerCase().includes(q) ||
+        b.slug.toLowerCase().includes(q)
+    );
+  }, [coastFiltered, searchQuery]);
+
+  const displayedCards = useMemo(() => {
+    const list = searchFiltered;
+    switch (sortOption) {
+      case "coast":
+        return list;
+      case "name":
+        return [...list].sort((a, b) => a.name.localeCompare(b.name));
+      case "swim": {
+        const swim = list.filter((b) => b.type === "calm" || b.type === "moderate");
+        return [...swim].sort(compareScoreDesc);
+      }
+      case "surf": {
+        const surf = list.filter((b) => b.type === "surf");
+        return [...surf].sort(compareScoreDesc);
+      }
+      default:
+        return list;
+    }
+  }, [searchFiltered, sortOption]);
+
+  const searchActive = searchQuery.trim() !== "";
 
   const countsByCoast = useMemo(() => {
     const counts: Record<BeachCoast, number> = {
@@ -309,7 +370,50 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
         </div>
       </section>
 
-      <div className="mt-10 flex flex-wrap items-center justify-center gap-2">
+      <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-stretch sm:gap-4">
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <label htmlFor="beach-search" className="sr-only">
+            Find a beach
+          </label>
+          <input
+            id="beach-search"
+            type="search"
+            autoComplete="off"
+            placeholder="Find a beach..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-2xl border border-ocean-100/80 bg-white px-4 py-2.5 text-sm text-slate-800 shadow-sm placeholder:text-slate-400 focus:border-ocean-400 focus:outline-none focus:ring-2 focus:ring-ocean-400/35"
+          />
+          {searchActive && (
+            <p className="text-xs text-slate-600" aria-live="polite">
+              {displayedCards.length} beaches found
+            </p>
+          )}
+        </div>
+        <div className="flex shrink-0 flex-col justify-center sm:w-72 lg:w-80">
+          <label htmlFor="beach-sort" className="sr-only">
+            Sort beaches
+          </label>
+          <div className="flex min-h-[42px] items-center gap-2 rounded-2xl border border-ocean-100/80 bg-white px-3 py-2 shadow-sm focus-within:border-ocean-400 focus-within:ring-2 focus-within:ring-ocean-400/35">
+            <span className="shrink-0 text-sm font-medium text-slate-600">Sort:</span>
+            <select
+              id="beach-sort"
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value as SortOption)}
+              title="Sort beaches"
+              className="min-w-0 flex-1 cursor-pointer bg-transparent text-sm font-medium text-slate-800 focus:outline-none"
+            >
+              {SORT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
         {COAST_FILTERS.map((label) => {
           const active = coastFilter === label;
           return (
@@ -337,8 +441,12 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
         />
       )}
 
-      <section id="beach-grid" className="mt-8 scroll-mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {visibleCards.map((beach) => (
+      <section id="beach-grid" className="mt-8 scroll-mt-8">
+        {displayedCards.length === 0 ? (
+          <p className="py-12 text-center text-sm text-slate-600">No beaches match your search</p>
+        ) : (
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {displayedCards.map((beach) => (
           <article
             key={beach.slug}
             role="link"
@@ -460,7 +568,9 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
               </p>
             </div>
           </article>
-        ))}
+            ))}
+          </div>
+        )}
       </section>
     </>
   );
