@@ -67,6 +67,13 @@ export default async function BeachDetailPage({ params }: PageProps) {
   const heroUrl = photoUrls[0] ?? null;
   const hasWebcam = beach.webcamUrl.trim() !== "";
   const isWarningNote = beach.notes.includes("⚠️");
+  const mapsEmbedUrl = `https://www.google.com/maps/embed/v1/place?${new URLSearchParams({
+    key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ?? "",
+    q: `${beach.latitude},${beach.longitude}`,
+    center: `${beach.latitude},${beach.longitude}`,
+    zoom: "15"
+  }).toString()}`;
+  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${beach.latitude},${beach.longitude}`;
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
@@ -107,6 +114,28 @@ export default async function BeachDetailPage({ params }: PageProps) {
 
         <section>
           <BeachConditionPanel beach={beach} conditions={conditions} />
+        </section>
+
+        <section className="rounded-2xl border border-ocean-100/80 bg-white/85 p-6 shadow-sm backdrop-blur-sm">
+          <h2 className="text-lg font-semibold text-slate-800">Location</h2>
+          <a
+            href={directionsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-ocean-700 px-5 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-ocean-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-400 focus-visible:ring-offset-2"
+          >
+            Get Directions
+          </a>
+          <div className="mt-4 overflow-hidden rounded-2xl border border-ocean-100/80 bg-slate-100">
+            <iframe
+              title={`Map of ${beach.name}`}
+              src={mapsEmbedUrl}
+              className="h-[320px] w-full sm:h-[380px]"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+            />
+          </div>
         </section>
 
         {hasWebcam && (
