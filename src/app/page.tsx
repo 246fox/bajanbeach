@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Image from "next/image";
 import { BeachBoard } from "@/components/BeachBoard";
 import { beaches } from "@/data/beaches";
@@ -70,7 +71,9 @@ export default async function Home() {
         </p>
       </section>
 
-      <BeachBoard beachCards={beachCards} />
+      <Suspense fallback={null}>
+        <BeachBoard beachCards={beachCards} />
+      </Suspense>
     </main>
   );
 }
