@@ -42,8 +42,8 @@ const VIBE_CARDS: VibeCard[] = [
   {
     coast: "West",
     vibe: "Idyllic & Calm",
-    beachName: "Mullins Beach",
-    slug: "mullins-beach",
+    beachName: "Heron Bay",
+    slug: "heron-bay",
     fallbackClass: "bg-sky-300"
   },
   {
@@ -63,8 +63,8 @@ const VIBE_CARDS: VibeCard[] = [
   {
     coast: "South",
     vibe: "Lively & Active",
-    beachName: "Rockley Beach",
-    slug: "rockley-beach",
+    beachName: "Carlisle Bay",
+    slug: "carlisle-bay",
     fallbackClass: "bg-cyan-300"
   },
   {
