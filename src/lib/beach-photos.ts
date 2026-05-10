@@ -34,6 +34,14 @@ type PlaceDetailsResponse = {
   [key: string]: unknown;
 };
 
+type GoogleApiErrorPayload = {
+  error?: {
+    code?: number;
+    message?: string;
+    status?: string;
+  };
+};
+
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const beachPhotoCache = new Map<string, CacheEntry>();
 
@@ -47,6 +55,48 @@ function buildPhotoUrl(photoReference: string, apiKey: string): string {
     key: apiKey
   });
   return `https://places.googleapis.com/v1/${photoReference}/media?${params.toString()}`;
+}
+
+async function readGoogleError(response: Response): Promise<{
+  httpStatus: number;
+  apiCode: number | null;
+  apiStatus: string | null;
+  apiMessage: string | null;
+}> {
+  let payload: GoogleApiErrorPayload | null = null;
+
+  try {
+    payload = (await response.json()) as GoogleApiErrorPayload;
+  } catch {
+    // Ignore JSON parse failures and log HTTP status only.
+  }
+
+  return {
+    httpStatus: response.status,
+    apiCode: payload?.error?.code ?? null,
+    apiStatus: payload?.error?.status ?? null,
+    apiMessage: payload?.error?.message ?? null
+  };
+}
+
+function logPlacesFailure(
+  stage: "text-search" | "place-details",
+  beachName: string,
+  details: {
+    httpStatus: number;
+    apiCode: number | null;
+    apiStatus: string | null;
+    apiMessage: string | null;
+  }
+) {
+  console.error("[beach-photos] Google Places request failed", {
+    stage,
+    beachName,
+    httpStatus: details.httpStatus,
+    apiCode: details.apiCode,
+    apiStatus: details.apiStatus,
+    apiMessage: details.apiMessage
+  });
 }
 
 export async function getBeachPhotoUrls(beachName: string): Promise<string[]> {
@@ -85,6 +135,8 @@ export async function getBeachPhotoUrls(beachName: string): Promise<string[]> {
     );
 
     if (!textSearchResponse.ok) {
+      const errorDetails = await readGoogleError(textSearchResponse);
+      logPlacesFailure("text-search", trimmed, errorDetails);
       throw new Error("Text Search request failed");
     }
 
@@ -104,6 +156,8 @@ export async function getBeachPhotoUrls(beachName: string): Promise<string[]> {
     });
 
     if (!detailsResponse.ok) {
+      const errorDetails = await readGoogleError(detailsResponse);
+      logPlacesFailure("place-details", trimmed, errorDetails);
       throw new Error("Place Details request failed");
     }
 
@@ -116,7 +170,11 @@ export async function getBeachPhotoUrls(beachName: string): Promise<string[]> {
 
     beachPhotoCache.set(cacheKey, { photoUrls, fetchedAt: now });
     return photoUrls;
-  } catch {
+  } catch (error) {
+    console.error("[beach-photos] Failed to fetch beach photos", {
+      beachName: trimmed,
+      message: error instanceof Error ? error.message : "Unknown error"
+    });
     return [];
   }
 }
