@@ -7,7 +7,7 @@ import { getBeachPhotoUrls } from "@/lib/beach-photos";
 import { fetchSargassumByCoast, rowToDisplay } from "@/lib/sargassum";
 import type { BeachCardData } from "@/types/beach";
 
-export const revalidate = 3600;
+export const revalidate = 300;
 
 const HERO_BG_CLASSES = [
   "bg-sky-300",

@@ -17,7 +17,7 @@ export default async function AdminSargassumPage({
     <>
       {sp?.saved === "1" && (
         <div className="border-b border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-sm text-emerald-900">
-          Saved. Public site will show updated coast levels after the next page refresh (ISR ~1h).
+          Saved. Public site updated.
         </div>
       )}
       <SargassumAdminForm initialByCoast={initialByCoast} />

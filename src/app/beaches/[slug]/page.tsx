@@ -12,7 +12,7 @@ import { fetchSevenDayWaveForecast } from "@/lib/wave-forecast";
 import { fetchSargassumRowForCoast, rowToDisplay } from "@/lib/sargassum";
 import { SargassumBadge } from "@/components/SargassumBadge";
 
-export const revalidate = 3600;
+export const revalidate = 300;
 
 type PageProps = {
   params: { slug: string };
