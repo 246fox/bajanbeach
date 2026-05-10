@@ -17,6 +17,8 @@ export type Beach = {
   description: string;
   bestFor: string;
   notes: string;
+  /** Set at runtime from Supabase by coast — never in static JSON. */
+  sargassum?: SargassumDisplay;
 };
 
 export type BeachConditions = {
@@ -37,6 +39,10 @@ export type BeachTides = {
   nextLowAt: string | null;
   nextLowHeightM: number | null;
 };
+
+export type SargassumDisplay =
+  | { status: "ok"; level: "low" | "medium" | "high"; updatedAt: string }
+  | { status: "unavailable" };
 
 export type BeachCardData = Beach & {
   conditions: BeachConditions;

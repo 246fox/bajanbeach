@@ -17,6 +17,7 @@ import {
   typeChipStyles
 } from "@/lib/beach-format";
 import { CoastIntroBanner } from "@/components/CoastIntroBanner";
+import { SargassumBadge } from "@/components/SargassumBadge";
 
 const COAST_FILTERS = ["All", "North", "West", "South", "Southeast", "East"] as const;
 
@@ -440,6 +441,11 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
                   {beach.type}
                 </span>
               </div>
+              {beach.sargassum && (
+                <div className="pt-1">
+                  <SargassumBadge display={beach.sargassum} subtleUnavailable />
+                </div>
+              )}
               <p className="border-t border-slate-100 pt-3 text-xs italic leading-relaxed text-slate-500">
                 {beach.notes}
               </p>

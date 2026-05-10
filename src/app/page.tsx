@@ -4,7 +4,10 @@ import { BeachBoard } from "@/components/BeachBoard";
 import { beaches } from "@/data/beaches";
 import { fetchBeachConditions } from "@/lib/beach-conditions";
 import { getBeachPhotoUrls } from "@/lib/beach-photos";
+import { fetchSargassumByCoast, rowToDisplay } from "@/lib/sargassum";
 import type { BeachCardData } from "@/types/beach";
+
+export const revalidate = 3600;
 
 const HERO_BG_CLASSES = [
   "bg-sky-300",
@@ -37,6 +40,8 @@ async function mapWithConcurrency<T, R>(
 }
 
 export default async function Home() {
+  const sargassumByCoast = await fetchSargassumByCoast();
+
   const beachCards: BeachCardData[] = await mapWithConcurrency(beaches, 8, async (beach, index) => {
     const [conditions, photoUrls] = await Promise.all([
       fetchBeachConditions(beach),
@@ -46,7 +51,8 @@ export default async function Home() {
       ...beach,
       conditions,
       photoUrl: photoUrls[0] ?? null,
-      heroClass: HERO_BG_CLASSES[index % HERO_BG_CLASSES.length]
+      heroClass: HERO_BG_CLASSES[index % HERO_BG_CLASSES.length],
+      sargassum: rowToDisplay(sargassumByCoast[beach.coast])
     };
   });
 

@@ -9,6 +9,10 @@ import { fetchBeachConditions } from "@/lib/beach-conditions";
 import { fetchBeachTides } from "@/lib/beach-tides";
 import { getBeachPhotoUrls } from "@/lib/beach-photos";
 import { fetchSevenDayWaveForecast } from "@/lib/wave-forecast";
+import { fetchSargassumRowForCoast, rowToDisplay } from "@/lib/sargassum";
+import { SargassumBadge } from "@/components/SargassumBadge";
+
+export const revalidate = 3600;
 
 type PageProps = {
   params: { slug: string };
@@ -97,12 +101,15 @@ export default async function BeachDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const [conditions, tides, photoUrls, waveForecast] = await Promise.all([
+  const [conditions, tides, sargassumRow, photoUrls, waveForecast] = await Promise.all([
     fetchBeachConditions(beach),
     fetchBeachTides(beach),
+    fetchSargassumRowForCoast(beach.coast),
     getBeachPhotoUrls(beach.name),
     fetchSevenDayWaveForecast(beach.latitude, beach.longitude)
   ]);
+
+  const sargassumDisplay = rowToDisplay(sargassumRow);
 
   const heroUrl = photoUrls[0] ?? null;
   const hasWebcam = beach.webcamUrl.trim() !== "";
@@ -158,6 +165,17 @@ export default async function BeachDetailPage({ params }: PageProps) {
 
         <section>
           <BeachTidePanel tides={tides} />
+        </section>
+
+        <section className="rounded-2xl border border-ocean-100/80 bg-white/85 p-6 shadow-sm backdrop-blur-sm">
+          <h2 className="text-lg font-semibold text-slate-800">Sargassum</h2>
+          <div className="mt-4">
+            <SargassumBadge display={sargassumDisplay} />
+          </div>
+          <p className="mt-4 text-xs leading-relaxed text-slate-500">
+            Sargassum levels are coast-level estimates updated weekly. Conditions vary along beaches — check webcams or
+            call ahead for the current state.
+          </p>
         </section>
 
         <section className="rounded-2xl border border-ocean-100/80 bg-white/85 p-6 shadow-sm backdrop-blur-sm">
