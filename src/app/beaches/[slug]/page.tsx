@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BeachConditionPanel } from "@/components/BeachConditionPanel";
+import { BeachTidePanel } from "@/components/BeachTidePanel";
 import { WaveForecastChart } from "@/components/WaveForecastChart";
 import { beaches, getBeachBySlug } from "@/data/beaches";
 import { fetchBeachConditions } from "@/lib/beach-conditions";
+import { fetchBeachTides } from "@/lib/beach-tides";
 import { getBeachPhotoUrls } from "@/lib/beach-photos";
 import { fetchSevenDayWaveForecast } from "@/lib/wave-forecast";
 
@@ -58,8 +60,9 @@ export default async function BeachDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const [conditions, photoUrls, waveForecast] = await Promise.all([
+  const [conditions, tides, photoUrls, waveForecast] = await Promise.all([
     fetchBeachConditions(beach),
+    fetchBeachTides(beach),
     getBeachPhotoUrls(beach.name),
     fetchSevenDayWaveForecast(beach.latitude, beach.longitude)
   ]);
@@ -114,6 +117,10 @@ export default async function BeachDetailPage({ params }: PageProps) {
 
         <section>
           <BeachConditionPanel beach={beach} conditions={conditions} />
+        </section>
+
+        <section>
+          <BeachTidePanel tides={tides} />
         </section>
 
         <section className="rounded-2xl border border-ocean-100/80 bg-white/85 p-6 shadow-sm backdrop-blur-sm">

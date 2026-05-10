@@ -28,6 +28,16 @@ export type BeachConditions = {
   lastUpdatedAt: string | null;
 };
 
+export type TidePhase = "rising" | "falling" | "high" | "low";
+
+export type BeachTides = {
+  phase: TidePhase | null;
+  nextHighAt: string | null;
+  nextHighHeightM: number | null;
+  nextLowAt: string | null;
+  nextLowHeightM: number | null;
+};
+
 export type BeachCardData = Beach & {
   conditions: BeachConditions;
   photoUrl: string | null;

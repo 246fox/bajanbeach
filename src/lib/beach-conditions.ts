@@ -114,7 +114,7 @@ function computeBeachScore(
   return roundBeachScore(score);
 }
 
-function parseOpenMeteoTimestamp(value: string | null | undefined): number | null {
+export function parseOpenMeteoTimestamp(value: string | null | undefined): number | null {
   if (!value) {
     return null;
   }
