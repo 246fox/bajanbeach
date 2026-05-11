@@ -1,6 +1,6 @@
 export type BeachCoast = "North" | "West" | "South" | "Southeast" | "East";
 
-export type BeachType = "calm" | "moderate" | "surf";
+export type BeachType = "calm" | "moderate" | "surf" | "rough";
 
 export type SwellTolerance = "low" | "medium" | "high";
 

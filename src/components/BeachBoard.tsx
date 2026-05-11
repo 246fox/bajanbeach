@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { BeachCardData, BeachCoast } from "@/types/beach";
 import {
   activityLabel,
+  beachTypeLabel,
   coastChipStyles,
   degreesToCompass,
   formatUpdatedTime,
@@ -85,13 +86,14 @@ function parseCoastFromQuery(value: string | null): CoastFilter {
   return COAST_QUERY_TO_FILTER[value.toLowerCase()] ?? "All";
 }
 
-type SortOption = "coast" | "name" | "swim" | "surf";
+type SortOption = "coast" | "name" | "swim" | "surf" | "scenic";
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "coast", label: "Coast" },
   { value: "name", label: "Name (A-Z)" },
   { value: "swim", label: "Best for swimming today" },
-  { value: "surf", label: "Best for surfing today" }
+  { value: "surf", label: "Best for surfing today" },
+  { value: "scenic", label: "Best for scenic visits today" }
 ];
 
 function compareScoreDesc(a: BeachCardData, b: BeachCardData): number {
@@ -270,6 +272,10 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
       case "surf": {
         const surf = list.filter((b) => b.type === "surf");
         return [...surf].sort(compareScoreDesc);
+      }
+      case "scenic": {
+        const scenic = list.filter((b) => b.type === "rough");
+        return [...scenic].sort(compareScoreDesc);
       }
       default:
         return list;
@@ -542,11 +548,11 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
                   {beach.coast} coast
                 </span>
                 <span
-                  className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium capitalize ring-1 ring-inset ${typeChipStyles(
+                  className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${typeChipStyles(
                     beach.type
                   )}`}
                 >
-                  {beach.type}
+                  {beachTypeLabel(beach.type)}
                 </span>
               </div>
               {beach.sargassum && (

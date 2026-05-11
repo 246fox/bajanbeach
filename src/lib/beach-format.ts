@@ -78,7 +78,23 @@ export function typeChipStyles(type: BeachType): string {
   if (type === "moderate") {
     return "bg-amber-100 text-amber-700 ring-amber-200";
   }
+  if (type === "rough") {
+    return "bg-stone-100 text-stone-800 ring-stone-300";
+  }
   return "bg-teal-100 text-teal-700 ring-teal-200";
+}
+
+export function beachTypeLabel(type: BeachType): string {
+  switch (type) {
+    case "calm":
+      return "Calm";
+    case "moderate":
+      return "Moderate";
+    case "surf":
+      return "Surf";
+    case "rough":
+      return "Rough";
+  }
 }
 
 export function missingScoreReason(conditions: BeachConditions): string | null {
@@ -126,5 +142,11 @@ export function isStaleTimestamp(timestamp: string | null, maxAgeMs: number): bo
 }
 
 export function activityLabel(beach: Pick<Beach, "type">): string {
-  return beach.type === "surf" ? "Surf" : "Swim";
+  if (beach.type === "surf") {
+    return "Surf";
+  }
+  if (beach.type === "rough") {
+    return "Scenic";
+  }
+  return "Swim";
 }

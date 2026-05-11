@@ -80,6 +80,16 @@ export function windDirectionModifier(coast: Beach["coast"], windDirection: numb
   return 0;
 }
 
+function sargassumRoughPenalty(level: SargassumLevelForScore): number {
+  if (level === "medium") {
+    return -1.0;
+  }
+  if (level === "high") {
+    return -2.0;
+  }
+  return 0;
+}
+
 function sargassumSwimPenalty(type: Beach["type"], level: SargassumLevelForScore): number {
   if (type === "surf") {
     return 0;
@@ -224,6 +234,53 @@ function computeBeachScore(
 ): number | null {
   if (waveHeight === null || windSpeed === null) {
     return null;
+  }
+
+  if (beach.type === "rough") {
+    let roughScore = 7;
+
+    if (waveHeight > 3.5) {
+      roughScore -= 2;
+    } else if (waveHeight > 2.5) {
+      roughScore -= 1;
+    }
+
+    if (windSpeed > 45) {
+      roughScore -= 2.5;
+    } else if (windSpeed > 35) {
+      roughScore -= 1.5;
+    }
+
+    if (wavePeriod !== null && !Number.isNaN(wavePeriod) && wavePeriod >= 8) {
+      roughScore += 0.3;
+    }
+
+    roughScore += windDirectionModifier(beach.coast, windDirection);
+    roughScore += sargassumRoughPenalty(sargassumLevel);
+
+    if (waveHeight < 3.0 && windSpeed < 40 && roughScore < 4) {
+      const before = roughScore;
+      roughScore = 4;
+      console.log("[scoring]", {
+        beachSlug: beach.slug,
+        rule: "floor_4_rough_visit_window",
+        scoreBeforeFloorCeiling: before,
+        finalAfterFloorCeiling: roughScore
+      });
+    }
+
+    if (roughScore > 9) {
+      const before = roughScore;
+      roughScore = 9;
+      console.log("[scoring]", {
+        beachSlug: beach.slug,
+        rule: "ceiling_9_rough",
+        scoreBeforeFloorCeiling: before,
+        finalAfterFloorCeiling: roughScore
+      });
+    }
+
+    return roundBeachScore(roughScore);
   }
 
   let score: number;

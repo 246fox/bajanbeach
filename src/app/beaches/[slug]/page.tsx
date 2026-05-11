@@ -9,6 +9,7 @@ import { fetchBeachConditions } from "@/lib/beach-conditions";
 import { fetchBeachTides } from "@/lib/beach-tides";
 import { getBeachPhotoUrls } from "@/lib/beach-photos";
 import { fetchSevenDayWaveForecast } from "@/lib/wave-forecast";
+import { beachTypeLabel } from "@/lib/beach-format";
 import { fetchSargassumRowForCoast, rowToDisplay, sargassumLevelForScoring } from "@/lib/sargassum";
 import { SargassumBadge } from "@/components/SargassumBadge";
 
@@ -150,7 +151,7 @@ export default async function BeachDetailPage({ params }: PageProps) {
               <span className="mx-2 text-white/50">·</span>
               <span>{beach.coast} coast</span>
               <span className="mx-2 text-white/50">·</span>
-              <span className="capitalize">{beach.type}</span>
+              <span>{beachTypeLabel(beach.type)}</span>
             </p>
           </div>
         </div>
