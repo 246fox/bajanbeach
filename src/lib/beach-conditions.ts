@@ -1,3 +1,4 @@
+import type { SargassumLevelForScore } from "@/lib/sargassum";
 import type { Beach, BeachConditions } from "@/types/beach";
 
 type WeatherResponse = {
@@ -46,73 +47,248 @@ function roundBeachScore(value: number): number {
   return Math.round(clampToRange(value, 1, 10));
 }
 
-function computeBeachScore(
+function angularDiffDeg(a: number, b: number): number {
+  const d = Math.abs(a - b) % 360;
+  return Math.min(d, 360 - d);
+}
+
+/** Meteorological wind FROM (degrees). Offshore/onshore within ±60° of opposite / same as coast facing. */
+export function windDirectionModifier(coast: Beach["coast"], windDirection: number | null): number {
+  if (windDirection === null || Number.isNaN(windDirection)) {
+    return 0;
+  }
+  const w = ((windDirection % 360) + 360) % 360;
+
+  const coastFacingDeg: Record<Beach["coast"], number> = {
+    North: 0,
+    East: 90,
+    South: 180,
+    Southeast: 135,
+    West: 270
+  };
+
+  const face = coastFacingDeg[coast];
+  const offshoreBearing = (face + 180) % 360;
+  const onshoreBearing = face;
+
+  if (angularDiffDeg(w, offshoreBearing) <= 60) {
+    return 0.5;
+  }
+  if (angularDiffDeg(w, onshoreBearing) <= 60) {
+    return -1.0;
+  }
+  return 0;
+}
+
+function sargassumSwimPenalty(type: Beach["type"], level: SargassumLevelForScore): number {
+  if (type === "surf") {
+    return 0;
+  }
+  if (level === "medium") {
+    return -1.5;
+  }
+  if (level === "high") {
+    return -3.0;
+  }
+  return 0;
+}
+
+function periodModifierSwimBeaches(
   swellTolerance: Beach["swellTolerance"],
+  wavePeriod: number | null
+): number {
+  if (swellTolerance === "high") {
+    return 0;
+  }
+  if (wavePeriod === null || Number.isNaN(wavePeriod)) {
+    return 0;
+  }
+  if (wavePeriod >= 8) {
+    return 0.3;
+  }
+  if (wavePeriod < 5) {
+    return -0.5;
+  }
+  return 0;
+}
+
+function periodModifierHighTolerance(wavePeriod: number | null): number {
+  if (wavePeriod === null || Number.isNaN(wavePeriod)) {
+    return 0;
+  }
+  if (wavePeriod >= 10) {
+    return 2.5;
+  }
+  if (wavePeriod >= 8) {
+    return 1.8;
+  }
+  if (wavePeriod >= 6) {
+    return 0.4;
+  }
+  return -0.9;
+}
+
+function applyTypeToleranceFloorsCeilings(
+  beach: Pick<Beach, "slug" | "type" | "swellTolerance">,
+  waveHeight: number | null,
+  score: number
+): number {
+  if (beach.type === "surf") {
+    return score;
+  }
+
+  let s = score;
+
+  if (beach.type === "calm" && beach.swellTolerance === "low") {
+    if (waveHeight !== null && waveHeight < 1.5 && s < 7) {
+      const before = s;
+      s = 7;
+      console.log("[scoring]", {
+        beachSlug: beach.slug,
+        rule: "floor_7_calm_low_lt_1_5m",
+        scoreBeforeFloorCeiling: before,
+        finalAfterFloorCeiling: s
+      });
+    }
+    if (s > 10) {
+      const before = s;
+      s = 10;
+      console.log("[scoring]", {
+        beachSlug: beach.slug,
+        rule: "ceiling_10_calm_low",
+        scoreBeforeFloorCeiling: before,
+        finalAfterFloorCeiling: s
+      });
+    }
+    return s;
+  }
+
+  if (beach.type === "moderate" && beach.swellTolerance === "medium") {
+    if (waveHeight !== null && waveHeight < 2.0 && s < 5) {
+      const before = s;
+      s = 5;
+      console.log("[scoring]", {
+        beachSlug: beach.slug,
+        rule: "floor_5_moderate_medium_lt_2m",
+        scoreBeforeFloorCeiling: before,
+        finalAfterFloorCeiling: s
+      });
+    }
+    if (s > 9) {
+      const before = s;
+      s = 9;
+      console.log("[scoring]", {
+        beachSlug: beach.slug,
+        rule: "ceiling_9_moderate_medium",
+        scoreBeforeFloorCeiling: before,
+        finalAfterFloorCeiling: s
+      });
+    }
+    return s;
+  }
+
+  if (beach.type === "moderate" && beach.swellTolerance === "high") {
+    if (waveHeight !== null && waveHeight < 2.0 && s < 4) {
+      const before = s;
+      s = 4;
+      console.log("[scoring]", {
+        beachSlug: beach.slug,
+        rule: "floor_4_moderate_high_lt_2m",
+        scoreBeforeFloorCeiling: before,
+        finalAfterFloorCeiling: s
+      });
+    }
+    if (s > 8) {
+      const before = s;
+      s = 8;
+      console.log("[scoring]", {
+        beachSlug: beach.slug,
+        rule: "ceiling_8_moderate_high",
+        scoreBeforeFloorCeiling: before,
+        finalAfterFloorCeiling: s
+      });
+    }
+    return s;
+  }
+
+  return s;
+}
+
+function computeBeachScore(
+  beach: Pick<Beach, "slug" | "type" | "swellTolerance" | "coast">,
   waveHeight: number | null,
   wavePeriod: number | null,
-  windSpeed: number | null
+  windSpeed: number | null,
+  windDirection: number | null,
+  sargassumLevel: SargassumLevelForScore
 ): number | null {
   if (waveHeight === null || windSpeed === null) {
     return null;
   }
 
-  if (swellTolerance === "low") {
-    let score = 9;
+  let score: number;
 
-    if (waveHeight <= 0.8) score += 0.2;
-    else if (waveHeight <= 1.0) score += 0;
-    else if (waveHeight <= 1.25) score -= 3;
-    else if (waveHeight <= 1.5) score -= 4.5;
-    else if (waveHeight <= 2.0) score -= 6;
-    else score -= 7.5;
-
-    if (windSpeed > 25 && windSpeed <= 30) score -= 1;
-    else if (windSpeed > 30 && windSpeed <= 35) score -= 1.5;
-    else if (windSpeed > 35) score -= 2;
-
-    return roundBeachScore(score);
-  }
-
-  if (swellTolerance === "medium") {
-    let score = 7;
-
-    if (waveHeight <= 0.8) score += 0.5;
-    else if (waveHeight <= 1.25) score += 0.25;
-    else if (waveHeight <= 1.5) score += 0;
-    else if (waveHeight <= 2.0) score -= 2;
-    else if (waveHeight <= 2.5) score -= 3.5;
-    else score -= 5;
-
-    if (windSpeed > 30 && windSpeed <= 35) score -= 1;
-    else if (windSpeed > 35 && windSpeed <= 40) score -= 1.5;
-    else if (windSpeed > 40) score -= 2;
-
-    return roundBeachScore(score);
-  }
-
-  let score = 4;
-
-  if (waveHeight < 0.55) score -= 1.2;
-  else if (waveHeight <= 3.0) {
-    score += (waveHeight - 0.55) * 1.35;
-  } else if (waveHeight <= 4.2) {
-    score += 2.5;
+  if (beach.swellTolerance === "low") {
+    score = 9.5;
+    if (waveHeight > 0.8) {
+      const penalty = Math.min((waveHeight - 0.8) ** 2 * 8, 7);
+      score -= penalty;
+    }
+    score += periodModifierSwimBeaches("low", wavePeriod);
+    score += windDirectionModifier(beach.coast, windDirection);
+    if (windSpeed > 25 && windSpeed <= 30) {
+      score -= 1;
+    } else if (windSpeed > 30 && windSpeed <= 35) {
+      score -= 1.5;
+    } else if (windSpeed > 35) {
+      score -= 2;
+    }
+    score += sargassumSwimPenalty(beach.type, sargassumLevel);
+  } else if (beach.swellTolerance === "medium") {
+    score = 7.5;
+    if (waveHeight > 1.25) {
+      const penalty = Math.min((waveHeight - 1.25) ** 2 * 4, 5);
+      score -= penalty;
+    }
+    score += periodModifierSwimBeaches("medium", wavePeriod);
+    score += windDirectionModifier(beach.coast, windDirection);
+    if (windSpeed > 30 && windSpeed <= 35) {
+      score -= 1;
+    } else if (windSpeed > 35 && windSpeed <= 40) {
+      score -= 1.5;
+    } else if (windSpeed > 40) {
+      score -= 2;
+    }
+    score += sargassumSwimPenalty(beach.type, sargassumLevel);
   } else {
-    score -= 0.8;
+    score = 5.5;
+    if (waveHeight < 0.55) {
+      score -= 1.2;
+    } else if (waveHeight <= 3.0) {
+      score += (waveHeight - 0.55) * 1.35;
+    } else if (waveHeight <= 4.2) {
+      score += 2.5;
+    } else {
+      score -= 0.8;
+    }
+    score += periodModifierHighTolerance(wavePeriod);
+    score += windDirectionModifier(beach.coast, windDirection);
+    if (windSpeed > 35 && windSpeed <= 45) {
+      score -= 0.5;
+    } else if (windSpeed > 45) {
+      score -= 1;
+    }
+    score += sargassumSwimPenalty(beach.type, sargassumLevel);
   }
 
-  if (wavePeriod !== null) {
-    if (wavePeriod >= 10) score += 2.5;
-    else if (wavePeriod >= 8) score += 1.8;
-    else if (wavePeriod >= 6) score += 0.4;
-    else score -= 0.9;
-  }
-
-  if (windSpeed > 35 && windSpeed <= 45) score -= 0.5;
-  else if (windSpeed > 45) score -= 1;
+  score = applyTypeToleranceFloorsCeilings(beach, waveHeight, score);
 
   return roundBeachScore(score);
 }
+
+export type FetchBeachConditionsOptions = {
+  sargassumLevel?: SargassumLevelForScore;
+};
 
 export function parseOpenMeteoTimestamp(value: string | null | undefined): number | null {
   if (!value) {
@@ -133,7 +309,10 @@ export function parseOpenMeteoTimestamp(value: string | null | undefined): numbe
   return Number.isNaN(parsed) ? null : parsed;
 }
 
-export async function fetchBeachConditions(beach: Beach): Promise<BeachConditions> {
+export async function fetchBeachConditions(
+  beach: Beach,
+  options?: FetchBeachConditionsOptions
+): Promise<BeachConditions> {
   const weatherUrl =
     `https://api.open-meteo.com/v1/forecast?latitude=${beach.latitude}&longitude=${beach.longitude}` +
     "&current_weather=true&hourly=windspeed_10m,winddirection_10m&timezone=auto";
@@ -206,7 +385,14 @@ export async function fetchBeachConditions(beach: Beach): Promise<BeachCondition
       wavePeriod,
       windSpeed,
       windDirection,
-      swimScore: computeBeachScore(beach.swellTolerance, waveHeight, wavePeriod, windSpeed),
+      swimScore: computeBeachScore(
+        beach,
+        waveHeight,
+        wavePeriod,
+        windSpeed,
+        windDirection,
+        options?.sargassumLevel ?? null
+      ),
       lastUpdatedAt: combinedTimestamp !== null ? new Date(combinedTimestamp).toISOString() : null
     };
   } catch (error) {

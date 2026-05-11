@@ -5,7 +5,7 @@ import { BeachBoard } from "@/components/BeachBoard";
 import { beaches } from "@/data/beaches";
 import { fetchBeachConditions } from "@/lib/beach-conditions";
 import { getBeachPhotoUrls } from "@/lib/beach-photos";
-import { fetchSargassumByCoast, rowToDisplay } from "@/lib/sargassum";
+import { fetchSargassumByCoast, rowToDisplay, sargassumLevelForScoring } from "@/lib/sargassum";
 import type { BeachCardData } from "@/types/beach";
 
 export const revalidate = 300;
@@ -62,7 +62,9 @@ export default async function Home() {
 
   const beachCards: BeachCardData[] = await mapWithConcurrency(beaches, 8, async (beach, index) => {
     const [conditions, photoUrls] = await Promise.all([
-      fetchBeachConditions(beach),
+      fetchBeachConditions(beach, {
+        sargassumLevel: sargassumLevelForScoring(sargassumByCoast[beach.coast])
+      }),
       getBeachPhotoUrls(beach.name)
     ]);
     return {

@@ -3,6 +3,9 @@ import { createServiceSupabase } from "@/lib/supabase/service";
 
 export type SargassumLevelValue = "low" | "medium" | "high";
 
+/** Level passed into beach scoring; stale/missing rows → null (no penalty). */
+export type SargassumLevelForScore = "low" | "medium" | "high" | null;
+
 export type SargassumRow = {
   coast: string;
   level: SargassumLevelValue;
@@ -25,6 +28,13 @@ export function isSargassumStale(updatedAtIso: string | null | undefined): boole
     return true;
   }
   return Date.now() - t > STALE_MS;
+}
+
+export function sargassumLevelForScoring(row: SargassumRow | null | undefined): SargassumLevelForScore {
+  if (!row || isSargassumStale(row.updated_at)) {
+    return null;
+  }
+  return row.level;
 }
 
 export function rowToDisplay(row: SargassumRow | null | undefined): SargassumDisplay {

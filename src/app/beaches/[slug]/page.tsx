@@ -9,7 +9,7 @@ import { fetchBeachConditions } from "@/lib/beach-conditions";
 import { fetchBeachTides } from "@/lib/beach-tides";
 import { getBeachPhotoUrls } from "@/lib/beach-photos";
 import { fetchSevenDayWaveForecast } from "@/lib/wave-forecast";
-import { fetchSargassumRowForCoast, rowToDisplay } from "@/lib/sargassum";
+import { fetchSargassumRowForCoast, rowToDisplay, sargassumLevelForScoring } from "@/lib/sargassum";
 import { SargassumBadge } from "@/components/SargassumBadge";
 
 export const revalidate = 300;
@@ -101,13 +101,16 @@ export default async function BeachDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const [conditions, tides, sargassumRow, photoUrls, waveForecast] = await Promise.all([
-    fetchBeachConditions(beach),
+  const [tides, sargassumRow, photoUrls, waveForecast] = await Promise.all([
     fetchBeachTides(beach),
     fetchSargassumRowForCoast(beach.coast),
     getBeachPhotoUrls(beach.name),
     fetchSevenDayWaveForecast(beach.latitude, beach.longitude)
   ]);
+
+  const conditions = await fetchBeachConditions(beach, {
+    sargassumLevel: sargassumLevelForScoring(sargassumRow)
+  });
 
   const sargassumDisplay = rowToDisplay(sargassumRow);
 
