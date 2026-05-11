@@ -37,7 +37,7 @@ export const beaches: Beach[] = [
     slug: "hangmans-bay",
     parish: "St. Lucy",
     coast: "North",
-    type: "rough",
+    type: "moderate",
     swellTolerance: "medium",
     latitude: 13.2908381596494,
     longitude: -59.648945459077,
