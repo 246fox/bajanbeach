@@ -293,7 +293,9 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
       case "name":
         return [...list].sort((a, b) => a.name.localeCompare(b.name));
       case "swim": {
-        const swim = list.filter((b) => b.seaState === "calm" || b.seaState === "moderate");
+        const swim = list.filter(
+          (b) => (b.seaState === "calm" || b.seaState === "moderate") && !b.isSurfSpot
+        );
         return [...swim].sort(compareScoreDesc);
       }
       case "surf": {

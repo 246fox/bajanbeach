@@ -143,12 +143,12 @@ function applySeaStateWaveActionFloorsCeilings(
   let s = score;
 
   if (beach.seaState === "calm" && beach.waveActionBaseline === "low") {
-    if (waveHeight !== null && waveHeight < 1.5 && s < 7) {
+    if (waveHeight !== null && waveHeight < 2.0 && s < 7) {
       const before = s;
       s = 7;
       console.log("[scoring]", {
         beachSlug: beach.slug,
-        rule: "floor_7_calm_low_lt_1_5m",
+        rule: "floor_7_calm_low_lt_2m",
         scoreBeforeFloorCeiling: before,
         finalAfterFloorCeiling: s
       });
@@ -281,7 +281,7 @@ function computeBeachScore(
   if (beach.waveActionBaseline === "low") {
     score = 9.5;
     if (waveHeight > 0.8) {
-      const penalty = Math.min((waveHeight - 0.8) ** 2 * 8, 7);
+      const penalty = Math.min((waveHeight - 0.8) ** 2 * 5, 5);
       score -= penalty;
     }
     score += periodModifierSwimBeaches("low", wavePeriod);
@@ -332,6 +332,17 @@ function computeBeachScore(
   }
 
   score = applySeaStateWaveActionFloorsCeilings(beach, waveHeight, score);
+
+  if (beach.seaState === "moderate" && beach.waveActionBaseline === "high" && score > 6) {
+    const before = score;
+    score = Math.min(score, 6);
+    console.log("[scoring]", {
+      beachSlug: beach.slug,
+      rule: "ceiling_6_moderate_high_swim",
+      scoreBeforeSwimCeiling: before,
+      finalAfterSwimCeiling: score
+    });
+  }
 
   return roundBeachScore(score);
 }
