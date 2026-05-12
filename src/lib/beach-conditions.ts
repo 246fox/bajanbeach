@@ -90,10 +90,7 @@ function sargassumRoughPenalty(level: SargassumLevelForScore): number {
   return 0;
 }
 
-function sargassumSwimPenalty(type: Beach["type"], level: SargassumLevelForScore): number {
-  if (type === "surf") {
-    return 0;
-  }
+function sargassumSwimPenalty(seaState: Beach["seaState"], level: SargassumLevelForScore): number {
   if (level === "medium") {
     return -1.5;
   }
@@ -104,10 +101,10 @@ function sargassumSwimPenalty(type: Beach["type"], level: SargassumLevelForScore
 }
 
 function periodModifierSwimBeaches(
-  swellTolerance: Beach["swellTolerance"],
+  waveActionBaseline: Beach["waveActionBaseline"],
   wavePeriod: number | null
 ): number {
-  if (swellTolerance === "high") {
+  if (waveActionBaseline === "high") {
     return 0;
   }
   if (wavePeriod === null || Number.isNaN(wavePeriod)) {
@@ -138,18 +135,14 @@ function periodModifierHighTolerance(wavePeriod: number | null): number {
   return -0.9;
 }
 
-function applyTypeToleranceFloorsCeilings(
-  beach: Pick<Beach, "slug" | "type" | "swellTolerance">,
+function applySeaStateWaveActionFloorsCeilings(
+  beach: Pick<Beach, "slug" | "seaState" | "waveActionBaseline">,
   waveHeight: number | null,
   score: number
 ): number {
-  if (beach.type === "surf") {
-    return score;
-  }
-
   let s = score;
 
-  if (beach.type === "calm" && beach.swellTolerance === "low") {
+  if (beach.seaState === "calm" && beach.waveActionBaseline === "low") {
     if (waveHeight !== null && waveHeight < 1.5 && s < 7) {
       const before = s;
       s = 7;
@@ -173,7 +166,7 @@ function applyTypeToleranceFloorsCeilings(
     return s;
   }
 
-  if (beach.type === "moderate" && beach.swellTolerance === "medium") {
+  if (beach.seaState === "moderate" && beach.waveActionBaseline === "medium") {
     if (waveHeight !== null && waveHeight < 2.0 && s < 5) {
       const before = s;
       s = 5;
@@ -197,7 +190,7 @@ function applyTypeToleranceFloorsCeilings(
     return s;
   }
 
-  if (beach.type === "moderate" && beach.swellTolerance === "high") {
+  if (beach.seaState === "moderate" && beach.waveActionBaseline === "high") {
     if (waveHeight !== null && waveHeight < 2.0 && s < 4) {
       const before = s;
       s = 4;
@@ -225,7 +218,7 @@ function applyTypeToleranceFloorsCeilings(
 }
 
 function computeBeachScore(
-  beach: Pick<Beach, "slug" | "type" | "swellTolerance" | "coast">,
+  beach: Pick<Beach, "slug" | "seaState" | "waveActionBaseline" | "coast">,
   waveHeight: number | null,
   wavePeriod: number | null,
   windSpeed: number | null,
@@ -236,7 +229,7 @@ function computeBeachScore(
     return null;
   }
 
-  if (beach.type === "rough") {
+  if (beach.seaState === "rough") {
     let roughScore = 7;
 
     if (waveHeight > 3.5) {
@@ -285,7 +278,7 @@ function computeBeachScore(
 
   let score: number;
 
-  if (beach.swellTolerance === "low") {
+  if (beach.waveActionBaseline === "low") {
     score = 9.5;
     if (waveHeight > 0.8) {
       const penalty = Math.min((waveHeight - 0.8) ** 2 * 8, 7);
@@ -300,8 +293,8 @@ function computeBeachScore(
     } else if (windSpeed > 35) {
       score -= 2;
     }
-    score += sargassumSwimPenalty(beach.type, sargassumLevel);
-  } else if (beach.swellTolerance === "medium") {
+    score += sargassumSwimPenalty(beach.seaState, sargassumLevel);
+  } else if (beach.waveActionBaseline === "medium") {
     score = 7.5;
     if (waveHeight > 1.25) {
       const penalty = Math.min((waveHeight - 1.25) ** 2 * 4, 5);
@@ -316,7 +309,7 @@ function computeBeachScore(
     } else if (windSpeed > 40) {
       score -= 2;
     }
-    score += sargassumSwimPenalty(beach.type, sargassumLevel);
+    score += sargassumSwimPenalty(beach.seaState, sargassumLevel);
   } else {
     score = 5.5;
     if (waveHeight < 0.55) {
@@ -335,10 +328,10 @@ function computeBeachScore(
     } else if (windSpeed > 45) {
       score -= 1;
     }
-    score += sargassumSwimPenalty(beach.type, sargassumLevel);
+    score += sargassumSwimPenalty(beach.seaState, sargassumLevel);
   }
 
-  score = applyTypeToleranceFloorsCeilings(beach, waveHeight, score);
+  score = applySeaStateWaveActionFloorsCeilings(beach, waveHeight, score);
 
   return roundBeachScore(score);
 }

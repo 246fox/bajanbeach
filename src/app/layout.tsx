@@ -5,10 +5,10 @@ import "./globals.css";
 const GA_MEASUREMENT_ID = "G-S6V0BFCJPB";
 const isProduction = process.env.NODE_ENV === "production";
 
-const SEO_TITLE = "BajanBeach — Live Barbados Beach Conditions for 64 Beaches";
+const SEO_TITLE = "BajanBeach — Live Barbados Beach Conditions for 63 Beaches";
 /** ~152 characters — tuned for Google snippet display (150–160). */
 const SEO_DESCRIPTION =
-  "Live wave, wind & surf for 64 Barbados beaches, updated daily. Platinum West Coast to Soup Bowl surf—webcams, photos & local picks. Plan your beach day.";
+  "Live wave, wind & surf for 63 Barbados beaches, updated daily. Platinum West Coast to Soup Bowl surf—webcams, photos & local picks. Plan your beach day.";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://bajanbeach.com"),

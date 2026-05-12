@@ -12,7 +12,7 @@ export const revalidate = 300;
 
 const HOME_SEO_TITLE = "BajanBeach — The Barbados Beach Guide";
 const HOME_SEO_DESCRIPTION =
-  "Local insights, live conditions, and sargassum updates for over 60 Barbados beaches. From calm West Coast swimming to Soup Bowl surf — find your perfect beach today.";
+  "Local insights, live conditions, and sargassum updates for 63 Barbados beaches. From calm West Coast swimming to Soup Bowl surf — find your perfect beach today.";
 
 export const metadata: Metadata = {
   title: HOME_SEO_TITLE,
@@ -93,7 +93,7 @@ export default async function Home() {
           />
         </div>
         <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
-          Local insights and live beach conditions for over 60 Barbados beaches. Updated hourly.
+          Local insights and live beach conditions for 63 Barbados beaches. Updated hourly.
         </p>
       </section>
 

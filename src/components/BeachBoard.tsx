@@ -6,7 +6,6 @@ import { useEffect, useMemo, useState } from "react";
 import type { BeachCardData, BeachCoast } from "@/types/beach";
 import {
   activityLabel,
-  beachTypeLabel,
   coastChipStyles,
   degreesToCompass,
   formatUpdatedTime,
@@ -15,7 +14,8 @@ import {
   isStaleTimestamp,
   missingScoreReason,
   scoreStyles,
-  typeChipStyles
+  seaStateChipStyles,
+  seaStateLabel
 } from "@/lib/beach-format";
 import { CoastIntroBanner } from "@/components/CoastIntroBanner";
 import { SargassumBadge } from "@/components/SargassumBadge";
@@ -204,6 +204,33 @@ function TimerIcon() {
   );
 }
 
+function SurfSpotPill() {
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-600 ring-1 ring-inset ring-slate-200/90"
+      title="Surf spot"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3 w-3 shrink-0 text-slate-500">
+        <path
+          d="M6 20c1.5-4 4-7 8-9l2 2c-2 4-5 6.5-9 8l-1-1Z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M14 11c2-1 4-1.5 5.5-1M12 13c1.5 1.5 3 2.5 5 3"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+      </svg>
+      Surf spot
+    </span>
+  );
+}
+
 function CameraIcon() {
   return (
     <svg
@@ -266,15 +293,15 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
       case "name":
         return [...list].sort((a, b) => a.name.localeCompare(b.name));
       case "swim": {
-        const swim = list.filter((b) => b.type === "calm" || b.type === "moderate");
+        const swim = list.filter((b) => b.seaState === "calm" || b.seaState === "moderate");
         return [...swim].sort(compareScoreDesc);
       }
       case "surf": {
-        const surf = list.filter((b) => b.type === "surf");
+        const surf = list.filter((b) => b.isSurfSpot);
         return [...surf].sort(compareScoreDesc);
       }
       case "scenic": {
-        const scenic = list.filter((b) => b.type === "rough");
+        const scenic = list.filter((b) => b.seaState === "rough");
         return [...scenic].sort(compareScoreDesc);
       }
       default:
@@ -548,12 +575,13 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
                   {beach.coast} coast
                 </span>
                 <span
-                  className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${typeChipStyles(
-                    beach.type
+                  className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${seaStateChipStyles(
+                    beach.seaState
                   )}`}
                 >
-                  {beachTypeLabel(beach.type)}
+                  {seaStateLabel(beach.seaState)}
                 </span>
+                {beach.isSurfSpot ? <SurfSpotPill /> : null}
               </div>
               {beach.sargassum && (
                 <div className="pt-1">

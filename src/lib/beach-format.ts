@@ -1,4 +1,4 @@
-import type { Beach, BeachCoast, BeachConditions, BeachType } from "@/types/beach";
+import type { Beach, BeachCoast, BeachConditions, SeaState } from "@/types/beach";
 
 export function formatValue(value: number | null, unit: string, digits = 1): string {
   if (value === null || Number.isNaN(value)) {
@@ -71,27 +71,22 @@ export function coastChipStyles(coast: BeachCoast): string {
   }
 }
 
-export function typeChipStyles(type: BeachType): string {
-  if (type === "calm") {
+export function seaStateChipStyles(seaState: SeaState): string {
+  if (seaState === "calm") {
     return "bg-sky-100 text-sky-700 ring-sky-200";
   }
-  if (type === "moderate") {
+  if (seaState === "moderate") {
     return "bg-amber-100 text-amber-700 ring-amber-200";
   }
-  if (type === "rough") {
-    return "bg-stone-100 text-stone-800 ring-stone-300";
-  }
-  return "bg-teal-100 text-teal-700 ring-teal-200";
+  return "bg-stone-100 text-stone-800 ring-stone-300";
 }
 
-export function beachTypeLabel(type: BeachType): string {
-  switch (type) {
+export function seaStateLabel(seaState: SeaState): string {
+  switch (seaState) {
     case "calm":
       return "Calm";
     case "moderate":
       return "Moderate";
-    case "surf":
-      return "Surf";
     case "rough":
       return "Rough";
   }
@@ -141,11 +136,8 @@ export function isStaleTimestamp(timestamp: string | null, maxAgeMs: number): bo
   return Date.now() - updatedAt > maxAgeMs;
 }
 
-export function activityLabel(beach: Pick<Beach, "type">): string {
-  if (beach.type === "surf") {
-    return "Surf";
-  }
-  if (beach.type === "rough") {
+export function activityLabel(beach: Pick<Beach, "seaState">): string {
+  if (beach.seaState === "rough") {
     return "Scenic";
   }
   return "Swim";

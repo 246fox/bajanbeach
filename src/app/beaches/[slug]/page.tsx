@@ -9,7 +9,7 @@ import { fetchBeachConditions } from "@/lib/beach-conditions";
 import { fetchBeachTides } from "@/lib/beach-tides";
 import { getBeachPhotoUrls } from "@/lib/beach-photos";
 import { fetchSevenDayWaveForecast } from "@/lib/wave-forecast";
-import { beachTypeLabel } from "@/lib/beach-format";
+import { seaStateLabel } from "@/lib/beach-format";
 import { fetchSargassumRowForCoast, rowToDisplay, sargassumLevelForScoring } from "@/lib/sargassum";
 import { SargassumBadge } from "@/components/SargassumBadge";
 
@@ -146,12 +146,20 @@ export default async function BeachDetailPage({ params }: PageProps) {
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900/75 via-slate-900/25 to-transparent" />
           <div className="relative flex min-h-[280px] flex-col justify-end p-6 sm:min-h-[360px] sm:p-10">
             <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">{beach.name}</h1>
-            <p className="mt-3 text-base text-white/90">
+            <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-2 text-base text-white/90">
               <span>{beach.parish}</span>
-              <span className="mx-2 text-white/50">·</span>
+              <span className="text-white/50">·</span>
               <span>{beach.coast} coast</span>
-              <span className="mx-2 text-white/50">·</span>
-              <span>{beachTypeLabel(beach.type)}</span>
+              <span className="text-white/50">·</span>
+              <span>{seaStateLabel(beach.seaState)}</span>
+              {beach.isSurfSpot ? (
+                <>
+                  <span className="text-white/50">·</span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-white ring-1 ring-white/35">
+                    Surf spot
+                  </span>
+                </>
+              ) : null}
             </p>
           </div>
         </div>

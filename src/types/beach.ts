@@ -1,8 +1,8 @@
 export type BeachCoast = "North" | "West" | "South" | "Southeast" | "East";
 
-export type BeachType = "calm" | "moderate" | "surf" | "rough";
+export type SeaState = "calm" | "moderate" | "rough";
 
-export type SwellTolerance = "low" | "medium" | "high";
+export type WaveActionBaseline = "low" | "medium" | "high";
 
 export type Beach = {
   name: string;
@@ -11,8 +11,9 @@ export type Beach = {
   latitude: number;
   longitude: number;
   coast: BeachCoast;
-  type: BeachType;
-  swellTolerance: SwellTolerance;
+  seaState: SeaState;
+  waveActionBaseline: WaveActionBaseline;
+  isSurfSpot: boolean;
   webcamUrl: string;
   description: string;
   bestFor: string;
