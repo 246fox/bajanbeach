@@ -96,6 +96,12 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "scenic", label: "Best for scenic visits today" }
 ];
 
+/** Matches coast filter chip order — North first, East last. */
+function coastSortRank(coast: BeachCoast): number {
+  const i = COAST_FILTERS.indexOf(coast);
+  return i > 0 ? i - 1 : 0;
+}
+
 function compareScoreDesc(a: BeachCardData, b: BeachCardData): number {
   const sa = a.conditions.swimScore;
   const sb = b.conditions.swimScore;
@@ -289,7 +295,13 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
     const list = searchFiltered;
     switch (sortOption) {
       case "coast":
-        return list;
+        return [...list].sort((a, b) => {
+          const byCoast = coastSortRank(a.coast) - coastSortRank(b.coast);
+          if (byCoast !== 0) {
+            return byCoast;
+          }
+          return a.name.localeCompare(b.name);
+        });
       case "name":
         return [...list].sort((a, b) => a.name.localeCompare(b.name));
       case "swim": {
