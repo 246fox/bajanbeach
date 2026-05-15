@@ -7,6 +7,7 @@ import { WaveForecastChart } from "@/components/WaveForecastChart";
 import { beaches, getBeachBySlug } from "@/data/beaches";
 import { fetchBeachConditions } from "@/lib/beach-conditions";
 import { fetchBeachTides } from "@/lib/beach-tides";
+import { BEACH_PHOTO_PLACEHOLDER } from "@/lib/beach-photo-placeholder";
 import { getBeachPhotoUrls } from "@/lib/beach-photos";
 import { fetchSevenDayWaveForecast } from "@/lib/wave-forecast";
 import { seaStateLabel } from "@/lib/beach-format";
@@ -44,7 +45,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const title = `${beach.name} Conditions Today | BajanBeach`;
   const description = truncateMetaDescription(beach.description);
   const photoUrls = await getBeachPhotoUrls(beach.name);
-  const ogImageUrl = photoUrls[0] ?? null;
+  const ogImageUrl = photoUrls[0] ?? BEACH_PHOTO_PLACEHOLDER;
 
   return {
     title,
@@ -53,20 +54,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title,
       description,
       url: `/beaches/${beach.slug}`,
-      images: ogImageUrl
-        ? [
-            {
-              url: ogImageUrl,
-              alt: `${beach.name}, Barbados`
-            }
-          ]
-        : undefined
+      images: [
+        {
+          url: ogImageUrl,
+          alt: `${beach.name}, Barbados`
+        }
+      ]
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: ogImageUrl ? [ogImageUrl] : undefined
+      images: [ogImageUrl]
     }
   };
 }
@@ -115,7 +114,7 @@ export default async function BeachDetailPage({ params }: PageProps) {
 
   const sargassumDisplay = rowToDisplay(sargassumRow);
 
-  const heroUrl = photoUrls[0] ?? null;
+  const heroUrl = photoUrls[0] ?? BEACH_PHOTO_PLACEHOLDER;
   const hasWebcam = beach.webcamUrl.trim() !== "";
   const isWarningNote = beach.notes.includes("⚠️");
   const mapsEmbedUrl = `https://www.google.com/maps/embed/v1/place?${new URLSearchParams({
@@ -132,16 +131,12 @@ export default async function BeachDetailPage({ params }: PageProps) {
 
       <header className="overflow-hidden rounded-3xl border border-ocean-100/70 bg-white/80 shadow-sm backdrop-blur-sm">
         <div
-          className={`relative min-h-[280px] w-full sm:min-h-[360px] ${heroUrl ? "" : "bg-gradient-to-br from-sky-200 via-cyan-100 to-ocean-100"}`}
-          style={
-            heroUrl
-              ? {
-                  backgroundImage: `url("${heroUrl}")`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center"
-                }
-              : undefined
-          }
+          className={`relative min-h-[280px] w-full sm:min-h-[360px] ${heroUrl === BEACH_PHOTO_PLACEHOLDER ? "bg-gradient-to-br from-sky-200 via-cyan-100 to-ocean-100" : ""}`}
+          style={{
+            backgroundImage: `url("${heroUrl}")`,
+            backgroundSize: "cover",
+            backgroundPosition: "center"
+          }}
         >
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900/75 via-slate-900/25 to-transparent" />
           <div className="relative flex min-h-[280px] flex-col justify-end p-6 sm:min-h-[360px] sm:p-10">
@@ -161,6 +156,9 @@ export default async function BeachDetailPage({ params }: PageProps) {
                 </>
               ) : null}
             </p>
+            {heroUrl === BEACH_PHOTO_PLACEHOLDER ? (
+              <p className="mt-2 text-xs text-white/55">Photo unavailable</p>
+            ) : null}
           </div>
         </div>
       </header>

@@ -1,7 +1,4 @@
-type CacheEntry = {
-  photoUrls: string[];
-  fetchedAt: number;
-};
+import { unstable_cache } from "next/cache";
 
 type TextSearchResponse = {
   places?: Array<{
@@ -41,9 +38,6 @@ type GoogleApiErrorPayload = {
     status?: string;
   };
 };
-
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-const beachPhotoCache = new Map<string, CacheEntry>();
 
 function normalizeBeachName(name: string): string {
   return name.trim().toLowerCase();
@@ -99,77 +93,74 @@ function logPlacesFailure(
   });
 }
 
-export async function getBeachPhotoUrls(beachName: string): Promise<string[]> {
-  const apiKey = process.env.GOOGLE_MAPS_KEY;
+function googleMapsKey(): string | undefined {
+  return process.env.GOOGLE_MAPS_KEY ?? process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
+}
+
+async function fetchGooglePlacePhotoUrls(trimmed: string): Promise<string[]> {
+  const apiKey = googleMapsKey();
   if (!apiKey) {
+    throw new Error("No Google API key configured");
+  }
+
+  const textSearchResponse = await fetch("https://places.googleapis.com/v1/places:searchText", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Goog-Api-Key": apiKey,
+      "X-Goog-FieldMask": "places.id,places.photos"
+    },
+    body: JSON.stringify({
+      textQuery: `${trimmed} Barbados`
+    })
+  });
+
+  if (!textSearchResponse.ok) {
+    const errorDetails = await readGoogleError(textSearchResponse);
+    logPlacesFailure("text-search", trimmed, errorDetails);
+    throw new Error(`Text Search failed (${textSearchResponse.status})`);
+  }
+
+  const textSearchData = (await textSearchResponse.json()) as TextSearchResponse;
+  const placeId = textSearchData.places?.[0]?.id;
+  if (!placeId) {
     return [];
   }
 
+  const detailsResponse = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
+    headers: {
+      "X-Goog-Api-Key": apiKey,
+      "X-Goog-FieldMask": "photos"
+    }
+  });
+
+  if (!detailsResponse.ok) {
+    const errorDetails = await readGoogleError(detailsResponse);
+    logPlacesFailure("place-details", trimmed, errorDetails);
+    throw new Error(`Place Details failed (${detailsResponse.status})`);
+  }
+
+  const detailsData = (await detailsResponse.json()) as PlaceDetailsResponse;
+  return (detailsData.photos ?? [])
+    .map((photo) => photo.name)
+    .filter((name): name is string => Boolean(name))
+    .slice(0, 5)
+    .map((photoName) => buildPhotoUrl(photoName, apiKey));
+}
+
+export async function getBeachPhotoUrls(beachName: string): Promise<string[]> {
   const trimmed = beachName.trim();
   if (!trimmed) {
     return [];
   }
 
-  const cacheKey = normalizeBeachName(trimmed);
-  const now = Date.now();
-  const cached = beachPhotoCache.get(cacheKey);
-  if (cached && now - cached.fetchedAt < CACHE_TTL_MS) {
-    return cached.photoUrls;
-  }
-
   try {
-    const textSearchResponse = await fetch(
-      "https://places.googleapis.com/v1/places:searchText",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Goog-Api-Key": apiKey,
-          "X-Goog-FieldMask": "places.id,places.photos"
-        },
-        body: JSON.stringify({
-          textQuery: `${trimmed} Barbados`
-        }),
-        next: { revalidate: 3600 }
-      }
-    );
-
-    if (!textSearchResponse.ok) {
-      const errorDetails = await readGoogleError(textSearchResponse);
-      logPlacesFailure("text-search", trimmed, errorDetails);
-      throw new Error("Text Search request failed");
-    }
-
-    const textSearchData = (await textSearchResponse.json()) as TextSearchResponse;
-    const placeId = textSearchData.places?.[0]?.id;
-    if (!placeId) {
-      beachPhotoCache.set(cacheKey, { photoUrls: [], fetchedAt: now });
-      return [];
-    }
-
-    const detailsResponse = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
-      headers: {
-        "X-Goog-Api-Key": apiKey,
-        "X-Goog-FieldMask": "photos"
-      },
-      next: { revalidate: 3600 }
-    });
-
-    if (!detailsResponse.ok) {
-      const errorDetails = await readGoogleError(detailsResponse);
-      logPlacesFailure("place-details", trimmed, errorDetails);
-      throw new Error("Place Details request failed");
-    }
-
-    const detailsData = (await detailsResponse.json()) as PlaceDetailsResponse;
-    const photoUrls = (detailsData.photos ?? [])
-      .map((photo) => photo.name)
-      .filter((name): name is string => Boolean(name))
-      .slice(0, 5)
-      .map((photoName) => buildPhotoUrl(photoName, apiKey));
-
-    beachPhotoCache.set(cacheKey, { photoUrls, fetchedAt: now });
-    return photoUrls;
+    // Bump cache key version (e.g. v3 → v4) to invalidate all entries for a forced refresh.
+    return await unstable_cache(
+      async () => fetchGooglePlacePhotoUrls(trimmed),
+      ["beach-photo-urls", "v3", normalizeBeachName(trimmed)],
+      { revalidate: 604800 }
+    )();
   } catch (error) {
     console.error("[beach-photos] Failed to fetch beach photos", {
       beachName: trimmed,

@@ -4,6 +4,7 @@ import Image from "next/image";
 import { BeachBoard } from "@/components/BeachBoard";
 import { beaches } from "@/data/beaches";
 import { fetchBeachConditions } from "@/lib/beach-conditions";
+import { BEACH_PHOTO_PLACEHOLDER } from "@/lib/beach-photo-placeholder";
 import { getBeachPhotoUrls } from "@/lib/beach-photos";
 import { fetchSargassumByCoast, rowToDisplay, sargassumLevelForScoring } from "@/lib/sargassum";
 import type { BeachCardData } from "@/types/beach";
@@ -60,7 +61,7 @@ async function mapWithConcurrency<T, R>(
 export default async function Home() {
   const sargassumByCoast = await fetchSargassumByCoast();
 
-  const beachCards: BeachCardData[] = await mapWithConcurrency(beaches, 8, async (beach, index) => {
+  const beachCards: BeachCardData[] = await mapWithConcurrency(beaches, 4, async (beach, index) => {
     const [conditions, photoUrls] = await Promise.all([
       fetchBeachConditions(beach, {
         sargassumLevel: sargassumLevelForScoring(sargassumByCoast[beach.coast])
@@ -70,7 +71,7 @@ export default async function Home() {
     return {
       ...beach,
       conditions,
-      photoUrl: photoUrls[0] ?? null,
+      photoUrl: photoUrls[0] ?? BEACH_PHOTO_PLACEHOLDER,
       heroClass: HERO_BG_CLASSES[index % HERO_BG_CLASSES.length],
       sargassum: rowToDisplay(sargassumByCoast[beach.coast])
     };
@@ -90,6 +91,7 @@ export default async function Home() {
             height={128}
             className="h-auto w-[240px] sm:w-[320px]"
             priority
+            unoptimized
           />
         </div>
         <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">

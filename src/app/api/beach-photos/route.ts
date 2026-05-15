@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { getBeachPhotoUrls } from "@/lib/beach-photos";
 
 export async function GET(request: Request) {
-  if (!process.env.GOOGLE_MAPS_KEY) {
-    return NextResponse.json({ error: "Server key missing." }, { status: 500 });
+  const hasKey = Boolean(process.env.GOOGLE_MAPS_KEY ?? process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY);
+  if (!hasKey) {
+    return NextResponse.json({ error: "Google Maps API key missing." }, { status: 500 });
   }
 
   const { searchParams } = new URL(request.url);

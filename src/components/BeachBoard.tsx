@@ -17,6 +17,7 @@ import {
   seaStateChipStyles,
   seaStateLabel
 } from "@/lib/beach-format";
+import { BEACH_PHOTO_PLACEHOLDER } from "@/lib/beach-photo-placeholder";
 import { CoastIntroBanner } from "@/components/CoastIntroBanner";
 import { SargassumBadge } from "@/components/SargassumBadge";
 
@@ -409,6 +410,11 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
                       {card.vibe}
                     </h3>
                     <p className="mt-1 text-xs font-medium text-white/90 sm:text-sm">{card.beachName}</p>
+                    {photoUrl === BEACH_PHOTO_PLACEHOLDER ? (
+                      <p className="mt-1.5 text-[10px] font-normal tracking-wide text-white/45">
+                        Photo unavailable
+                      </p>
+                    ) : null}
                   </div>
                 </div>
               </a>
@@ -541,6 +547,9 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
                     )}
                   </div>
                   <p className="mt-1 text-xs text-slate-500">{beach.parish}</p>
+                  {beach.photoUrl === BEACH_PHOTO_PLACEHOLDER ? (
+                    <p className="mt-0.5 text-[11px] leading-snug text-slate-400">Photo unavailable</p>
+                  ) : null}
                 </div>
                 <p
                   className={`inline-flex shrink-0 rounded-full px-3 py-1 text-sm font-semibold ${scoreStyles(
