@@ -12,7 +12,9 @@ const config: Config = {
         ocean: {
           50: "#f2f9fd",
           100: "#dff1fb",
+          400: "#6bb8e4",
           500: "#4aa3d8",
+          600: "#3c89b8",
           700: "#2f6f98"
         },
         sand: {

@@ -70,7 +70,14 @@ function BeachPhotoPickerRow({ row }: { row: BeachPhotoAdminRow }) {
       ) : (
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
           {googlePhotoRefs.map((ref, index) => {
-            const selected = pendingRef === ref;
+            const isLiveOverride = Boolean(savedOverrideRef) && ref === savedOverrideRef;
+            const isPendingChange =
+              pendingRef === ref && (savedOverrideRef === null || ref !== savedOverrideRef);
+            const ringClass = isLiveOverride
+              ? "border-emerald-500 ring-4 ring-emerald-500/90 ring-offset-2 ring-offset-white"
+              : isPendingChange
+                ? "border-ocean-500 ring-4 ring-ocean-500/80 ring-offset-2 ring-offset-white"
+                : "border-transparent hover:border-slate-300";
             return (
               <button
                 key={ref}
@@ -79,9 +86,7 @@ function BeachPhotoPickerRow({ row }: { row: BeachPhotoAdminRow }) {
                   setPendingRef(ref);
                   setError(null);
                 }}
-                className={`group relative overflow-hidden rounded-lg border-2 bg-slate-100 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-400 focus-visible:ring-offset-2 ${
-                  selected ? "border-ocean-500 ring-2 ring-ocean-400/40" : "border-transparent hover:border-slate-300"
-                }`}
+                className={`group relative overflow-hidden rounded-lg border-2 bg-slate-100 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-400 focus-visible:ring-offset-2 ${ringClass}`}
               >
                 <img
                   src={thumbSrc(ref)}
@@ -92,6 +97,16 @@ function BeachPhotoPickerRow({ row }: { row: BeachPhotoAdminRow }) {
                 <span className="absolute left-1 top-1 rounded bg-black/55 px-1.5 py-0.5 text-[10px] font-medium text-white">
                   {index}
                 </span>
+                {isLiveOverride ? (
+                  <span className="absolute bottom-1 right-1 rounded bg-emerald-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow">
+                    Current
+                  </span>
+                ) : null}
+                {isPendingChange && !isLiveOverride ? (
+                  <span className="absolute bottom-1 right-1 rounded bg-ocean-700 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow">
+                    Selected
+                  </span>
+                ) : null}
               </button>
             );
           })}
@@ -118,7 +133,7 @@ function BeachPhotoPickerRow({ row }: { row: BeachPhotoAdminRow }) {
               }
             });
           }}
-          className="rounded-lg bg-ocean-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-ocean-500 disabled:cursor-not-allowed disabled:opacity-40"
+          className="rounded-lg bg-ocean-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-ocean-600 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:hover:bg-slate-200"
         >
           Save selection
         </button>
