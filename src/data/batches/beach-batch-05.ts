@@ -37,6 +37,7 @@ export const beachBatch05: Beach[] = [
   {
     name: "St. Lawrence Beach",
     slug: "st-lawrence-beach",
+    photoSearchName: "St Lawrence Bay Barbados",
     parish: "Christ Church",
     coast: "South",
     seaState: "calm",

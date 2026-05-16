@@ -69,6 +69,7 @@ export const beachBatch06: Beach[] = [
   {
     name: "Sam Lords Beach",
     slug: "sam-lords-beach",
+    photoSearchName: "Sam Lords Castle Lookout Barbados",
     parish: "St. Philip",
     coast: "Southeast",
     seaState: "moderate",
@@ -118,6 +119,7 @@ export const beachBatch06: Beach[] = [
   {
     name: "Derricks Beach",
     slug: "derricks-beach",
+    photoSearchName: "Secret Cove Barbados",
     parish: "St. James",
     coast: "West",
     seaState: "calm",
