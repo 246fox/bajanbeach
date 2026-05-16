@@ -4,10 +4,6 @@ import { unstable_cache } from "next/cache";
 type TextSearchResponse = {
   places?: Array<{
     id?: string;
-    photos?: Array<{
-      name?: string;
-      [key: string]: unknown;
-    }>;
     [key: string]: unknown;
   }>;
   error?: {
@@ -41,6 +37,17 @@ type GoogleApiErrorPayload = {
 };
 
 type BeachPhotoSearchFields = Pick<Beach, "name" | "photoSearchName">;
+
+/** Thrown when photo refs must not be cached (empty, missing place, or retryable failure). */
+export class BeachPhotoRefsCacheSkipError extends Error {
+  constructor(
+    message: string,
+    readonly reason: "no_place_id" | "no_photos" | "empty_query"
+  ) {
+    super(message);
+    this.name = "BeachPhotoRefsCacheSkipError";
+  }
+}
 
 /** Full Places `textQuery` for photo search (alias verbatim, else `{name} Barbados`). */
 export function placesPhotoTextQuery(beach: BeachPhotoSearchFields): string {
@@ -122,7 +129,7 @@ export function googleMapsKey(): string | undefined {
 async function fetchGooglePlacePhotoReferencesForTextQuery(textQuery: string): Promise<string[]> {
   const trimmed = textQuery.trim();
   if (!trimmed) {
-    return [];
+    throw new BeachPhotoRefsCacheSkipError("Empty text query", "empty_query");
   }
 
   const apiKey = googleMapsKey();
@@ -151,7 +158,10 @@ async function fetchGooglePlacePhotoReferencesForTextQuery(textQuery: string): P
   const textSearchData = (await textSearchResponse.json()) as TextSearchResponse;
   const placeId = textSearchData.places?.[0]?.id;
   if (!placeId) {
-    return [];
+    throw new BeachPhotoRefsCacheSkipError(
+      `Text Search returned no place id for "${trimmed}"`,
+      "no_place_id"
+    );
   }
 
   const detailsResponse = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
@@ -168,14 +178,24 @@ async function fetchGooglePlacePhotoReferencesForTextQuery(textQuery: string): P
   }
 
   const detailsData = (await detailsResponse.json()) as PlaceDetailsResponse;
-  return (detailsData.photos ?? [])
+  const refs = (detailsData.photos ?? [])
     .map((photo) => photo.name)
     .filter((name): name is string => Boolean(name));
+
+  if (refs.length === 0) {
+    throw new BeachPhotoRefsCacheSkipError(
+      `Place Details returned no photos for "${trimmed}"`,
+      "no_photos"
+    );
+  }
+
+  return refs;
 }
 
 /**
  * All Google Places photo resource names for a beach (admin gallery + internal slice source).
  * Cache key includes the effective text query (name vs photoSearchName).
+ * Only non-empty successful results are cached; failures retry on the next request.
  */
 export async function getGooglePlacePhotoReferences(beach: BeachPhotoSearchFields): Promise<string[]> {
   const textQuery = placesPhotoTextQuery(beach);
@@ -187,14 +207,26 @@ export async function getGooglePlacePhotoReferences(beach: BeachPhotoSearchField
 
   try {
     return await unstable_cache(
-      async () => fetchGooglePlacePhotoReferencesForTextQuery(textQuery),
-      ["beach-photo-refs", "v3", cacheTag],
+      async () => {
+        const refs = await fetchGooglePlacePhotoReferencesForTextQuery(textQuery);
+        if (refs.length === 0) {
+          throw new BeachPhotoRefsCacheSkipError(
+            `Refusing to cache empty photo refs for "${textQuery}"`,
+            "no_photos"
+          );
+        }
+        return refs;
+      },
+      ["beach-photo-refs", "v4", cacheTag],
       { revalidate: 604800 }
     )();
   } catch (error) {
     console.error("[beach-photos] Failed to fetch photo references", {
       textQuery,
-      message: error instanceof Error ? error.message : "Unknown error"
+      message: error instanceof Error ? error.message : "Unknown error",
+      ...(error instanceof BeachPhotoRefsCacheSkipError
+        ? { reason: error.reason, cacheSkipped: true }
+        : {})
     });
     return [];
   }
