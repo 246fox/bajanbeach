@@ -80,7 +80,7 @@ export const beachBatch02: Beach[] = [
     longitude: -59.63572,
     webcamUrl: "",
     description:
-      "Freshwater Bay, known locally as Pile Bay, is a tiny heavily wooded inlet historically used by fishermen. Crystalline waters fed by subterranean freshwater springs that slightly lower local sea temperature and create a unique halocline effect — excellent tranquil snorkeling.",
+      "Freshwater Bay, known locally as Pile Bay, is a tiny, sparsely wooded inlet historically used by fishermen where Caribbean spiny lobster is seasonally available from local divers. Calm, clear water and a sheltered setting make it a tranquil spot for snorkeling, away from the busier west coast beaches.",
     bestFor: "Snorkeling, exploring halocline springs, secluded swimming",
     notes: "Adjacent to Paradise Beach. Brackish freshwater mixing creates unique conditions. Local secret."
   },
