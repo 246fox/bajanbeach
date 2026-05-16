@@ -4,9 +4,18 @@ import { revalidatePath } from "next/cache";
 import sharp from "sharp";
 import { beaches } from "@/data/beaches";
 import { requireAdminSession } from "@/lib/admin-session";
+import { fetchAllBeachPhotoOverrides } from "@/lib/beach-photo-overrides";
+import { getGooglePlacePhotoReferences } from "@/lib/beach-photos";
 import { BEACH_PHOTOS_BUCKET, beachHeroStorageObjectPath } from "@/lib/beach-photo-storage";
 import { createServiceSupabase } from "@/lib/supabase/service";
 import { isValidGooglePlacePhotoReference } from "@/lib/place-photo-ref";
+
+export type BrokenPhotoScanResult = {
+  brokenSlugs: string[];
+  unverifiedSlugs: string[];
+  okCount: number;
+  scannedAt: string;
+};
 
 const BEACH_SLUGS = new Set(beaches.map((b) => b.slug));
 
@@ -135,6 +144,46 @@ export async function uploadBeachHeroPhoto(formData: FormData): Promise<PhotoOve
   revalidatePath("/admin/photos");
 
   return { ok: true };
+}
+
+export async function scanBrokenGooglePhotoOverrides(): Promise<
+  BrokenPhotoScanResult | { error: string }
+> {
+  await requireAdminSession();
+
+  const overrides = await fetchAllBeachPhotoOverrides();
+  const googleRefBeaches = beaches.filter((b) => overrides.get(b.slug)?.source === "google_ref");
+
+  const brokenSlugs: string[] = [];
+  const unverifiedSlugs: string[] = [];
+  let okCount = 0;
+
+  for (const beach of googleRefBeaches) {
+    const override = overrides.get(beach.slug);
+    const stored = override?.photo_reference?.trim() ?? "";
+    if (!stored) {
+      continue;
+    }
+
+    const refs = await getGooglePlacePhotoReferences(beach);
+    if (refs.length === 0) {
+      unverifiedSlugs.push(beach.slug);
+    } else if (!refs.some((r) => r.trim() === stored)) {
+      brokenSlugs.push(beach.slug);
+    } else {
+      okCount += 1;
+    }
+  }
+
+  brokenSlugs.sort();
+  unverifiedSlugs.sort();
+
+  return {
+    brokenSlugs,
+    unverifiedSlugs,
+    okCount,
+    scannedAt: new Date().toISOString()
+  };
 }
 
 export async function clearBeachPhotoOverride(slug: string): Promise<PhotoOverrideActionState> {

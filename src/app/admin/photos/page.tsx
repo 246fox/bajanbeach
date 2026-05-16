@@ -1,11 +1,21 @@
 import Link from "next/link";
-import { BeachPhotoAdminClient, type BeachPhotoAdminRow } from "@/components/admin/BeachPhotoAdminClient";
-import { beaches, getBeachBySlug } from "@/data/beaches";
-import { PRIORITY_BEACH_SLUGS } from "@/lib/admin-photo-priority";
+import {
+  BeachPhotoAdminClient,
+  type AdminPhotoFilter,
+  type BeachPhotoAdminRow
+} from "@/components/admin/BeachPhotoAdminClient";
+import { beaches } from "@/data/beaches";
 import { requireAdminSession } from "@/lib/admin-session";
 import { fetchAllBeachPhotoOverrides } from "@/lib/beach-photo-overrides";
 import { getGooglePlacePhotoReferences } from "@/lib/beach-photos";
 import type { Beach } from "@/types/beach";
+
+function parseFilter(raw?: string): AdminPhotoFilter {
+  if (raw === "all" || raw === "stable" || raw === "broken") {
+    return raw;
+  }
+  return "drift-risk";
+}
 
 async function mapWithConcurrency<T, R>(
   items: T[],
@@ -28,6 +38,23 @@ async function mapWithConcurrency<T, R>(
   return results;
 }
 
+function buildRow(
+  beach: Beach,
+  override: BeachPhotoAdminRow["override"],
+  googlePhotoRefs: string[],
+  lazyLoadGallery: boolean
+): BeachPhotoAdminRow {
+  return {
+    slug: beach.slug,
+    name: beach.name,
+    parish: beach.parish,
+    coast: beach.coast,
+    override,
+    googlePhotoRefs,
+    lazyLoadGallery
+  };
+}
+
 export default async function AdminPhotosPage({
   searchParams
 }: {
@@ -35,26 +62,49 @@ export default async function AdminPhotosPage({
 }) {
   await requireAdminSession();
 
-  const filter = searchParams.filter === "priority" ? "priority" : "all";
-
-  const beachList: Beach[] =
-    filter === "priority"
-      ? PRIORITY_BEACH_SLUGS.map((slug) => getBeachBySlug(slug)).filter((b): b is Beach => Boolean(b))
-      : [...beaches].sort((a, b) => a.name.localeCompare(b.name));
-
+  const filter = parseFilter(searchParams.filter);
   const overrides = await fetchAllBeachPhotoOverrides();
+  const allBeaches = [...beaches].sort((a, b) => a.name.localeCompare(b.name));
 
-  const rows: BeachPhotoAdminRow[] = await mapWithConcurrency(beachList, 6, async (beach) => {
-    const googlePhotoRefs = await getGooglePlacePhotoReferences(beach);
-    return {
-      slug: beach.slug,
-      name: beach.name,
-      parish: beach.parish,
-      coast: beach.coast,
-      override: overrides.get(beach.slug) ?? null,
-      googlePhotoRefs
-    };
+  const driftRiskBeaches = allBeaches.filter((b) => overrides.get(b.slug)?.source === "google_ref");
+  const stableBeaches = allBeaches.filter((b) => {
+    const o = overrides.get(b.slug);
+    return !o || o.source === "upload";
   });
+
+  const counts = {
+    all: allBeaches.length,
+    driftRisk: driftRiskBeaches.length,
+    stable: stableBeaches.length
+  };
+
+  let beachList: Beach[];
+  switch (filter) {
+    case "all":
+      beachList = allBeaches;
+      break;
+    case "stable":
+      beachList = stableBeaches;
+      break;
+    case "broken":
+      beachList = allBeaches;
+      break;
+    default:
+      beachList = driftRiskBeaches;
+      break;
+  }
+
+  const prefetchGallery = filter === "drift-risk";
+  const lazyLoadGallery = filter === "all";
+
+  const rows: BeachPhotoAdminRow[] = prefetchGallery
+    ? await mapWithConcurrency(beachList, 6, async (beach) => {
+        const googlePhotoRefs = await getGooglePlacePhotoReferences(beach);
+        return buildRow(beach, overrides.get(beach.slug) ?? null, googlePhotoRefs, false);
+      })
+    : beachList.map((beach) =>
+        buildRow(beach, overrides.get(beach.slug) ?? null, [], lazyLoadGallery)
+      );
 
   return (
     <>
@@ -62,36 +112,14 @@ export default async function AdminPhotosPage({
         <div className="mx-auto max-w-5xl">
           <h1 className="text-2xl font-semibold text-slate-800">Beach photo overrides</h1>
           <p className="mt-2 max-w-3xl text-sm text-slate-600">
-            Choose a Google thumbnail and <strong>Save selection</strong>, or <strong>Upload custom photo</strong>{" "}
-            (stored in Supabase — stable, no Google drift). <strong>Clear override</strong> removes both and restores
-            the default Google hero.
+            Maintain hero photos: re-check <strong>Google picks</strong> when references drift, or{" "}
+            <strong>upload</strong> your own (stable, no drift). <strong>Default</strong> beaches use
+            Google&apos;s current first photo with no saved override.
           </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Link
-              href="/admin/photos?filter=all"
-              className={`rounded-full px-4 py-2 text-sm font-medium ring-1 transition ${
-                filter === "all"
-                  ? "bg-ocean-600 text-white ring-ocean-600"
-                  : "bg-white text-slate-700 ring-slate-200 hover:bg-slate-50"
-              }`}
-            >
-              All beaches (A–Z)
-            </Link>
-            <Link
-              href="/admin/photos?filter=priority"
-              className={`rounded-full px-4 py-2 text-sm font-medium ring-1 transition ${
-                filter === "priority"
-                  ? "bg-ocean-600 text-white ring-ocean-600"
-                  : "bg-white text-slate-700 ring-slate-200 hover:bg-slate-50"
-              }`}
-            >
-              Priority only (16)
-            </Link>
-          </div>
         </div>
       </div>
 
-      <BeachPhotoAdminClient rows={rows} />
+      <BeachPhotoAdminClient filter={filter} rows={rows} counts={counts} />
 
       <p className="pb-10 text-center text-sm text-slate-500">
         <Link href="/admin/sargassum" className="text-ocean-700 hover:text-ocean-600">
