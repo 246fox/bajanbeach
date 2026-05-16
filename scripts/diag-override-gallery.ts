@@ -3,6 +3,9 @@
  * current Google Places Details photo names (same source as admin grid).
  *
  * Run from repo root: npx tsx scripts/diag-override-gallery.ts
+ *
+ * Places masks match production (beach-photos.ts): Text Search places.id only,
+ * then Place Details photos for gallery names.
  */
 import fs from "fs";
 import path from "path";
@@ -39,7 +42,7 @@ async function fetchGalleryRefs(beachName: string, apiKey: string): Promise<stri
     headers: {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": apiKey,
-      "X-Goog-FieldMask": "places.id,places.photos"
+      "X-Goog-FieldMask": "places.id"
     },
     body: JSON.stringify({ textQuery: `${trimmed} Barbados` })
   });
