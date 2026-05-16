@@ -51,6 +51,15 @@ function buildPhotoUrl(photoReference: string, apiKey: string): string {
   return `https://places.googleapis.com/v1/${photoReference}/media?${params.toString()}`;
 }
 
+/** Build a browser-loadable Places media URL from a photo resource name (requires server env key). */
+export function buildPlacePhotoMediaUrl(photoReference: string): string | null {
+  const apiKey = googleMapsKey();
+  if (!apiKey || !photoReference.trim()) {
+    return null;
+  }
+  return buildPhotoUrl(photoReference.trim(), apiKey);
+}
+
 async function readGoogleError(response: Response): Promise<{
   httpStatus: number;
   apiCode: number | null;
@@ -93,11 +102,12 @@ function logPlacesFailure(
   });
 }
 
-function googleMapsKey(): string | undefined {
+export function googleMapsKey(): string | undefined {
   return process.env.GOOGLE_MAPS_KEY ?? process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
 }
 
-async function fetchGooglePlacePhotoUrls(trimmed: string): Promise<string[]> {
+/** Uncached Places fetch — all photo resource names returned by Google (no slice). */
+async function fetchGooglePlacePhotoReferencesTrimmed(trimmed: string): Promise<string[]> {
   const apiKey = googleMapsKey();
   if (!apiKey) {
     throw new Error("No Google API key configured");
@@ -143,29 +153,41 @@ async function fetchGooglePlacePhotoUrls(trimmed: string): Promise<string[]> {
   const detailsData = (await detailsResponse.json()) as PlaceDetailsResponse;
   return (detailsData.photos ?? [])
     .map((photo) => photo.name)
-    .filter((name): name is string => Boolean(name))
-    .slice(0, 5)
-    .map((photoName) => buildPhotoUrl(photoName, apiKey));
+    .filter((name): name is string => Boolean(name));
 }
 
-export async function getBeachPhotoUrls(beachName: string): Promise<string[]> {
+/**
+ * All Google Places photo resource names for a beach (admin gallery + internal slice source).
+ * Cached separately from media URLs so API key rotation does not require invalidating photo lists.
+ */
+export async function getGooglePlacePhotoReferences(beachName: string): Promise<string[]> {
   const trimmed = beachName.trim();
   if (!trimmed) {
     return [];
   }
 
   try {
-    // Bump cache key version (e.g. v3 → v4) to invalidate all entries for a forced refresh.
+    // Bump cache key version (e.g. v1 → v2) to invalidate all entries for a forced refresh.
     return await unstable_cache(
-      async () => fetchGooglePlacePhotoUrls(trimmed),
-      ["beach-photo-urls", "v3", normalizeBeachName(trimmed)],
+      async () => fetchGooglePlacePhotoReferencesTrimmed(trimmed),
+      ["beach-photo-refs", "v1", normalizeBeachName(trimmed)],
       { revalidate: 604800 }
     )();
   } catch (error) {
-    console.error("[beach-photos] Failed to fetch beach photos", {
+    console.error("[beach-photos] Failed to fetch photo references", {
       beachName: trimmed,
       message: error instanceof Error ? error.message : "Unknown error"
     });
     return [];
   }
+}
+
+/** Up to five browser-loadable Google photo URLs (legacy helper; public site uses resolver + overrides). */
+export async function getBeachPhotoUrls(beachName: string): Promise<string[]> {
+  const refs = await getGooglePlacePhotoReferences(beachName);
+  const apiKey = googleMapsKey();
+  if (!apiKey) {
+    return [];
+  }
+  return refs.slice(0, 5).map((ref) => buildPhotoUrl(ref, apiKey));
 }

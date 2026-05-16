@@ -3,8 +3,9 @@ import { Suspense } from "react";
 import { BeachBoard } from "@/components/BeachBoard";
 import { beaches } from "@/data/beaches";
 import { fetchBeachConditions } from "@/lib/beach-conditions";
-import { BEACH_PHOTO_PLACEHOLDER } from "@/lib/beach-photo-placeholder";
+import { fetchAllBeachPhotoOverrides } from "@/lib/beach-photo-overrides";
 import { getBeachPhotoUrls } from "@/lib/beach-photos";
+import { resolvePublicBeachHeroUrl } from "@/lib/beach-photo-resolve";
 import { fetchSargassumByCoast, rowToDisplay, sargassumLevelForScoring } from "@/lib/sargassum";
 import type { BeachCardData } from "@/types/beach";
 
@@ -58,7 +59,10 @@ async function mapWithConcurrency<T, R>(
 }
 
 export default async function Home() {
-  const sargassumByCoast = await fetchSargassumByCoast();
+  const [sargassumByCoast, photoOverrides] = await Promise.all([
+    fetchSargassumByCoast(),
+    fetchAllBeachPhotoOverrides()
+  ]);
 
   const beachCards: BeachCardData[] = await mapWithConcurrency(beaches, 4, async (beach, index) => {
     const [conditions, photoUrls] = await Promise.all([
@@ -67,10 +71,11 @@ export default async function Home() {
       }),
       getBeachPhotoUrls(beach.name)
     ]);
+    const overrideRef = photoOverrides.get(beach.slug) ?? null;
     return {
       ...beach,
       conditions,
-      photoUrl: photoUrls[0] ?? BEACH_PHOTO_PLACEHOLDER,
+      photoUrl: resolvePublicBeachHeroUrl(overrideRef, photoUrls),
       heroClass: HERO_BG_CLASSES[index % HERO_BG_CLASSES.length],
       sargassum: rowToDisplay(sargassumByCoast[beach.coast])
     };

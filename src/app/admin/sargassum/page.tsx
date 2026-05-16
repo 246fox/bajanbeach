@@ -22,6 +22,10 @@ export default async function AdminSargassumPage({
       )}
       <SargassumAdminForm initialByCoast={initialByCoast} />
       <p className="pb-10 text-center text-sm text-slate-500">
+        <Link href="/admin/photos" className="text-ocean-700 hover:text-ocean-600">
+          Beach photo overrides
+        </Link>
+        {" · "}
         <Link href="/" className="text-ocean-700 hover:text-ocean-600">
           ← Back to site
         </Link>
