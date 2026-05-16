@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { SiteHeader } from "@/components/SiteHeader";
 import "./globals.css";
 
 const GA_MEASUREMENT_ID = "G-S6V0BFCJPB";
@@ -50,7 +51,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <SiteHeader />
+        {children}
+      </body>
       {isProduction && (
         <>
           <Script

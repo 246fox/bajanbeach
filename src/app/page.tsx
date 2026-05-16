@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import Image from "next/image";
 import { BeachBoard } from "@/components/BeachBoard";
 import { beaches } from "@/data/beaches";
 import { fetchBeachConditions } from "@/lib/beach-conditions";
@@ -83,17 +82,6 @@ export default async function Home() {
         <p className="text-sm font-semibold uppercase tracking-[0.22em] text-ocean-700">
           Barbados Beach Guide
         </p>
-        <div className="mt-3 flex justify-center">
-          <Image
-            src="/logo.jpeg"
-            alt="BajanBeach logo"
-            width={400}
-            height={128}
-            className="h-auto w-[240px] sm:w-[320px]"
-            priority
-            unoptimized
-          />
-        </div>
         <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
           Local insights and live beach conditions for 63 Barbados beaches. Updated hourly.
         </p>
