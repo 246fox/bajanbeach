@@ -135,7 +135,7 @@ async function fetchGooglePlacePhotoReferencesForTextQuery(textQuery: string): P
     headers: {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": apiKey,
-      "X-Goog-FieldMask": "places.id,places.photos"
+      "X-Goog-FieldMask": "places.id"
     },
     body: JSON.stringify({
       textQuery: trimmed
@@ -188,7 +188,7 @@ export async function getGooglePlacePhotoReferences(beach: BeachPhotoSearchField
   try {
     return await unstable_cache(
       async () => fetchGooglePlacePhotoReferencesForTextQuery(textQuery),
-      ["beach-photo-refs", "v2", cacheTag],
+      ["beach-photo-refs", "v3", cacheTag],
       { revalidate: 604800 }
     )();
   } catch (error) {
