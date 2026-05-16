@@ -24,7 +24,7 @@ export async function fetchAllBeachPhotoOverrides(): Promise<Map<string, string>
   const map = new Map<string, string>();
   for (const row of data ?? []) {
     if (row.beach_slug && row.photo_reference) {
-      map.set(row.beach_slug, row.photo_reference);
+      map.set(row.beach_slug, String(row.photo_reference).trim());
     }
   }
   return map;
@@ -47,5 +47,5 @@ export async function fetchPhotoOverrideForSlug(slug: string): Promise<string | 
     return null;
   }
 
-  return data?.photo_reference ?? null;
+  return data?.photo_reference != null ? String(data.photo_reference).trim() : null;
 }

@@ -21,6 +21,7 @@ function thumbSrc(ref: string): string {
 function BeachPhotoPickerRow({ row }: { row: BeachPhotoAdminRow }) {
   const { slug, name, parish, coast, savedOverrideRef, googlePhotoRefs } = row;
   const router = useRouter();
+  const storedNorm = savedOverrideRef?.trim() ?? "";
   const [pendingRef, setPendingRef] = useState<string | null>(savedOverrideRef);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -29,11 +30,10 @@ function BeachPhotoPickerRow({ row }: { row: BeachPhotoAdminRow }) {
     setPendingRef(savedOverrideRef);
   }, [savedOverrideRef]);
 
-  const hasOverride = Boolean(savedOverrideRef);
-  const saveDisabled =
-    isPending ||
-    pendingRef === null ||
-    pendingRef === savedOverrideRef;
+  const hasOverride = Boolean(storedNorm);
+  const overrideInCurrentGallery = hasOverride && googlePhotoRefs.some((r) => r.trim() === storedNorm);
+  const pendingTrim = pendingRef?.trim() ?? "";
+  const saveDisabled = isPending || pendingTrim === "" || pendingTrim === storedNorm;
 
   return (
     <section className="border-b border-slate-200 py-10 last:border-b-0">
@@ -65,14 +65,40 @@ function BeachPhotoPickerRow({ row }: { row: BeachPhotoAdminRow }) {
       </div>
 
       <h3 className="mt-6 text-sm font-semibold text-slate-700">Google Places photos (all returned)</h3>
+      {hasOverride && !overrideInCurrentGallery ? (
+        <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50/90 p-4 shadow-sm">
+          <p className="text-sm font-medium text-amber-950">
+            Live override (not in current gallery list)
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-amber-900/90">
+            Google sometimes returns different photo resource IDs than when you saved. The site still uses your
+            stored ID for the public hero. Pick a thumbnail below and save to re-pin a current ID, or clear the
+            override.
+          </p>
+          <div className="mt-3 inline-block overflow-hidden rounded-lg border-2 border-emerald-600 ring-2 ring-emerald-500/50">
+            <img
+              src={thumbSrc(storedNorm)}
+              alt="Current override preview"
+              className="aspect-video w-[min(100%,280px)] object-cover"
+              loading="lazy"
+            />
+          </div>
+          <p className="mt-2 font-mono text-[10px] leading-snug text-amber-950/80 break-all">
+            Stored: {storedNorm.slice(0, 120)}
+            {storedNorm.length > 120 ? "…" : ""}
+          </p>
+        </div>
+      ) : null}
       {googlePhotoRefs.length === 0 ? (
         <p className="mt-2 text-sm text-amber-800">No photos returned for this place (check API quota or search match).</p>
       ) : (
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
           {googlePhotoRefs.map((ref, index) => {
-            const isLiveOverride = Boolean(savedOverrideRef) && ref === savedOverrideRef;
+            const refNorm = ref.trim();
+            const isLiveOverride = Boolean(storedNorm) && refNorm === storedNorm;
+            const pendingNorm = pendingRef?.trim() ?? "";
             const isPendingChange =
-              pendingRef === ref && (savedOverrideRef === null || ref !== savedOverrideRef);
+              pendingNorm === refNorm && (storedNorm === "" || refNorm !== storedNorm);
             const ringClass = isLiveOverride
               ? "border-emerald-500 ring-4 ring-emerald-500/90 ring-offset-2 ring-offset-white"
               : isPendingChange
@@ -120,12 +146,12 @@ function BeachPhotoPickerRow({ row }: { row: BeachPhotoAdminRow }) {
           type="button"
           disabled={saveDisabled}
           onClick={() => {
-            if (pendingRef === null) {
+            if (pendingTrim === "") {
               return;
             }
             startTransition(async () => {
               setError(null);
-              const res = await saveBeachPhotoOverride(slug, pendingRef);
+              const res = await saveBeachPhotoOverride(slug, pendingTrim);
               if (res.error) {
                 setError(res.error);
               } else {
