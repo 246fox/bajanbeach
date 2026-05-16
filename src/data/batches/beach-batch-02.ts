@@ -80,7 +80,7 @@ export const beachBatch02: Beach[] = [
     longitude: -59.63572,
     webcamUrl: "",
     description:
-      "Tiny heavily wooded inlet (also called Pile Bay) historically used by fishermen. Crystalline waters fed by subterranean freshwater springs that slightly lower local sea temperature and create a unique halocline effect — excellent tranquil snorkeling.",
+      "Freshwater Bay, known locally as Pile Bay, is a tiny heavily wooded inlet historically used by fishermen. Crystalline waters fed by subterranean freshwater springs that slightly lower local sea temperature and create a unique halocline effect — excellent tranquil snorkeling.",
     bestFor: "Snorkeling, exploring halocline springs, secluded swimming",
     notes: "Adjacent to Paradise Beach. Brackish freshwater mixing creates unique conditions. Local secret."
   },
