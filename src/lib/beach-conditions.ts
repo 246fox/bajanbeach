@@ -135,20 +135,49 @@ function periodModifierHighTolerance(wavePeriod: number | null): number {
   return -0.9;
 }
 
+/** Type-tolerance swim floor (wave < 2 m) — steps down with worse coast sargassum. */
+function swimToleranceFloor(
+  beach: Pick<Beach, "seaState" | "waveActionBaseline">,
+  sargassumLevel: SargassumLevelForScore
+): number | null {
+  const tier =
+    sargassumLevel === "high" ? "high" : sargassumLevel === "medium" ? "medium" : "low";
+
+  if (beach.seaState === "calm" && beach.waveActionBaseline === "low") {
+    if (tier === "high") return 4;
+    if (tier === "medium") return 5;
+    return 7;
+  }
+  if (beach.seaState === "moderate" && beach.waveActionBaseline === "medium") {
+    if (tier === "high") return 3;
+    if (tier === "medium") return 4;
+    return 5;
+  }
+  if (beach.seaState === "moderate" && beach.waveActionBaseline === "high") {
+    if (tier === "high") return 2;
+    if (tier === "medium") return 3;
+    return 4;
+  }
+  return null;
+}
+
 function applySeaStateWaveActionFloorsCeilings(
   beach: Pick<Beach, "slug" | "seaState" | "waveActionBaseline">,
   waveHeight: number | null,
-  score: number
+  score: number,
+  sargassumLevel: SargassumLevelForScore
 ): number {
   let s = score;
+  const floorVal = swimToleranceFloor(beach, sargassumLevel);
 
   if (beach.seaState === "calm" && beach.waveActionBaseline === "low") {
-    if (waveHeight !== null && waveHeight < 2.0 && s < 7) {
+    if (floorVal !== null && waveHeight !== null && waveHeight < 2.0 && s < floorVal) {
       const before = s;
-      s = 7;
+      s = floorVal;
       console.log("[scoring]", {
         beachSlug: beach.slug,
-        rule: "floor_7_calm_low_lt_2m",
+        rule: `floor_${floorVal}_calm_low_lt_2m`,
+        sargassumLevel: sargassumLevel ?? "low",
         scoreBeforeFloorCeiling: before,
         finalAfterFloorCeiling: s
       });
@@ -167,12 +196,13 @@ function applySeaStateWaveActionFloorsCeilings(
   }
 
   if (beach.seaState === "moderate" && beach.waveActionBaseline === "medium") {
-    if (waveHeight !== null && waveHeight < 2.0 && s < 5) {
+    if (floorVal !== null && waveHeight !== null && waveHeight < 2.0 && s < floorVal) {
       const before = s;
-      s = 5;
+      s = floorVal;
       console.log("[scoring]", {
         beachSlug: beach.slug,
-        rule: "floor_5_moderate_medium_lt_2m",
+        rule: `floor_${floorVal}_moderate_medium_lt_2m`,
+        sargassumLevel: sargassumLevel ?? "low",
         scoreBeforeFloorCeiling: before,
         finalAfterFloorCeiling: s
       });
@@ -191,12 +221,13 @@ function applySeaStateWaveActionFloorsCeilings(
   }
 
   if (beach.seaState === "moderate" && beach.waveActionBaseline === "high") {
-    if (waveHeight !== null && waveHeight < 2.0 && s < 4) {
+    if (floorVal !== null && waveHeight !== null && waveHeight < 2.0 && s < floorVal) {
       const before = s;
-      s = 4;
+      s = floorVal;
       console.log("[scoring]", {
         beachSlug: beach.slug,
-        rule: "floor_4_moderate_high_lt_2m",
+        rule: `floor_${floorVal}_moderate_high_lt_2m`,
+        sargassumLevel: sargassumLevel ?? "low",
         scoreBeforeFloorCeiling: before,
         finalAfterFloorCeiling: s
       });
@@ -281,8 +312,7 @@ function computeBeachScore(
   if (beach.waveActionBaseline === "low") {
     score = 9.5;
     if (waveHeight > 0.8) {
-      const penalty = Math.min((waveHeight - 0.8) ** 2 * 5, 5);
-      score -= penalty;
+      score -= Math.min((waveHeight - 0.8) ** 2 * 5, 5);
     }
     score += periodModifierSwimBeaches("low", wavePeriod);
     score += windDirectionModifier(beach.coast, windDirection);
@@ -331,7 +361,7 @@ function computeBeachScore(
     score += sargassumSwimPenalty(beach.seaState, sargassumLevel);
   }
 
-  score = applySeaStateWaveActionFloorsCeilings(beach, waveHeight, score);
+  score = applySeaStateWaveActionFloorsCeilings(beach, waveHeight, score, sargassumLevel);
 
   if (beach.seaState === "moderate" && beach.waveActionBaseline === "high" && score > 6) {
     const before = score;
