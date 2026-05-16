@@ -46,11 +46,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const title = `${beach.name} Conditions Today | BajanBeach`;
   const description = truncateMetaDescription(beach.description);
-  const [photoUrls, overrideRef] = await Promise.all([
+  const [photoUrls, override] = await Promise.all([
     getBeachPhotoUrls(beach.name),
     fetchPhotoOverrideForSlug(beach.slug)
   ]);
-  const ogImageUrl = resolvePublicBeachHeroUrl(overrideRef, photoUrls);
+  const ogImageUrl = resolvePublicBeachHeroUrl(override, photoUrls);
 
   return {
     title,
@@ -106,7 +106,7 @@ export default async function BeachDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const [tides, sargassumRow, photoUrls, waveForecast, overrideRef] = await Promise.all([
+  const [tides, sargassumRow, photoUrls, waveForecast, override] = await Promise.all([
     fetchBeachTides(beach),
     fetchSargassumRowForCoast(beach.coast),
     getBeachPhotoUrls(beach.name),
@@ -120,7 +120,7 @@ export default async function BeachDetailPage({ params }: PageProps) {
 
   const sargassumDisplay = rowToDisplay(sargassumRow);
 
-  const heroUrl = resolvePublicBeachHeroUrl(overrideRef, photoUrls);
+  const heroUrl = resolvePublicBeachHeroUrl(override, photoUrls);
   const hasWebcam = beach.webcamUrl.trim() !== "";
   const isWarningNote = beach.notes.includes("⚠️");
   const mapsEmbedUrl = `https://www.google.com/maps/embed/v1/place?${new URLSearchParams({

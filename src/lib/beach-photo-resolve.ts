@@ -1,15 +1,19 @@
 import { BEACH_PHOTO_PLACEHOLDER } from "@/lib/beach-photo-placeholder";
+import type { BeachPhotoOverrideData } from "@/lib/beach-photo-overrides";
 import { buildPlacePhotoMediaUrl } from "@/lib/beach-photos";
 
 /**
- * Public hero image: Supabase override ref → media URL, else first Google URL, else placeholder.
+ * upload → image_url; google_ref → Places media URL from reference; else Google [0] or placeholder.
  */
 export function resolvePublicBeachHeroUrl(
-  overrideRef: string | null | undefined,
+  override: BeachPhotoOverrideData | null | undefined,
   googlePhotoUrls: string[]
 ): string {
-  if (overrideRef) {
-    const url = buildPlacePhotoMediaUrl(overrideRef);
+  if (override?.source === "upload" && override.image_url?.trim()) {
+    return override.image_url.trim();
+  }
+  if (override?.source === "google_ref" && override.photo_reference) {
+    const url = buildPlacePhotoMediaUrl(override.photo_reference);
     if (url) {
       return url;
     }

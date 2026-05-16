@@ -2,15 +2,20 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
-import { clearBeachPhotoOverride, saveBeachPhotoOverride } from "@/app/admin/photos/actions";
+import { useEffect, useRef, useState, useTransition } from "react";
+import {
+  clearBeachPhotoOverride,
+  saveBeachPhotoOverride,
+  uploadBeachHeroPhoto
+} from "@/app/admin/photos/actions";
+import type { BeachPhotoOverrideData } from "@/lib/beach-photo-overrides";
 
 export type BeachPhotoAdminRow = {
   slug: string;
   name: string;
   parish: string;
   coast: string;
-  savedOverrideRef: string | null;
+  override: BeachPhotoOverrideData | null;
   googlePhotoRefs: string[];
 };
 
@@ -19,21 +24,33 @@ function thumbSrc(ref: string): string {
 }
 
 function BeachPhotoPickerRow({ row }: { row: BeachPhotoAdminRow }) {
-  const { slug, name, parish, coast, savedOverrideRef, googlePhotoRefs } = row;
+  const { slug, name, parish, coast, override, googlePhotoRefs } = row;
   const router = useRouter();
-  const storedNorm = savedOverrideRef?.trim() ?? "";
-  const [pendingRef, setPendingRef] = useState<string | null>(savedOverrideRef);
+  const storedGoogleRef =
+    override?.source === "google_ref" ? override.photo_reference?.trim() ?? "" : "";
+  const storedImageUrl = override?.source === "upload" ? override.image_url?.trim() ?? "" : "";
+
+  const [pendingRef, setPendingRef] = useState<string | null>(
+    override?.source === "google_ref" ? override.photo_reference : null
+  );
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    setPendingRef(savedOverrideRef);
-  }, [savedOverrideRef]);
+    setPendingRef(override?.source === "google_ref" ? override.photo_reference : null);
+  }, [override]);
 
-  const hasOverride = Boolean(storedNorm);
-  const overrideInCurrentGallery = hasOverride && googlePhotoRefs.some((r) => r.trim() === storedNorm);
+  const hasOverride = Boolean(override);
+  const overrideInCurrentGallery =
+    Boolean(storedGoogleRef) && googlePhotoRefs.some((r) => r.trim() === storedGoogleRef);
+
   const pendingTrim = pendingRef?.trim() ?? "";
-  const saveDisabled = isPending || pendingTrim === "" || pendingTrim === storedNorm;
+  const saveDisabled =
+    isPending ||
+    pendingTrim === "" ||
+    (override?.source === "google_ref" && pendingTrim === storedGoogleRef);
 
   return (
     <section className="border-b border-slate-200 py-10 last:border-b-0">
@@ -52,40 +69,100 @@ function BeachPhotoPickerRow({ row }: { row: BeachPhotoAdminRow }) {
           </Link>
         </div>
         <div className="shrink-0">
-          {hasOverride ? (
-            <span className="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-900 ring-1 ring-emerald-200">
-              Override set
-            </span>
-          ) : (
+          {!hasOverride ? (
             <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">
               Google default
+            </span>
+          ) : override?.source === "upload" ? (
+            <span className="inline-flex rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-900 ring-1 ring-violet-200">
+              Your photo
+            </span>
+          ) : (
+            <span className="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-900 ring-1 ring-emerald-200">
+              Google pick
             </span>
           )}
         </div>
       </div>
 
-      <h3 className="mt-6 text-sm font-semibold text-slate-700">Google Places photos (all returned)</h3>
-      {hasOverride && !overrideInCurrentGallery ? (
+      {storedImageUrl ? (
+        <div className="mt-6 rounded-xl border border-violet-200 bg-violet-50/80 p-4 shadow-sm">
+          <p className="text-sm font-semibold text-violet-950">Current custom photo (live on site)</p>
+          <div className="mt-3 inline-block overflow-hidden rounded-lg border-2 border-violet-500 ring-2 ring-violet-400/40">
+            <img
+              src={storedImageUrl}
+              alt=""
+              className="aspect-video w-[min(100%,320px)] object-cover"
+              loading="lazy"
+            />
+          </div>
+        </div>
+      ) : null}
+
+      <h3 className="mt-6 text-sm font-semibold text-slate-700">Upload your own photo</h3>
+      <p className="mt-1 text-xs text-slate-600">
+      JPEG, PNG, or WebP — max 5MB. Saved as JPEG in Supabase Storage (stable URL; no Google drift).
+      </p>
+      <div className="mt-2 flex flex-wrap items-center gap-3">
+        <input
+          ref={uploadInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="max-w-full text-sm text-slate-700 file:mr-2 file:rounded-lg file:border file:border-slate-300 file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-slate-800"
+          onChange={(e) => setUploadFile(e.target.files?.[0] ?? null)}
+        />
+        <button
+          type="button"
+          disabled={isPending || !uploadFile}
+          onClick={() => {
+            if (!uploadFile) {
+              return;
+            }
+            startTransition(async () => {
+              setError(null);
+              const fd = new FormData();
+              fd.append("slug", slug);
+              fd.append("photo", uploadFile);
+              const res = await uploadBeachHeroPhoto(fd);
+              if (res.error) {
+                setError(res.error);
+              } else {
+                setUploadFile(null);
+                if (uploadInputRef.current) {
+                  uploadInputRef.current.value = "";
+                }
+                router.refresh();
+              }
+            });
+          }}
+          className="rounded-lg bg-violet-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-600 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
+        >
+          Upload custom photo
+        </button>
+      </div>
+
+      <h3 className="mt-8 text-sm font-semibold text-slate-700">Google Places photos (all returned)</h3>
+      {hasOverride && override?.source === "google_ref" && !overrideInCurrentGallery ? (
         <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50/90 p-4 shadow-sm">
           <p className="text-sm font-medium text-amber-950">
-            Live override (not in current gallery list)
+            Live Google pick (not in current gallery list)
           </p>
           <p className="mt-1 text-xs leading-relaxed text-amber-900/90">
             Google sometimes returns different photo resource IDs than when you saved. The site still uses your
-            stored ID for the public hero. Pick a thumbnail below and save to re-pin a current ID, or clear the
-            override.
+            stored ID for the public hero. Pick a thumbnail below and save to re-pin a current ID, upload your
+            own photo, or clear the override.
           </p>
           <div className="mt-3 inline-block overflow-hidden rounded-lg border-2 border-emerald-600 ring-2 ring-emerald-500/50">
             <img
-              src={thumbSrc(storedNorm)}
-              alt="Current override preview"
+              src={thumbSrc(storedGoogleRef)}
+              alt="Current Google override preview"
               className="aspect-video w-[min(100%,280px)] object-cover"
               loading="lazy"
             />
           </div>
           <p className="mt-2 font-mono text-[10px] leading-snug text-amber-950/80 break-all">
-            Stored: {storedNorm.slice(0, 120)}
-            {storedNorm.length > 120 ? "…" : ""}
+            Stored: {storedGoogleRef.slice(0, 120)}
+            {storedGoogleRef.length > 120 ? "…" : ""}
           </p>
         </div>
       ) : null}
@@ -95,10 +172,10 @@ function BeachPhotoPickerRow({ row }: { row: BeachPhotoAdminRow }) {
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
           {googlePhotoRefs.map((ref, index) => {
             const refNorm = ref.trim();
-            const isLiveOverride = Boolean(storedNorm) && refNorm === storedNorm;
+            const isLiveOverride = Boolean(storedGoogleRef) && refNorm === storedGoogleRef;
             const pendingNorm = pendingRef?.trim() ?? "";
             const isPendingChange =
-              pendingNorm === refNorm && (storedNorm === "" || refNorm !== storedNorm);
+              pendingNorm === refNorm && (storedGoogleRef === "" || refNorm !== storedGoogleRef);
             const ringClass = isLiveOverride
               ? "border-emerald-500 ring-4 ring-emerald-500/90 ring-offset-2 ring-offset-white"
               : isPendingChange

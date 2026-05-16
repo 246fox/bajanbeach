@@ -51,7 +51,7 @@ export default async function AdminPhotosPage({
       name: beach.name,
       parish: beach.parish,
       coast: beach.coast,
-      savedOverrideRef: overrides.get(beach.slug) ?? null,
+      override: overrides.get(beach.slug) ?? null,
       googlePhotoRefs
     };
   });
@@ -62,8 +62,9 @@ export default async function AdminPhotosPage({
         <div className="mx-auto max-w-5xl">
           <h1 className="text-2xl font-semibold text-slate-800">Beach photo overrides</h1>
           <p className="mt-2 max-w-3xl text-sm text-slate-600">
-            Pick the thumbnail that best matches each beach. Changes apply on the public site after save. Use{" "}
-            <strong>Clear override</strong> to revert to Google&apos;s default first photo.
+            Choose a Google thumbnail and <strong>Save selection</strong>, or <strong>Upload custom photo</strong>{" "}
+            (stored in Supabase — stable, no Google drift). <strong>Clear override</strong> removes both and restores
+            the default Google hero.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Link

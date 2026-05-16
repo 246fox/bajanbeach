@@ -71,11 +71,11 @@ export default async function Home() {
       }),
       getBeachPhotoUrls(beach.name)
     ]);
-    const overrideRef = photoOverrides.get(beach.slug) ?? null;
+    const override = photoOverrides.get(beach.slug) ?? null;
     return {
       ...beach,
       conditions,
-      photoUrl: resolvePublicBeachHeroUrl(overrideRef, photoUrls),
+      photoUrl: resolvePublicBeachHeroUrl(override, photoUrls),
       heroClass: HERO_BG_CLASSES[index % HERO_BG_CLASSES.length],
       sargassum: rowToDisplay(sargassumByCoast[beach.coast])
     };
