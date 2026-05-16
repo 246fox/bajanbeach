@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { findBeachByPhotoApiParam } from "@/data/beaches";
 import { getBeachPhotoUrls } from "@/lib/beach-photos";
 
 export async function GET(request: Request) {
@@ -13,6 +14,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Missing beach query parameter." }, { status: 400 });
   }
 
-  const photoUrls = await getBeachPhotoUrls(beachParam);
+  const beach = findBeachByPhotoApiParam(beachParam);
+  if (!beach) {
+    return NextResponse.json({ error: "Unknown beach." }, { status: 404 });
+  }
+
+  const photoUrls = await getBeachPhotoUrls(beach);
   return NextResponse.json({ photoUrls });
 }

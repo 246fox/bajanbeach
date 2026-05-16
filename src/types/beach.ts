@@ -18,6 +18,11 @@ export type Beach = {
   description: string;
   bestFor: string;
   notes: string;
+  /**
+   * If set, sent **verbatim** as Google Places `textQuery` for photo lookup only.
+   * Include location context (e.g. end with `Barbados`). When unset, we use `{name} Barbados`.
+   */
+  photoSearchName?: string;
   /** Set at runtime from Supabase by coast — never in static JSON. */
   sargassum?: SargassumDisplay;
 };

@@ -20,3 +20,9 @@ export const beaches: Beach[] = [
 export function getBeachBySlug(slug: string): Beach | undefined {
   return beaches.find((b) => b.slug === slug);
 }
+
+/** Match slug or display name (for `/api/beach-photos?beach=`). */
+export function findBeachByPhotoApiParam(param: string): Beach | undefined {
+  const t = param.trim();
+  return beaches.find((b) => b.slug === t || b.name === t);
+}

@@ -69,6 +69,7 @@ export const beachBatch04: Beach[] = [
   {
     name: "Inch Marlow Beach",
     slug: "inch-marlow-beach",
+    photoSearchName: "Surfers Point Barbados",
     parish: "Christ Church",
     coast: "South",
     seaState: "moderate",

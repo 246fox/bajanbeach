@@ -45,7 +45,7 @@ export default async function AdminPhotosPage({
   const overrides = await fetchAllBeachPhotoOverrides();
 
   const rows: BeachPhotoAdminRow[] = await mapWithConcurrency(beachList, 6, async (beach) => {
-    const googlePhotoRefs = await getGooglePlacePhotoReferences(beach.name);
+    const googlePhotoRefs = await getGooglePlacePhotoReferences(beach);
     return {
       slug: beach.slug,
       name: beach.name,

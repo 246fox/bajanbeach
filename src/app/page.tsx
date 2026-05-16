@@ -69,7 +69,7 @@ export default async function Home() {
       fetchBeachConditions(beach, {
         sargassumLevel: sargassumLevelForScoring(sargassumByCoast[beach.coast])
       }),
-      getBeachPhotoUrls(beach.name)
+      getBeachPhotoUrls(beach)
     ]);
     const override = photoOverrides.get(beach.slug) ?? null;
     return {

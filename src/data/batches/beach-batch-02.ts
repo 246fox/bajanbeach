@@ -52,6 +52,7 @@ export const beachBatch02: Beach[] = [
   {
     name: "Sandy Lane Bay",
     slug: "sandy-lane-bay",
+    photoSearchName: "Sandy Lane Beach Barbados",
     parish: "St. James",
     coast: "West",
     seaState: "calm",
@@ -69,6 +70,7 @@ export const beachBatch02: Beach[] = [
   {
     name: "Freshwater Bay",
     slug: "freshwater-bay",
+    photoSearchName: "Pile Bay Barbados",
     parish: "St. Michael",
     coast: "West",
     seaState: "calm",

@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const title = `${beach.name} Conditions Today | BajanBeach`;
   const description = truncateMetaDescription(beach.description);
   const [photoUrls, override] = await Promise.all([
-    getBeachPhotoUrls(beach.name),
+    getBeachPhotoUrls(beach),
     fetchPhotoOverrideForSlug(beach.slug)
   ]);
   const ogImageUrl = resolvePublicBeachHeroUrl(override, photoUrls);
@@ -109,7 +109,7 @@ export default async function BeachDetailPage({ params }: PageProps) {
   const [tides, sargassumRow, photoUrls, waveForecast, override] = await Promise.all([
     fetchBeachTides(beach),
     fetchSargassumRowForCoast(beach.coast),
-    getBeachPhotoUrls(beach.name),
+    getBeachPhotoUrls(beach),
     fetchSevenDayWaveForecast(beach.latitude, beach.longitude),
     fetchPhotoOverrideForSlug(beach.slug)
   ]);

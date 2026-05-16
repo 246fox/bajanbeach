@@ -1,3 +1,4 @@
+import type { Beach } from "@/types/beach";
 import { unstable_cache } from "next/cache";
 
 type TextSearchResponse = {
@@ -39,8 +40,19 @@ type GoogleApiErrorPayload = {
   };
 };
 
-function normalizeBeachName(name: string): string {
-  return name.trim().toLowerCase();
+type BeachPhotoSearchFields = Pick<Beach, "name" | "photoSearchName">;
+
+/** Full Places `textQuery` for photo search (alias verbatim, else `{name} Barbados`). */
+export function placesPhotoTextQuery(beach: BeachPhotoSearchFields): string {
+  const alias = beach.photoSearchName?.trim();
+  if (alias) {
+    return alias;
+  }
+  return `${beach.name.trim()} Barbados`;
+}
+
+function normalizePhotoQueryCacheKey(textQuery: string): string {
+  return textQuery.trim().toLowerCase();
 }
 
 function buildPhotoUrl(photoReference: string, apiKey: string): string {
@@ -84,7 +96,7 @@ async function readGoogleError(response: Response): Promise<{
 
 function logPlacesFailure(
   stage: "text-search" | "place-details",
-  beachName: string,
+  textQuery: string,
   details: {
     httpStatus: number;
     apiCode: number | null;
@@ -94,7 +106,7 @@ function logPlacesFailure(
 ) {
   console.error("[beach-photos] Google Places request failed", {
     stage,
-    beachName,
+    textQuery,
     httpStatus: details.httpStatus,
     apiCode: details.apiCode,
     apiStatus: details.apiStatus,
@@ -107,7 +119,12 @@ export function googleMapsKey(): string | undefined {
 }
 
 /** Uncached Places fetch — all photo resource names returned by Google (no slice). */
-async function fetchGooglePlacePhotoReferencesTrimmed(trimmed: string): Promise<string[]> {
+async function fetchGooglePlacePhotoReferencesForTextQuery(textQuery: string): Promise<string[]> {
+  const trimmed = textQuery.trim();
+  if (!trimmed) {
+    return [];
+  }
+
   const apiKey = googleMapsKey();
   if (!apiKey) {
     throw new Error("No Google API key configured");
@@ -121,7 +138,7 @@ async function fetchGooglePlacePhotoReferencesTrimmed(trimmed: string): Promise<
       "X-Goog-FieldMask": "places.id,places.photos"
     },
     body: JSON.stringify({
-      textQuery: `${trimmed} Barbados`
+      textQuery: trimmed
     })
   });
 
@@ -158,24 +175,25 @@ async function fetchGooglePlacePhotoReferencesTrimmed(trimmed: string): Promise<
 
 /**
  * All Google Places photo resource names for a beach (admin gallery + internal slice source).
- * Cached separately from media URLs so API key rotation does not require invalidating photo lists.
+ * Cache key includes the effective text query (name vs photoSearchName).
  */
-export async function getGooglePlacePhotoReferences(beachName: string): Promise<string[]> {
-  const trimmed = beachName.trim();
-  if (!trimmed) {
+export async function getGooglePlacePhotoReferences(beach: BeachPhotoSearchFields): Promise<string[]> {
+  const textQuery = placesPhotoTextQuery(beach);
+  if (!textQuery.trim()) {
     return [];
   }
 
+  const cacheTag = normalizePhotoQueryCacheKey(textQuery);
+
   try {
-    // Bump cache key version (e.g. v1 → v2) to invalidate all entries for a forced refresh.
     return await unstable_cache(
-      async () => fetchGooglePlacePhotoReferencesTrimmed(trimmed),
-      ["beach-photo-refs", "v1", normalizeBeachName(trimmed)],
+      async () => fetchGooglePlacePhotoReferencesForTextQuery(textQuery),
+      ["beach-photo-refs", "v2", cacheTag],
       { revalidate: 604800 }
     )();
   } catch (error) {
     console.error("[beach-photos] Failed to fetch photo references", {
-      beachName: trimmed,
+      textQuery,
       message: error instanceof Error ? error.message : "Unknown error"
     });
     return [];
@@ -183,8 +201,8 @@ export async function getGooglePlacePhotoReferences(beachName: string): Promise<
 }
 
 /** Up to five browser-loadable Google photo URLs (legacy helper; public site uses resolver + overrides). */
-export async function getBeachPhotoUrls(beachName: string): Promise<string[]> {
-  const refs = await getGooglePlacePhotoReferences(beachName);
+export async function getBeachPhotoUrls(beach: BeachPhotoSearchFields): Promise<string[]> {
+  const refs = await getGooglePlacePhotoReferences(beach);
   const apiKey = googleMapsKey();
   if (!apiKey) {
     return [];
