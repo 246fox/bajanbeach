@@ -4,12 +4,12 @@ import { BeachBoard } from "@/components/BeachBoard";
 import { beaches } from "@/data/beaches";
 import { fetchBeachConditions } from "@/lib/beach-conditions";
 import { fetchAllBeachPhotoOverrides } from "@/lib/beach-photo-overrides";
-import { getBeachPhotoUrls } from "@/lib/beach-photos";
+import { getBeachPhotoUrlsUnlessOverridden } from "@/lib/beach-photos";
 import { resolvePublicBeachHeroUrl } from "@/lib/beach-photo-resolve";
 import { fetchSargassumByCoast, rowToDisplay, sargassumLevelForScoring } from "@/lib/sargassum";
 import type { BeachCardData } from "@/types/beach";
 
-export const revalidate = 300;
+export const revalidate = 3600;
 
 const HOME_SEO_TITLE = "BajanBeach — The Barbados Beach Guide";
 const HOME_SEO_DESCRIPTION =
@@ -65,13 +65,13 @@ export default async function Home() {
   ]);
 
   const beachCards: BeachCardData[] = await mapWithConcurrency(beaches, 4, async (beach, index) => {
+    const override = photoOverrides.get(beach.slug) ?? null;
     const [conditions, photoUrls] = await Promise.all([
       fetchBeachConditions(beach, {
         sargassumLevel: sargassumLevelForScoring(sargassumByCoast[beach.coast])
       }),
-      getBeachPhotoUrls(beach)
+      getBeachPhotoUrlsUnlessOverridden(beach, override)
     ]);
-    const override = photoOverrides.get(beach.slug) ?? null;
     return {
       ...beach,
       conditions,

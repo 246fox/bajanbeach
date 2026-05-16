@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { findBeachByPhotoApiParam } from "@/data/beaches";
-import { getBeachPhotoUrls } from "@/lib/beach-photos";
+import { fetchPhotoOverrideForSlug } from "@/lib/beach-photo-overrides";
+import { getBeachPhotoUrlsUnlessOverridden } from "@/lib/beach-photos";
 
 export async function GET(request: Request) {
   const hasKey = Boolean(process.env.GOOGLE_MAPS_KEY ?? process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY);
@@ -19,6 +20,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unknown beach." }, { status: 404 });
   }
 
-  const photoUrls = await getBeachPhotoUrls(beach);
+  const override = await fetchPhotoOverrideForSlug(beach.slug);
+  const photoUrls = await getBeachPhotoUrlsUnlessOverridden(beach, override);
   return NextResponse.json({ photoUrls });
 }

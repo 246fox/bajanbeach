@@ -9,14 +9,14 @@ import { fetchBeachConditions } from "@/lib/beach-conditions";
 import { fetchBeachTides } from "@/lib/beach-tides";
 import { BEACH_PHOTO_PLACEHOLDER } from "@/lib/beach-photo-placeholder";
 import { fetchPhotoOverrideForSlug } from "@/lib/beach-photo-overrides";
-import { getBeachPhotoUrls } from "@/lib/beach-photos";
+import { getBeachPhotoUrlsUnlessOverridden } from "@/lib/beach-photos";
 import { resolvePublicBeachHeroUrl } from "@/lib/beach-photo-resolve";
 import { fetchSevenDayWaveForecast } from "@/lib/wave-forecast";
 import { seaStateLabel } from "@/lib/beach-format";
 import { fetchSargassumRowForCoast, rowToDisplay, sargassumLevelForScoring } from "@/lib/sargassum";
 import { SargassumBadge } from "@/components/SargassumBadge";
 
-export const revalidate = 300;
+export const revalidate = 3600;
 
 type PageProps = {
   params: { slug: string };
@@ -46,10 +46,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const title = `${beach.name} Conditions Today | BajanBeach`;
   const description = truncateMetaDescription(beach.description);
-  const [photoUrls, override] = await Promise.all([
-    getBeachPhotoUrls(beach),
-    fetchPhotoOverrideForSlug(beach.slug)
-  ]);
+  const override = await fetchPhotoOverrideForSlug(beach.slug);
+  const photoUrls = await getBeachPhotoUrlsUnlessOverridden(beach, override);
   const ogImageUrl = resolvePublicBeachHeroUrl(override, photoUrls);
 
   return {
@@ -106,12 +104,12 @@ export default async function BeachDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const [tides, sargassumRow, photoUrls, waveForecast, override] = await Promise.all([
+  const override = await fetchPhotoOverrideForSlug(beach.slug);
+  const [tides, sargassumRow, photoUrls, waveForecast] = await Promise.all([
     fetchBeachTides(beach),
     fetchSargassumRowForCoast(beach.coast),
-    getBeachPhotoUrls(beach),
-    fetchSevenDayWaveForecast(beach.latitude, beach.longitude),
-    fetchPhotoOverrideForSlug(beach.slug)
+    getBeachPhotoUrlsUnlessOverridden(beach, override),
+    fetchSevenDayWaveForecast(beach.latitude, beach.longitude)
   ]);
 
   const conditions = await fetchBeachConditions(beach, {

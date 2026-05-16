@@ -1,5 +1,12 @@
+import type { BeachPhotoOverrideData } from "@/lib/beach-photo-overrides";
+import { overrideProvidesHero } from "@/lib/beach-photo-resolve";
 import type { Beach } from "@/types/beach";
 import { unstable_cache } from "next/cache";
+
+const PHOTO_REFS_SUCCESS_CACHE_VERSION = "v4";
+const PHOTO_REFS_FAILURE_CACHE_VERSION = "v1";
+/** Back off retryable Places failures (quota, 5xx) — distinct from 7-day success cache. */
+const PHOTO_REFS_FAILURE_BACKOFF_SECONDS = 900;
 
 type TextSearchResponse = {
   places?: Array<{
@@ -47,6 +54,28 @@ export class BeachPhotoRefsCacheSkipError extends Error {
     super(message);
     this.name = "BeachPhotoRefsCacheSkipError";
   }
+}
+
+/** Transient Places failure (quota, 5xx) — short failure-cache backoff, not 7-day success. */
+export class BeachPhotoRefsRetryableError extends Error {
+  constructor(
+    message: string,
+    readonly httpStatus: number | null = null
+  ) {
+    super(message);
+    this.name = "BeachPhotoRefsRetryableError";
+  }
+}
+
+class PhotoRefsBackoffProbeMissError extends Error {
+  constructor() {
+    super("Photo refs failure backoff cache miss");
+    this.name = "PhotoRefsBackoffProbeMissError";
+  }
+}
+
+function isRetryableHttpStatus(status: number): boolean {
+  return status === 429 || status >= 500;
 }
 
 /** Full Places `textQuery` for photo search (alias verbatim, else `{name} Barbados`). */
@@ -152,6 +181,12 @@ async function fetchGooglePlacePhotoReferencesForTextQuery(textQuery: string): P
   if (!textSearchResponse.ok) {
     const errorDetails = await readGoogleError(textSearchResponse);
     logPlacesFailure("text-search", trimmed, errorDetails);
+    if (isRetryableHttpStatus(textSearchResponse.status)) {
+      throw new BeachPhotoRefsRetryableError(
+        `Text Search failed (${textSearchResponse.status})`,
+        textSearchResponse.status
+      );
+    }
     throw new Error(`Text Search failed (${textSearchResponse.status})`);
   }
 
@@ -174,6 +209,12 @@ async function fetchGooglePlacePhotoReferencesForTextQuery(textQuery: string): P
   if (!detailsResponse.ok) {
     const errorDetails = await readGoogleError(detailsResponse);
     logPlacesFailure("place-details", trimmed, errorDetails);
+    if (isRetryableHttpStatus(detailsResponse.status)) {
+      throw new BeachPhotoRefsRetryableError(
+        `Place Details failed (${detailsResponse.status})`,
+        detailsResponse.status
+      );
+    }
     throw new Error(`Place Details failed (${detailsResponse.status})`);
   }
 
@@ -192,10 +233,36 @@ async function fetchGooglePlacePhotoReferencesForTextQuery(textQuery: string): P
   return refs;
 }
 
+async function isPhotoRefsBackedOff(cacheTag: string): Promise<boolean> {
+  try {
+    const marker = await unstable_cache(
+      async () => {
+        throw new PhotoRefsBackoffProbeMissError();
+      },
+      ["beach-photo-refs-failure", PHOTO_REFS_FAILURE_CACHE_VERSION, cacheTag],
+      { revalidate: PHOTO_REFS_FAILURE_BACKOFF_SECONDS }
+    )();
+    return marker === true;
+  } catch (error) {
+    if (error instanceof PhotoRefsBackoffProbeMissError) {
+      return false;
+    }
+    throw error;
+  }
+}
+
+async function markPhotoRefsFailureBackoff(cacheTag: string): Promise<void> {
+  await unstable_cache(
+    async () => true,
+    ["beach-photo-refs-failure", PHOTO_REFS_FAILURE_CACHE_VERSION, cacheTag],
+    { revalidate: PHOTO_REFS_FAILURE_BACKOFF_SECONDS }
+  )();
+}
+
 /**
  * All Google Places photo resource names for a beach (admin gallery + internal slice source).
  * Cache key includes the effective text query (name vs photoSearchName).
- * Only non-empty successful results are cached; failures retry on the next request.
+ * Only non-empty successful results are cached (7d); retryable failures back off 15m.
  */
 export async function getGooglePlacePhotoReferences(beach: BeachPhotoSearchFields): Promise<string[]> {
   const textQuery = placesPhotoTextQuery(beach);
@@ -204,6 +271,11 @@ export async function getGooglePlacePhotoReferences(beach: BeachPhotoSearchField
   }
 
   const cacheTag = normalizePhotoQueryCacheKey(textQuery);
+
+  if (await isPhotoRefsBackedOff(cacheTag)) {
+    console.warn("[beach-photos] Skipping Places fetch (failure backoff active)", { textQuery });
+    return [];
+  }
 
   try {
     return await unstable_cache(
@@ -217,15 +289,28 @@ export async function getGooglePlacePhotoReferences(beach: BeachPhotoSearchField
         }
         return refs;
       },
-      ["beach-photo-refs", "v4", cacheTag],
+      ["beach-photo-refs", PHOTO_REFS_SUCCESS_CACHE_VERSION, cacheTag],
       { revalidate: 604800 }
     )();
   } catch (error) {
+    if (error instanceof BeachPhotoRefsRetryableError) {
+      await markPhotoRefsFailureBackoff(cacheTag);
+    } else if (
+      error instanceof Error &&
+      !(error instanceof BeachPhotoRefsCacheSkipError) &&
+      error.message === "No Google API key configured"
+    ) {
+      await markPhotoRefsFailureBackoff(cacheTag);
+    }
+
     console.error("[beach-photos] Failed to fetch photo references", {
       textQuery,
       message: error instanceof Error ? error.message : "Unknown error",
       ...(error instanceof BeachPhotoRefsCacheSkipError
         ? { reason: error.reason, cacheSkipped: true }
+        : {}),
+      ...(error instanceof BeachPhotoRefsRetryableError
+        ? { retryable: true, failureBackoffSeconds: PHOTO_REFS_FAILURE_BACKOFF_SECONDS }
         : {})
     });
     return [];
@@ -240,4 +325,15 @@ export async function getBeachPhotoUrls(beach: BeachPhotoSearchFields): Promise<
     return [];
   }
   return refs.slice(0, 5).map((ref) => buildPhotoUrl(ref, apiKey));
+}
+
+/** Public pages: skip Text Search when a saved override already supplies the hero. */
+export async function getBeachPhotoUrlsUnlessOverridden(
+  beach: BeachPhotoSearchFields,
+  override: BeachPhotoOverrideData | null | undefined
+): Promise<string[]> {
+  if (overrideProvidesHero(override)) {
+    return [];
+  }
+  return getBeachPhotoUrls(beach);
 }

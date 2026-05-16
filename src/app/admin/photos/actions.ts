@@ -59,7 +59,6 @@ export async function saveBeachPhotoOverride(
     return { error: error.message };
   }
 
-  revalidatePath("/");
   revalidatePath(`/beaches/${slug}`);
   revalidatePath("/admin/photos");
 
@@ -139,7 +138,6 @@ export async function uploadBeachHeroPhoto(formData: FormData): Promise<PhotoOve
     return { error: dbError.message };
   }
 
-  revalidatePath("/");
   revalidatePath(`/beaches/${slugRaw}`);
   revalidatePath("/admin/photos");
 
