@@ -15,6 +15,7 @@ import type { BeachPhotoOverrideData } from "@/lib/beach-photo-overrides";
 export type AdminPhotoFilter = "all" | "drift-risk" | "stable" | "broken";
 
 const BROKEN_SCAN_STORAGE_KEY = "admin-photo-broken-scan";
+const INITIAL_GALLERY_THUMBS = 5;
 
 export type BeachPhotoAdminRow = {
   slug: string;
@@ -88,11 +89,15 @@ function BeachPhotoPickerRow({
   const router = useRouter();
   const sectionRef = useRef<HTMLElement>(null);
   const sourceKind = photoSourceKind(override);
+  const isUploadOverride = sourceKind === "upload";
 
   const [googlePhotoRefs, setGooglePhotoRefs] = useState(row.googlePhotoRefs);
   const [galleryState, setGalleryState] = useState<GalleryLoadState>(() =>
     row.googlePhotoRefs.length > 0 ? "loaded" : "idle"
   );
+  const [showAllGalleryPhotos, setShowAllGalleryPhotos] = useState(false);
+  const [browseGooglePhotos, setBrowseGooglePhotos] = useState(false);
+  const googleGalleryEnabled = showGoogleGallery && (!isUploadOverride || browseGooglePhotos);
 
   const storedGoogleRef =
     override?.source === "google_ref" ? override.photo_reference?.trim() ?? "" : "";
@@ -106,10 +111,28 @@ function BeachPhotoPickerRow({
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  const expandIfSavedPickBeyondInitial = useCallback(
+    (refs: string[]) => {
+      if (!storedGoogleRef) {
+        return;
+      }
+      const savedIndex = refs.findIndex((r) => r.trim() === storedGoogleRef);
+      if (savedIndex >= INITIAL_GALLERY_THUMBS) {
+        setShowAllGalleryPhotos(true);
+      }
+    },
+    [storedGoogleRef]
+  );
+
   useEffect(() => {
     setGooglePhotoRefs(row.googlePhotoRefs);
     setGalleryState(row.googlePhotoRefs.length > 0 ? "loaded" : "idle");
-  }, [row.googlePhotoRefs, row.slug]);
+    setShowAllGalleryPhotos(false);
+    setBrowseGooglePhotos(false);
+    if (row.googlePhotoRefs.length > 0) {
+      expandIfSavedPickBeyondInitial(row.googlePhotoRefs);
+    }
+  }, [row.googlePhotoRefs, row.slug, expandIfSavedPickBeyondInitial]);
 
   useEffect(() => {
     setPendingRef(override?.source === "google_ref" ? override.photo_reference : null);
@@ -124,13 +147,20 @@ function BeachPhotoPickerRow({
       const refs = await fetchGalleryRefs(slug);
       setGooglePhotoRefs(refs);
       setGalleryState("loaded");
+      expandIfSavedPickBeyondInitial(refs);
     } catch {
       setGalleryState("error");
     }
-  }, [galleryState, slug]);
+  }, [galleryState, slug, expandIfSavedPickBeyondInitial]);
 
   useEffect(() => {
-    if (!showGoogleGallery) {
+    if (browseGooglePhotos && galleryState === "idle" && !lazyLoadGallery) {
+      void loadGallery();
+    }
+  }, [browseGooglePhotos, galleryState, lazyLoadGallery, loadGallery]);
+
+  useEffect(() => {
+    if (!googleGalleryEnabled) {
       return;
     }
     if (forceLoadGallery) {
@@ -158,7 +188,12 @@ function BeachPhotoPickerRow({
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [showGoogleGallery, forceLoadGallery, lazyLoadGallery, galleryState, loadGallery]);
+  }, [googleGalleryEnabled, forceLoadGallery, lazyLoadGallery, galleryState, loadGallery]);
+
+  const hasMoreGalleryPhotos = googlePhotoRefs.length > INITIAL_GALLERY_THUMBS;
+  const visibleGalleryRefs = showAllGalleryPhotos
+    ? googlePhotoRefs
+    : googlePhotoRefs.slice(0, INITIAL_GALLERY_THUMBS);
 
   const hasOverride = Boolean(override);
   const overrideInCurrentGallery =
@@ -228,10 +263,21 @@ function BeachPhotoPickerRow({
         </p>
       ) : null}
 
-      {sourceKind === "upload" && !showGoogleGallery ? (
-        <p className="mt-4 text-sm text-slate-600">
-          Uploaded photo — not dependent on Google reference IDs.
-        </p>
+      {isUploadOverride && !browseGooglePhotos ? (
+        <div className="mt-4">
+          <p className="text-sm text-slate-600">
+            Uploaded photo — not dependent on Google reference IDs.
+          </p>
+          {showGoogleGallery ? (
+            <button
+              type="button"
+              className="mt-3 rounded-lg border border-ocean-200 bg-white px-4 py-2 text-sm font-semibold text-ocean-800 shadow-sm transition hover:border-ocean-300 hover:bg-ocean-50/80"
+              onClick={() => setBrowseGooglePhotos(true)}
+            >
+              Browse Google photos
+            </button>
+          ) : null}
+        </div>
       ) : null}
 
       <h3 className="mt-6 text-sm font-semibold text-slate-700">Upload your own photo</h3>
@@ -276,7 +322,7 @@ function BeachPhotoPickerRow({
         </button>
       </div>
 
-      {showGoogleGallery ? (
+      {googleGalleryEnabled ? (
         <>
           <h3 className="mt-8 text-sm font-semibold text-slate-700">Google Places photos</h3>
           {lazyLoadGallery && galleryState === "idle" ? (
@@ -330,8 +376,10 @@ function BeachPhotoPickerRow({
           ) : null}
 
           {galleryState === "loaded" && googlePhotoRefs.length > 0 ? (
-            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
-              {googlePhotoRefs.map((ref, index) => {
+            <>
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
+              {visibleGalleryRefs.map((ref) => {
+                const index = googlePhotoRefs.findIndex((r) => r.trim() === ref.trim());
                 const refNorm = ref.trim();
                 const isLiveOverride = Boolean(storedGoogleRef) && refNorm === storedGoogleRef;
                 const pendingNorm = pendingRef?.trim() ?? "";
@@ -374,14 +422,24 @@ function BeachPhotoPickerRow({
                   </button>
                 );
               })}
-            </div>
+              </div>
+              {hasMoreGalleryPhotos && !showAllGalleryPhotos ? (
+                <button
+                  type="button"
+                  className="mt-3 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50"
+                  onClick={() => setShowAllGalleryPhotos(true)}
+                >
+                  Show more photos
+                </button>
+              ) : null}
+            </>
           ) : null}
         </>
       ) : null}
 
       {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
 
-      {showGoogleGallery ? (
+      {googleGalleryEnabled ? (
         <div className="mt-4 flex flex-wrap gap-3">
           <button
             type="button"
@@ -408,7 +466,7 @@ function BeachPhotoPickerRow({
       ) : null}
 
       {hasOverride ? (
-        <div className={`flex flex-wrap gap-3 ${showGoogleGallery ? "mt-3" : "mt-4"}`}>
+        <div className={`flex flex-wrap gap-3 ${googleGalleryEnabled ? "mt-3" : "mt-4"}`}>
           <button
             type="button"
             disabled={isPending}
