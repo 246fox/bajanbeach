@@ -73,6 +73,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+function LiveCamCameraIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5">
+      <path
+        d="M4 7a2 2 0 0 1 2-2h1.5l1-1.5A2 2 0 0 1 10.2 3h3.6a2 2 0 0 1 1.7.95L16.5 5H18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  );
+}
+
 function BackLink() {
   return (
     <Link
@@ -214,29 +229,24 @@ export default async function BeachDetailPage({ params }: PageProps) {
         </section>
 
         {hasWebcam && (
-          <section>
+          <section className="rounded-2xl border border-ocean-100/80 bg-white/85 p-6 shadow-sm backdrop-blur-sm">
             <h2 className="text-lg font-semibold text-slate-800">Live Cam</h2>
-            <div className="mt-4 overflow-hidden rounded-2xl border border-ocean-100/80 bg-slate-900/5 shadow-inner">
-              <iframe
-                src={beach.webcamUrl}
-                title={`Live Cam — ${beach.name}`}
-                className="aspect-video w-full min-h-[240px]"
-                allow="autoplay; fullscreen"
-                loading="lazy"
-              />
-            </div>
-            <p className="mt-2 text-xs text-slate-500">
-              If the stream does not load, the provider may block embedding — open the{" "}
-              <a
-                href={beach.webcamUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium text-ocean-700 underline hover:text-ocean-600"
-              >
-                webcam page directly
-              </a>
-              .
-            </p>
+            <a
+              href={beach.webcamUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 flex items-center gap-4 rounded-xl border border-ocean-100/80 bg-slate-50/80 p-4 transition hover:border-ocean-200 hover:bg-ocean-50/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-400 focus-visible:ring-offset-2"
+            >
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-ocean-100 text-ocean-700">
+                <LiveCamCameraIcon />
+              </span>
+              <span className="min-w-0">
+                <span className="block font-semibold text-slate-800">Watch the live webcam</span>
+                <span className="mt-0.5 block text-sm text-slate-500">
+                  Live stream provided by IWCP — opens in a new tab
+                </span>
+              </span>
+            </a>
           </section>
         )}
 
