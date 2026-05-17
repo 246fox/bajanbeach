@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
@@ -49,17 +48,15 @@ export default function AboutPage() {
         </p>
       </header>
 
-      <nav
-        className="mt-8 flex flex-wrap items-center gap-x-2 gap-y-2 text-sm text-slate-500"
-        aria-label="On this page"
-      >
-        {JUMP_LINKS.map((link, index) => (
-          <span key={link.href} className="inline-flex items-center gap-2">
-            {index > 0 ? <span aria-hidden="true">·</span> : null}
-            <Link href={link.href} className="font-medium text-ocean-700 hover:text-ocean-600">
-              {link.label}
-            </Link>
-          </span>
+      <nav className="mt-8 flex flex-wrap items-center gap-2" aria-label="On this page">
+        {JUMP_LINKS.map((link) => (
+          <a
+            key={link.href}
+            href={link.href}
+            className="rounded-full bg-white px-4 py-2 text-sm font-medium text-ocean-700 no-underline ring-1 ring-ocean-100/70 transition hover:bg-ocean-50/80 hover:ring-ocean-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-400 focus-visible:ring-offset-2"
+          >
+            {link.label}
+          </a>
         ))}
       </nav>
 
