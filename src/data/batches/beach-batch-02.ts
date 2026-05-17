@@ -110,7 +110,7 @@ export const beachBatch02: Beach[] = [
     isSurfSpot: false,
     latitude: 13.2284848179266,
     longitude: -59.6426057844338,
-    webcamUrl: "",
+    webcamUrl: "https://iwcpinc.com/cameras/gibbs_jubilee",
     description: "One of the most beautiful beaches on the west coast — powdery white sand, crystal calm water.",
     bestFor: "Swimming, snorkelling, families, couples",
     notes: "Limited parking. Quiet and relatively uncrowded."

@@ -109,7 +109,7 @@ export const beachBatch04: Beach[] = [
     isSurfSpot: false,
     latitude: 13.0648,
     longitude: -59.5617,
-    webcamUrl: "",
+    webcamUrl: "https://iwcpinc.com/cameras/chadville_maxwell",
     description:
       "Quieter enclave populated by condominiums and luxury villas. Coastal alignment perfectly catches prevailing trade winds, establishing it as the island's premier hub for Hobie Cat sailing and windsurfing.",
     bestFor: "Hobie Cat sailing, windsurfing, swimming, condo holiday base",
@@ -125,7 +125,7 @@ export const beachBatch04: Beach[] = [
     isSurfSpot: false,
     latitude: 13.0605,
     longitude: -59.5407,
-    webcamUrl: "",
+    webcamUrl: "https://iwcpinc.com/cameras/ncc_miami_2",
     description:
       "The highly sheltered westerly cove of the Enterprise/Miami complex, separated by a large protective groin. Impeccably calm waters make it a weekend sanctuary for local families and small children. Pink-tinged sand.",
     bestFor: "Families with children, calm swimming, photography, weekend locals",

@@ -11,7 +11,7 @@ export const beachBatch07: Beach[] = [
     isSurfSpot: false,
     latitude: 13.1350624965802,
     longitude: -59.6361795432482,
-    webcamUrl: "",
+    webcamUrl: "https://iwcpinc.com/cameras/ncc_batts_rock_2",
     description:
       "Quiet beach uniquely positioned just off the main highway, bordered by dense coastal forestry providing exceptional seclusion. During pronounced winter north swells, a minor but highly consistent surf break forms here.",
     bestFor: "Beginner surfing on north swells, swimming, secluded relaxation",
@@ -44,7 +44,7 @@ export const beachBatch07: Beach[] = [
     isSurfSpot: false,
     latitude: 13.1212,
     longitude: -59.6304,
-    webcamUrl: "",
+    webcamUrl: "https://iwcpinc.com/cameras/brighton_1",
     description:
       "Calm West Coast beach immediately north of Bridgetown harbor, historically anchored by the Malibu Rum facility. Exceptionally calm water and immediate coastal access for residents of the capital.",
     bestFor: "Swimming, families, quick beach visit near Bridgetown, sunset",
@@ -78,7 +78,7 @@ export const beachBatch07: Beach[] = [
     isSurfSpot: true,
     latitude: 13.2146424367568,
     longitude: -59.5240731280547,
-    webcamUrl: "",
+    webcamUrl: "https://iwcpinc.com/cameras/soup_bowl_2",
     description:
       "World-class right-hand reef break celebrated by the global surfing elite. Highly specific wave dynamics: deep heavy water generates massive hollow barrels during deep winter low-pressure systems tracking across the North Atlantic. Locus of Barbadian surf culture.",
     bestFor: "Expert surfing, surf photography, watching world-class waves",
@@ -94,7 +94,7 @@ export const beachBatch07: Beach[] = [
     isSurfSpot: true,
     latitude: 13.2113718451308,
     longitude: -59.5146289650811,
-    webcamUrl: "",
+    webcamUrl: "https://iwcpinc.com/cameras/tent_bay",
     description:
       "Small rocky inlet south of Bathsheba serving as the precarious launch point for the local day-boat fishing fleet. Navigating the narrow twisting reef channel requires immense generational local knowledge.",
     bestFor: "Surf fishing culture, photography, East Coast drive stop",

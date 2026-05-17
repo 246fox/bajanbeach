@@ -45,7 +45,7 @@ export const beachBatch05: Beach[] = [
     isSurfSpot: false,
     latitude: 13.0686675154952,
     longitude: -59.5756420630761,
-    webcamUrl: "",
+    webcamUrl: "https://iwcpinc.com/cameras/sl_yellow_bird_bay",
     description:
       "Narrow strip of sand integrated directly into the high-density St. Lawrence Gap entertainment district. Beach area fluctuates with tidal cycles but offers immediate ocean access to nightlife patrons.",
     bestFor: "Nightlife adjacent, dining, beach bars, evening swims",
