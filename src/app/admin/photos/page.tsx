@@ -102,9 +102,11 @@ export default async function AdminPhotosPage({
         const googlePhotoRefs = await getGooglePlacePhotoReferences(beach);
         return buildRow(beach, overrides.get(beach.slug) ?? null, googlePhotoRefs, false);
       })
-    : beachList.map((beach) =>
-        buildRow(beach, overrides.get(beach.slug) ?? null, [], lazyLoadGallery)
-      );
+    : beachList.map((beach) => {
+        const override = overrides.get(beach.slug) ?? null;
+        const skipGoogleGallery = override?.source === "upload";
+        return buildRow(beach, override, [], skipGoogleGallery ? false : lazyLoadGallery);
+      });
 
   return (
     <>
