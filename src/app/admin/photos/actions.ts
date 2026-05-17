@@ -122,11 +122,12 @@ export async function uploadBeachHeroPhoto(formData: FormData): Promise<PhotoOve
   }
 
   const now = new Date().toISOString();
+  const versionedPublicUrl = `${publicUrl}?v=${encodeURIComponent(now)}`;
   const { error: dbError } = await supabase.from("beach_photo_overrides").upsert(
     {
       beach_slug: slugRaw,
       photo_reference: null,
-      image_url: publicUrl,
+      image_url: versionedPublicUrl,
       source: "upload",
       updated_at: now
     },
