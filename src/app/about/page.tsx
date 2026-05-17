@@ -15,7 +15,8 @@ const JUMP_LINKS = [
   { label: "Swim & Scenic scores", href: "#scores" },
   { label: "Sea state", href: "#sea-state" },
   { label: "Sargassum", href: "#sargassum" },
-  { label: "Our data", href: "#data" }
+  { label: "Our data", href: "#data" },
+  { label: "Safety", href: "#safety" }
 ] as const;
 
 function AboutCard({
@@ -152,16 +153,29 @@ export default function AboutPage() {
             based on offshore data. They give a good general read on the day, but they don&apos;t know about
             individual beach factors, for example a reef or breakwater that attenuates ocean swells. Our algorithm
             makes adjustments for this based on local insights but still, the numbers reported for a beach are just
-            indicative. They are not a substitute for a webcam, local advice, or standing on the sand. BajanBeach is a
-            discovery and planning tool and not a navigational or safety authority. Safety matters, so always check
-            official sources like the Barbados Meteorological Services and respect marine warnings.
+            indicative. They are not a substitute for a webcam, local advice, or standing on the sand.
+          </p>
+        </AboutCard>
+
+        <AboutCard id="safety" heading="Safety">
+          <p>
+            BajanBeach is a discovery and planning tool, not a navigational or safety authority. The scores and
+            conditions here are there to help you choose a beach — they are not a substitute for your own judgement
+            on the day.
           </p>
           <p>
-            BajanBeach is a young, growing project and the scoring is still being calibrated. If a score ever looks
-            plainly wrong for a beach you know well, that&apos;s useful to hear — a contact page is coming soon.
+            Sea conditions can change quickly. Before heading out, especially to the rougher Atlantic coasts, check
+            official sources such as the Barbados Meteorological Services, and always respect marine warnings,
+            posted signs, and lifeguard guidance. If a beach looks unsafe when you arrive, trust what you see over any
+            score on this site.
           </p>
         </AboutCard>
       </div>
+
+      <p className="mt-8 max-w-3xl text-sm leading-relaxed text-slate-500">
+        BajanBeach is a young, growing project and the scoring is still being calibrated. If a score ever looks
+        plainly wrong for a beach you know well, that&apos;s useful to hear — a contact page is coming soon.
+      </p>
     </main>
   );
 }
