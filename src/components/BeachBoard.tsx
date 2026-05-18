@@ -97,6 +97,20 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "scenic", label: "Best for scenic visits today" }
 ];
 
+const SORT_QUERY_TO_VALUE: Record<string, SortOption> = {
+  name: "name",
+  swim: "swim",
+  surf: "surf",
+  scenic: "scenic"
+};
+
+function parseSortFromQuery(value: string | null): SortOption {
+  if (!value) {
+    return "coast";
+  }
+  return SORT_QUERY_TO_VALUE[value.toLowerCase()] ?? "coast";
+}
+
 /** Matches coast filter chip order — North first, East last. */
 function coastSortRank(coast: BeachCoast): number {
   const i = COAST_FILTERS.indexOf(coast);
@@ -265,11 +279,15 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
     parseCoastFromQuery(searchParams.get("coast"))
   );
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortOption, setSortOption] = useState<SortOption>("coast");
+  const [sortOption, setSortOption] = useState<SortOption>(() =>
+    parseSortFromQuery(searchParams.get("sort"))
+  );
 
   useEffect(() => {
     const nextFilter = parseCoastFromQuery(searchParams.get("coast"));
     setCoastFilter((currentFilter) => (currentFilter === nextFilter ? currentFilter : nextFilter));
+    const nextSort = parseSortFromQuery(searchParams.get("sort"));
+    setSortOption((currentSort) => (currentSort === nextSort ? currentSort : nextSort));
   }, [searchParams]);
 
   const coastFiltered = useMemo(() => {
@@ -365,6 +383,20 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
     }
   };
 
+  const updateSortOption = (nextSort: SortOption) => {
+    setSortOption(nextSort);
+
+    const params = new URLSearchParams(searchParams.toString());
+    if (nextSort === "coast") {
+      params.delete("sort");
+    } else {
+      params.set("sort", nextSort);
+    }
+
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  };
+
   return (
     <>
       <section className="mt-10 overflow-hidden rounded-3xl border border-ocean-100/70 bg-white/85 p-6 shadow-sm backdrop-blur-sm sm:p-8">
@@ -452,7 +484,7 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
             <select
               id="beach-sort"
               value={sortOption}
-              onChange={(e) => setSortOption(e.target.value as SortOption)}
+              onChange={(e) => updateSortOption(e.target.value as SortOption)}
               title="Sort beaches"
               className="min-w-0 flex-1 cursor-pointer bg-transparent text-sm font-medium text-slate-800 focus:outline-none"
             >
