@@ -129,7 +129,7 @@ export const beachBatch06: Beach[] = [
     longitude: -59.6379911143426,
     webcamUrl: "",
     description:
-      "Quiet reef-protected corridor between Sandy Lane and Fitts Village. Heavy nearshore reef attenuation makes this a premium beginner snorkeling site with an authentic local atmosphere away from major resort crowds.",
+      "Quiet reef-protected corridor between Paynes Bay and Fitts Village. Heavy nearshore reef attenuation makes this a premium beginner snorkeling site with an authentic local atmosphere away from major resort crowds.",
     bestFor: "Beginner snorkeling, swimming, local experience, relaxation",
     notes: "Strategically positioned between luxury hub and local community. Peaceful and uncrowded."
   },

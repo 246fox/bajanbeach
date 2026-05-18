@@ -21,7 +21,7 @@ export const beachBatch04: Beach[] = [
     name: "Culpepper Island",
     slug: "culpepper-island",
     parish: "St. Philip",
-    coast: "East",
+    coast: "Southeast",
     seaState: "moderate",
     waveActionBaseline: "medium",
     isSurfSpot: false,
@@ -29,7 +29,7 @@ export const beachBatch04: Beach[] = [
     longitude: -59.443414,
     webcamUrl: "",
     description:
-      "Tiny uninhabited rock formation just off the East Coast. At extreme low tide adventurous hikers can wade across the shallow channel to explore the island.",
+      "Tiny uninhabited rock formation just off the southeast coast. At extreme low tide adventurous hikers can wade across the shallow channel to explore the island. Less adventurous? Just to the east are two small sandy coves called Culpepper Beach and Bakers.",
     bestFor: "Low-tide wading, extreme exploration, photography",
     notes:
       "⚠️ Incoming tides and unpredictable surges are dangerous. Only at extreme low tide and watch the time."
