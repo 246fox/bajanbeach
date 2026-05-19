@@ -4,7 +4,10 @@ import type { ReactNode } from "react";
 export const metadata: Metadata = {
   title: "About BajanBeach — How our beach scores work",
   description:
-    "How BajanBeach scores swimming and scenic beaches, what calm/moderate/rough mean, how sargassum is tracked, and where wave and weather data come from."
+    "How BajanBeach scores swimming and scenic beaches, what calm/moderate/rough mean, how sargassum is tracked, and where wave and weather data come from.",
+  alternates: {
+    canonical: "/about"
+  }
 };
 
 const ABOUT_CARD_CLASS =

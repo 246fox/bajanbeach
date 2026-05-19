@@ -18,6 +18,9 @@ const HOME_SEO_DESCRIPTION =
 export const metadata: Metadata = {
   title: HOME_SEO_TITLE,
   description: HOME_SEO_DESCRIPTION,
+  alternates: {
+    canonical: "/"
+  },
   openGraph: {
     title: HOME_SEO_TITLE,
     description: HOME_SEO_DESCRIPTION

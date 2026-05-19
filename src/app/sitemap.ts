@@ -2,7 +2,6 @@ import type { MetadataRoute } from "next";
 import { beaches } from "@/data/beaches";
 
 const BASE_URL = "https://bajanbeach.com";
-const COAST_FILTERS = ["north", "west", "south", "southeast", "east"] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
@@ -35,5 +34,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.5
   };
 
-  return [homeEntry, aboutEntry, ...beachEntries, ...coastEntries];
+  return [homeEntry, aboutEntry, ...beachEntries];
 }
