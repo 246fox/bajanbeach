@@ -20,13 +20,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8
   }));
 
-  const coastEntries: MetadataRoute.Sitemap = COAST_FILTERS.map((coast) => ({
-    url: `${BASE_URL}/?coast=${coast}`,
-    lastModified,
-    changeFrequency: "weekly",
-    priority: 0.6
-  }));
-
   const aboutEntry: MetadataRoute.Sitemap[number] = {
     url: `${BASE_URL}/about`,
     lastModified,
