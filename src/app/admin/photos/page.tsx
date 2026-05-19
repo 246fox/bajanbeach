@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   BeachPhotoAdminClient,
@@ -9,6 +10,10 @@ import { requireAdminSession } from "@/lib/admin-session";
 import { fetchAllBeachPhotoOverrides } from "@/lib/beach-photo-overrides";
 import { getGooglePlacePhotoReferences } from "@/lib/beach-photos";
 import type { Beach } from "@/types/beach";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false }
+};
 
 function parseFilter(raw?: string): AdminPhotoFilter {
   if (raw === "all" || raw === "stable" || raw === "broken") {

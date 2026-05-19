@@ -1,7 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SargassumAdminForm } from "@/components/admin/SargassumAdminForm";
 import { requireAdminSession } from "@/lib/admin-session";
 import { fetchSargassumByCoast } from "@/lib/sargassum";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false }
+};
 
 export default async function AdminSargassumPage({
   searchParams
