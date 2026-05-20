@@ -11,6 +11,9 @@ export function SiteFooter() {
           <Link href="/about" className="text-ocean-700 transition hover:text-ocean-600">
             About
           </Link>
+          <Link href="/contact" className="text-ocean-700 transition hover:text-ocean-600">
+            Contact
+          </Link>
         </nav>
         <p className="mt-3 text-xs text-slate-500">© 2026 BajanBeach</p>
       </div>

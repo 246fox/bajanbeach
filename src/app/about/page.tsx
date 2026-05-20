@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   }
 };
 
-const ABOUT_CARD_CLASS =
+export const ABOUT_CARD_CLASS =
   "scroll-mt-6 overflow-hidden rounded-3xl border border-ocean-100/70 bg-white/85 p-6 shadow-sm backdrop-blur-sm sm:p-8";
 
 const JUMP_LINKS = [
@@ -171,11 +171,6 @@ export default function AboutPage() {
           </p>
         </AboutCard>
       </div>
-
-      <p className="mt-8 max-w-3xl text-sm leading-relaxed text-slate-500">
-        BajanBeach is a young, growing project and the scoring is still being calibrated. If a score ever looks
-        plainly wrong for a beach you know well, that&apos;s useful to hear — a contact page is coming soon.
-      </p>
     </main>
   );
 }

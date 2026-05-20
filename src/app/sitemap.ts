@@ -27,5 +27,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.5
   };
 
-  return [homeEntry, aboutEntry, ...beachEntries];
+  const contactEntry: MetadataRoute.Sitemap[number] = {
+    url: `${BASE_URL}/contact`,
+    lastModified,
+    changeFrequency: "monthly",
+    priority: 0.5
+  };
+
+  return [homeEntry, aboutEntry, contactEntry, ...beachEntries];
 }
