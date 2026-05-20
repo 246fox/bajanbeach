@@ -112,10 +112,10 @@ export const beachBatch07: Beach[] = [
     longitude: -59.6084143879019,
     webcamUrl: "",
     description:
-      "Narrow west coast beach between Brandons (south) and the Hilton peninsula (north). Best known for the 'Drill Hall' surf break that fires consistently on north swells and is a favourite of local surfers.",
+      "Narrow south coast beach between Savannah Beach Club and the Hilton peninsula. Best known for the surf break which fires consistently on north swells and is a favourite of local surfers.",
     bestFor: "Surfing, watching surf, photography",
     notes:
-      "Often confused with Brandons Beach to the south — Drill Hall is a separate, smaller beach. The surf break works best on north swells in winter months."
+      "Also known to the surfing community as \"Brandons\" (not to be confused with the separate Brandons Beach on the west coast near the cruise terminal). Drill Hall Beach takes its name from the adjacent Drill Hall at the historic St. Ann's Fort, headquarters of the Barbados Defence Force."
   },
   {
     name: "Freights Bay",
