@@ -46,9 +46,10 @@ export const beachBatch06: Beach[] = [
     longitude: -59.441820151218,
     webcamUrl: "",
     description:
-      "Highly secluded cove just north of The Crane featuring deep undercut limestone caves and heavy unmanageable surf. Dramatic geological features.",
-    bestFor: "Exploring undercut caves, photography, seclusion",
-    notes: "⚠️ Heavy surf — not for swimming. Cave exploration only at safe tides."
+      "Severely eroded cove just north of The Crane, technically a continuation of Crane Beach. Once a secluded swimming spot known for its dramatic limestone caves, the beach has been transformed by rising sea levels into a seasonal, tidal cove with almost no dry sand at high water. Accessible only by walking along the rocks from Crane at low tide.",
+    bestFor: "Photography, geology",
+    notes:
+      "⚠️ Access stairs have been significantly compromised by erosion, and even at low tide the scramble from Crane Beach is difficult. There is little to no dry sand at high water. During heavy sargassum season, the cove is effectively inaccessible."
   },
   {
     name: "Harrismith Beach",
