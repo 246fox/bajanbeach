@@ -1,4 +1,4 @@
-import type { BeachCoast, SargassumDisplay } from "@/types/beach";
+import type { Beach, BeachCoast, SargassumDisplay } from "@/types/beach";
 import { createServiceSupabase } from "@/lib/supabase/service";
 
 export type SargassumLevelValue = "low" | "medium" | "high";
@@ -18,6 +18,11 @@ export type SargassumRow = {
 const STALE_MS = 14 * 24 * 60 * 60 * 1000;
 
 const COAST_KEYS: BeachCoast[] = ["North", "West", "South", "Southeast", "East"];
+
+/** Coast key used to read `sargassum_levels` for this beach (see `Beach.sargassumZone`). */
+export function coastForSargassumLookup(beach: Pick<Beach, "coast" | "sargassumZone">): BeachCoast {
+  return beach.sargassumZone ?? beach.coast;
+}
 
 export function isSargassumStale(updatedAtIso: string | null | undefined): boolean {
   if (!updatedAtIso) {

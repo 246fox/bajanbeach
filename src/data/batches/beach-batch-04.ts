@@ -88,6 +88,7 @@ export const beachBatch04: Beach[] = [
     slug: "long-beach",
     parish: "Christ Church",
     coast: "South",
+    sargassumZone: "Southeast",
     seaState: "moderate",
     waveActionBaseline: "high",
     isSurfSpot: false,

@@ -13,7 +13,12 @@ import { getBeachPhotoUrlsUnlessOverridden } from "@/lib/beach-photos";
 import { resolvePublicBeachHeroUrl } from "@/lib/beach-photo-resolve";
 import { fetchSevenDayWaveForecast } from "@/lib/wave-forecast";
 import { seaStateLabel } from "@/lib/beach-format";
-import { fetchSargassumRowForCoast, rowToDisplay, sargassumLevelForScoring } from "@/lib/sargassum";
+import {
+  coastForSargassumLookup,
+  fetchSargassumRowForCoast,
+  rowToDisplay,
+  sargassumLevelForScoring
+} from "@/lib/sargassum";
 import { SargassumBadge } from "@/components/SargassumBadge";
 
 export const revalidate = 3600;
@@ -125,7 +130,7 @@ export default async function BeachDetailPage({ params }: PageProps) {
   const override = await fetchPhotoOverrideForSlug(beach.slug);
   const [tides, sargassumRow, photoUrls, waveForecast] = await Promise.all([
     fetchBeachTides(beach),
-    fetchSargassumRowForCoast(beach.coast),
+    fetchSargassumRowForCoast(coastForSargassumLookup(beach)),
     getBeachPhotoUrlsUnlessOverridden(beach, override),
     fetchSevenDayWaveForecast(beach.latitude, beach.longitude)
   ]);

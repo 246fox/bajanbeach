@@ -6,7 +6,12 @@ import { fetchBeachConditions } from "@/lib/beach-conditions";
 import { fetchAllBeachPhotoOverrides } from "@/lib/beach-photo-overrides";
 import { getBeachPhotoUrlsUnlessOverridden } from "@/lib/beach-photos";
 import { resolvePublicBeachHeroUrl } from "@/lib/beach-photo-resolve";
-import { fetchSargassumByCoast, rowToDisplay, sargassumLevelForScoring } from "@/lib/sargassum";
+import {
+  coastForSargassumLookup,
+  fetchSargassumByCoast,
+  rowToDisplay,
+  sargassumLevelForScoring
+} from "@/lib/sargassum";
 import type { BeachCardData } from "@/types/beach";
 
 export const revalidate = 3600;
@@ -69,9 +74,10 @@ export default async function Home() {
 
   const beachCards: BeachCardData[] = await mapWithConcurrency(beaches, 4, async (beach, index) => {
     const override = photoOverrides.get(beach.slug) ?? null;
+    const sargassumCoast = coastForSargassumLookup(beach);
     const [conditions, photoUrls] = await Promise.all([
       fetchBeachConditions(beach, {
-        sargassumLevel: sargassumLevelForScoring(sargassumByCoast[beach.coast])
+        sargassumLevel: sargassumLevelForScoring(sargassumByCoast[sargassumCoast])
       }),
       getBeachPhotoUrlsUnlessOverridden(beach, override)
     ]);
@@ -80,7 +86,7 @@ export default async function Home() {
       conditions,
       photoUrl: resolvePublicBeachHeroUrl(override, photoUrls),
       heroClass: HERO_BG_CLASSES[index % HERO_BG_CLASSES.length],
-      sargassum: rowToDisplay(sargassumByCoast[beach.coast])
+      sargassum: rowToDisplay(sargassumByCoast[sargassumCoast])
     };
   });
 

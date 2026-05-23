@@ -37,6 +37,7 @@ export const beachBatch03: Beach[] = [
     slug: "maycocks-bay",
     parish: "St. Lucy",
     coast: "North",
+    sargassumZone: "West",
     seaState: "moderate",
     waveActionBaseline: "high",
     isSurfSpot: true,

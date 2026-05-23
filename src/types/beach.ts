@@ -11,6 +11,12 @@ export type Beach = {
   latitude: number;
   longitude: number;
   coast: BeachCoast;
+  /**
+   * When set, resolves which geographic coast bucket to use for sargassum exposure only (Supabase
+   * `sargassum_levels` lookup and derived display). **`coast` remains the source of truth** for
+   * filtering, the vibe picker, map/chip labelling, and all non-sargassum behaviour.
+   */
+  sargassumZone?: BeachCoast;
   seaState: SeaState;
   waveActionBaseline: WaveActionBaseline;
   isSurfSpot: boolean;
