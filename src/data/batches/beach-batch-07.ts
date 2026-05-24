@@ -13,7 +13,7 @@ export const beachBatch07: Beach[] = [
     longitude: -59.6361795432482,
     webcamUrl: "https://iwcpinc.com/cameras/ncc_batts_rock_2",
     description:
-      "Quiet beach uniquely positioned just off the main highway, bordered by dense coastal forestry providing exceptional seclusion. During pronounced winter north swells, a minor but highly consistent surf break forms here.",
+      "Quiet beach uniquely positioned just off the main highway, bordered by coastal forestry providing exceptional seclusion. During pronounced winter north swells, a minor but highly consistent surf break forms here.",
     bestFor: "Beginner surfing on north swells, swimming, secluded relaxation",
     notes:
       "Primary indicator site for local surfers monitoring seasonal wave shifts. Forested setting makes it unusually private for the West Coast."
@@ -44,9 +44,9 @@ export const beachBatch07: Beach[] = [
     isSurfSpot: false,
     latitude: 13.1212,
     longitude: -59.6304,
-    webcamUrl: "https://iwcpinc.com/cameras/brighton_1",
+    webcamUrl: "https://iwcpinc.com/cameras/brighton_2",
     description:
-      "Calm West Coast beach immediately north of Bridgetown harbor, historically anchored by the Malibu Rum facility. Exceptionally calm water and immediate coastal access for residents of the capital.",
+      "Calm West Coast beach immediately north of Brandons Beach, historically anchored by the Malibu Rum facility. Exceptionally calm water and immediate coastal access for local residents.",
     bestFor: "Swimming, families, quick beach visit near Bridgetown, sunset",
     notes:
       "⚠️Caution must be exercised around the northern end of this beach in the area known as the 'Hot Pot', as dangerous currents are present."
@@ -61,7 +61,7 @@ export const beachBatch07: Beach[] = [
     isSurfSpot: true,
     latitude: 13.2125237411922,
     longitude: -59.5194653457655,
-    webcamUrl: "https://v2.iwcpinc.com/cameras/bathsheba_2",
+    webcamUrl: "https://v2.iwcpinc.com/cameras/bathsheba_1",
     description:
       "Visual and cultural heart of the East Coast. Defined by massive deeply eroded 'mushroom rocks' — ancient coral boulders that broke from the cliffs and now rest in the shallows. Open ocean is lethal but flat expansive reef shelves contain deep naturally carved tidal pools warmed by sun.",
     bestFor: "Tidal pool soaking, surfing (Soup Bowl adjacent), photography, East Coast tourism, dining",
@@ -97,7 +97,7 @@ export const beachBatch07: Beach[] = [
     webcamUrl: "https://iwcpinc.com/cameras/tent_bay",
     description:
       "Small rocky inlet south of Bathsheba serving as the precarious launch point for the local day-boat fishing fleet. Navigating the narrow twisting reef channel requires immense generational local knowledge.",
-    bestFor: "Surf fishing culture, photography, East Coast drive stop",
+    bestFor: "Surfing, fishing culture, photography, East Coast drive stop",
     notes: "Working fishing inlet — boats launch through the reef channel daily. Part of the scenic East Coast road."
   },
   {
@@ -129,7 +129,7 @@ export const beachBatch07: Beach[] = [
     longitude: -59.5352,
     webcamUrl: "",
     description:
-      "Highly consistent, cleanly peeling left-hand reef break. Sheltered from fiercest cross-shore trade winds but highly receptive to south and southeast swells. The island's most celebrated venue for longboarding and intermediate surfing instruction.",
+      "Highly consistent, cleanly peeling left-hand reef break. Sheltered from the fiercest cross-shore trade winds but highly receptive to south and southeast swells. The island's most celebrated venue for longboarding and intermediate surfing instruction.",
     bestFor: "Longboarding, intermediate surfing, surf lessons, surf photography",
     notes: "Best on SE/S swell direction. Lessons available locally. Reef bottom — wear booties."
   },
@@ -145,8 +145,8 @@ export const beachBatch07: Beach[] = [
     longitude: -59.5056956322188,
     webcamUrl: "",
     description:
-      "Rugged wind-exposed promontory where the confluence of open ocean swell and unimpeded trade winds generates chaotic but highly sought-after conditions for advanced kitesurfing and windsurfing.",
-    bestFor: "Advanced kitesurfing, windsurfing, surf photography",
-    notes: "Adjacent to Freights. Expert level only — chaotic conditions."
+      "Rugged wind-exposed promontory where the confluence of open ocean swell and unimpeded trade winds generates chaotic but highly sought-after conditions for beginner to intermediate surfing, advanced kitesurfing and windsurfing.",
+    bestFor: "Advanced kitesurfing, windsurfing, surfing, photography",
+    notes: "Adjacent to Long Beach. Chaotic conditions command respect — exercise caution."
   }
 ];

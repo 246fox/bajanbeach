@@ -13,7 +13,7 @@ export const beachBatch03: Beach[] = [
     longitude: -59.6450058715605,
     webcamUrl: "",
     description:
-      "Small sheltered bay just north of Speightstown. Local fishing village feel, minimal tourists. Situated between Fish Pot to the north and Pendry to the south.",
+      "Small sheltered bay just north of Speightstown. Local fishing village feel, minimal tourists. Situated between Fish Pot to the north and the entrance to Port Ferdinand to the south.",
     bestFor: "Local experience, calm swimming, fishing culture",
     notes: "Fishing boats share the bay. Authentic Bajan atmosphere."
   },
@@ -28,8 +28,8 @@ export const beachBatch03: Beach[] = [
     latitude: 13.2492202171512,
     longitude: -59.6437613704607,
     webcamUrl: "",
-    description: "Town beach in Barbados' northern most city. Calm, west-facing, easy access to shops and restaurants.",
-    bestFor: "Families, swimming, town exploration",
+    description: "Lively beach in Barbados' northernmost city. Calm, west-facing, easy access to shops and restaurants.",
+    bestFor: "Families, swimming, Speightstown exploration",
     notes: "Good base for exploring Speightstown and its plentiful beach front bars and restaurants"
   },
   {
@@ -47,7 +47,7 @@ export const beachBatch03: Beach[] = [
     description:
       "Deeply secluded bay on the northwest tip of St. Lucy. Access requires navigating a steep unpaved gully but the reward is a pristine deserted crescent of sand and one of the island's most coveted hidden surf breaks.",
     bestFor: "Advanced surfing, extreme seclusion, photography",
-    notes: "⚠️ Steep unpaved access gully — moderate fitness required. Coveted secret surf spot."
+    notes: "⚠️ Steep unpaved access gully — moderate fitness required. Coveted secret surf spot. Just north of Hangmans Bay."
   },
   {
     name: "Barclays Park Beach",
@@ -77,9 +77,9 @@ export const beachBatch03: Beach[] = [
     longitude: -59.532,
     webcamUrl: "",
     description:
-      "Wildly beautiful multi-kilometer stretch famous for therapeutic highly oxygenated sea breezes. Exceptionally broad and largely empty — the premier destination for meditative walking, beachcombing, and dramatic sunrise photography.",
+      "Wildly beautiful multi-kilometre stretch famous for therapeutic highly oxygenated sea breezes. Exceptionally broad and largely empty — the premier destination for meditative walking, beachcombing, and dramatic sunrise photography.",
     bestFor: "Sunrise walks, meditation, beachcombing, photography, East Coast escape",
-    notes: "Bartlett's Beach Cafe is worth a stop. Bajans believe the sea air here has healing properties."
+    notes: "Bajans believe the sea air here has healing and restorative properties. South of Lakes Beach."
   },
   {
     name: "Lakes Beach",
@@ -93,9 +93,9 @@ export const beachBatch03: Beach[] = [
     longitude: -59.5453754894488,
     webcamUrl: "",
     description:
-      "Wild northern East Coast continuation. Dark coarse sand and immense solitude. Borders the entrance to Scotland District river runoffs creating a unique brackish coastal ecosystem favored by local line fishers.",
+      "Wild northern East Coast continuation. Dark coarse sand and immense solitude. Borders the entrance to Scotland District river runoffs creating a unique brackish coastal ecosystem favoured by local line fishers.",
     bestFor: "Solitary beach walks, fishing, photography",
-    notes: "Brackish ecosystem — unique for Barbados. Very few visitors."
+    notes: "Brackish ecosystem — unique for Barbados. Very few visitors. South of Walkers Beach and north of Cattlewash."
   },
   {
     name: "Morgan Lewis Beach",
@@ -111,7 +111,7 @@ export const beachBatch03: Beach[] = [
     description:
       "Remote stretch of sand far below the historic Morgan Lewis Windmill. Severe isolation makes it an untouched ecological haven entirely devoid of tourism infrastructure.",
     bestFor: "Ultimate seclusion, photography, off-grid exploration",
-    notes: "Arguably the most remote accessible beach on the island. Bring everything you need."
+    notes: "Arguably the most remote accessible beach on the island. Bring everything you need. North of Walkers Beach."
   },
   {
     name: "Walkers Beach",
@@ -125,9 +125,9 @@ export const beachBatch03: Beach[] = [
     longitude: -59.55755,
     webcamUrl: "",
     description:
-      "Within Walkers Reserve — globally recognized ecological restoration project transitioning a former silica sand quarry back into natural habitat. Features the island's only significant sand dune ecosystem. Critical nesting habitat for migratory shorebirds.",
+      "Within Walkers Reserve — globally recognised ecological restoration project transitioning a former silica sand quarry back into natural habitat. Features the island's only significant sand dune ecosystem. Critical nesting habitat for migratory shorebirds.",
     bestFor: "Bird watching, ecological restoration tours, dune ecosystem viewing",
-    notes: "Walkers Reserve project — visitor centre on site. Not a recreational beach — wildlife habitat."
+    notes: "Walkers Reserve project and visitor centre on site just inland from the beach. Not just a beach but a renowned wildlife habitat. Just north of Lakes Beach and south of Morgan Lewis Beach."
   },
   {
     name: "Conset Bay",
@@ -141,8 +141,8 @@ export const beachBatch03: Beach[] = [
     longitude: -59.4666092747849,
     webcamUrl: "",
     description:
-      "Deep dramatic oceanic indentation harboring an authentic working fishing village completely untainted by mainstream tourism. Long concrete jetty protruding directly into the Atlantic swell. Witness pelagic catch landings.",
+      "Deep dramatic oceanic indentation harbouring an authentic working fishing village completely untainted by mainstream tourism. Long concrete jetty protruding directly into the Atlantic swell. Witness pelagic catch landings.",
     bestFor: "Cultural photography, fresh seafood, fishing village experience",
-    notes: "Authentic working fishing community — be respectful. Steep terrain access."
+    notes: "Authentic working fishing community. Steep terrain access."
   }
 ];

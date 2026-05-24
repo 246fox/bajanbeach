@@ -13,8 +13,8 @@ export const beachBatch02: Beach[] = [
     longitude: -59.6385,
     webcamUrl: "",
     description:
-      "Central west coast beach in the heart of Holetown. Calm and peaceful while still close to all Holetown amenities.",
-    bestFor: "Families, swimming, dining nearby, shopping",
+      "Central west coast beach in the heart of Holetown. Calm and peaceful while still close to all Holetown amenities. An easy beach walk north will bring you to Folkestone Marine Park and further on to Heron Bay, exceptional for long sunset walks.",
+    bestFor: "Families, swimming, dining nearby, shopping, beach walking",
     notes: "Site of the first English settlement. Limegrove mall walking distance."
   },
   {
@@ -44,10 +44,10 @@ export const beachBatch02: Beach[] = [
     longitude: -59.6413931656026,
     webcamUrl: "",
     description:
-      "Idyllic crescent-shaped enclave on the West Coast featuring exceptionally soft white sand and undisturbed turquoise water. Naturally shaded by mature mahogany and manchineel trees, with sandy bathymetry creating perpetually calm sea state.",
-    bestFor: "Tranquil swimming, secluded picnics, escape from tourist crowds, snorkeling",
+      "Idyllic crescent-shaped enclave on the West Coast featuring exceptionally soft white sand and undisturbed turquoise water. Naturally shaded by mature trees, with sandy bathymetry creating perpetually calm sea state.",
+    bestFor: "Tranquil swimming, secluded picnics, escape from tourist crowds, snorkelling",
     notes:
-      "⚠️ Manchineel trees on upper beach are toxic — do not touch trunk or fruit (marked with red paint). Frequent anchor stop for catamaran cruises. No commercial facilities — arrive self-sufficient."
+      "Also known locally as Thunder Bay. Frequent anchor stop for catamaran cruises. Most commercial facilities are at the south of the bay, with luxury villas fringing the central and northern stretches of this beach."
   },
   {
     name: "Sandy Lane Bay",
@@ -62,10 +62,10 @@ export const beachBatch02: Beach[] = [
     longitude: -59.6373911354764,
     webcamUrl: "",
     description:
-      "Exclusive stretch of beach fronting the Sandy Lane Hotel. Pristine white sand, perfectly calm.",
+      "Exclusive stretch of beach fronting the Sandy Lane Hotel and many luxury villas. Pristine white sand, perfectly calm, and one of the best spots to anchor on the west.",
     bestFor: "Luxury experience, swimming, people-watching",
     notes:
-      "Public beach hard to find but one of the best spots to anchor on the west. Home to many villas and anchored by the luxurious Sandy Lane hotel."
+      "Public beach but hard to access. Difficult, tidal and seasonal access from Paynes Bay to the south and even at low tide, some wading may be required."
   },
   {
     name: "Freshwater Bay",
@@ -80,9 +80,9 @@ export const beachBatch02: Beach[] = [
     longitude: -59.63572,
     webcamUrl: "",
     description:
-      "Freshwater Bay, known locally as Pile Bay, is a tiny, sparsely wooded inlet historically used by fishermen where Caribbean spiny lobster is seasonally available from local divers. Calm, clear water and a sheltered setting make it a tranquil spot for snorkeling, away from the busier west coast beaches.",
-    bestFor: "Snorkeling, exploring halocline springs, secluded swimming",
-    notes: "Adjacent to Paradise Beach. Brackish freshwater mixing creates unique conditions. Local secret."
+      "Freshwater Bay, known locally as Pile Bay, is a tiny, sparsely wooded inlet historically used by fishermen where Caribbean spiny lobster is seasonally available from local divers. Calm, clear water and a sheltered setting make it a tranquil spot for snorkelling, away from the busier west coast beaches.",
+    bestFor: "Snorkelling, beach walks, secluded swimming",
+    notes: "Just south of Paradise Beach and north of Brighton Beach. Local secret."
   },
   {
     name: "Paradise Beach",
@@ -96,9 +96,9 @@ export const beachBatch02: Beach[] = [
     longitude: -59.634795,
     webcamUrl: "",
     description:
-      "Closely guarded local secret hidden behind the overgrown ruins of a defunct hotel adjacent to the University of the West Indies campus. Accessible primarily via a wooded coastal path. Wide expanse of fine golden sand with zero commercial intrusion.",
-    bestFor: "Secluded wading, local immersion, photography, novice swimming",
-    notes: "Access via wooded path — bring water shoes. Shallow sandy bottom extends far offshore. No facilities."
+      "Closely guarded local secret hidden behind the overgrown ruins of a defunct hotel project. Wide expanse of fine golden sand with zero commercial intrusion and typically very small crowds. Does get very busy on Boxing Day however as it is the site of the annual Boxing Day raft up.",
+    bestFor: "Secluded wading, local immersion, photography, novice swimming, beach walks",
+    notes: "South of Batts Rock and north of Freshwater Bay. Shallow sandy bottom makes for excellent sea bathing. No facilities."
   },
   {
     name: "Gibbes Beach",
@@ -127,7 +127,7 @@ export const beachBatch02: Beach[] = [
     longitude: -59.6443459951112,
     webcamUrl: "",
     description:
-      "One of Barbados' finest beaches — long, calm, breakwater protected, and rarely crowded althought it can get busy on weekends.",
+      "One of Barbados' finest beaches — long, calm, breakwater protected, and rarely crowded although it can get busy on weekends.",
     bestFor: "Families, swimming, snorkelling, sunset walks",
     notes: "Just south of Port St. Charles marina. One of the best kept secrets on the island."
   },
@@ -145,6 +145,6 @@ export const beachBatch02: Beach[] = [
     description:
       "One of the most beloved beaches on the west coast — long, calm, and lined with restaurants and beach bars.",
     bestFor: "Families, swimming, dining, beach bars, snorkelling",
-    notes: "Mullins Beach Bar is a favourite. Reef snorkelling just offshore. Tends to get busy in high season."
+    notes: "Sea Shed restaurant is a favourite. Reef snorkelling just offshore. Tends to get busy in high season."
   }
 ];

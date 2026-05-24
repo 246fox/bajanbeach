@@ -7,7 +7,9 @@
     "clean": "node -e \"try{require('fs').rmSync('.next',{recursive:true,force:true})}catch(e){}\"",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "beaches:export": "tsx scripts/export-beaches.ts",
+    "beaches:import": "tsx scripts/import-beaches.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.4",
@@ -25,8 +27,11 @@
     "autoprefixer": "^10.4.19",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.0",
+    "exceljs": "^4.4.0",
     "postcss": "^8.4.39",
+    "tsx": "^4.19.2",
     "tailwindcss": "^3.4.6",
+    "ts-morph": "^25.0.1",
     "typescript": "^5.5.3"
   }
 }

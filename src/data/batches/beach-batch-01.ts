@@ -46,7 +46,7 @@ export const beachBatch01: Beach[] = [
     latitude: 13.3284436112755,
     longitude: -59.6303757460747,
     webcamUrl: "",
-    description: "Wild, windswept bay on the northern tip. Rugged natural beauty with minimal crowds.",
+    description: "Wild, windswept bay on the northern tip. Rugged natural beauty with no crowds.",
     bestFor: "Nature lovers, photography, off-the-beaten-track",
     notes: "⚠️ Not safe for swimming - powerful surge and currents year round."
   },
@@ -62,7 +62,7 @@ export const beachBatch01: Beach[] = [
     latitude: 13.2908381596494,
     longitude: -59.648945459077,
     webcamUrl: "",
-    description: "Secluded north-coast bay with dramatic cliffs and clear water. Rarely visited by tourists.",
+    description: "Secluded north-coast bay with dramatic cliffs and clear water. Rarely visited by tourists. Just south of Maycocks Bay.",
     bestFor: "Snorkelling, seclusion, photography",
     notes: "Unpaved road access. No facilities — bring supplies."
   },
@@ -96,7 +96,7 @@ export const beachBatch01: Beach[] = [
     latitude: 13.3222086782797,
     longitude: -59.59625998231,
     webcamUrl: "",
-    description: "Dramatic north coast bay with natural rock formations and wild Atlantic scenery.",
+    description: "Dramatic north coast bay with natural rock formations and wild Atlantic scenery. Its name stems from being the confluence of two freshwater streams and the Atlantic Ocean.",
     bestFor: "Photography, seclusion, nature, adventurous day trips",
     notes:
       "⚠️ Not safe for swimming — powerful surge and rip currents. Worth visiting for the dramatic landscape."
@@ -113,7 +113,7 @@ export const beachBatch01: Beach[] = [
     longitude: -59.6402967640345,
     webcamUrl: "",
     description:
-      "Long stretch of west coast beach. Sheltered, calm, and home to iconic restaurants like Lone Star and hotels like Fairmont Royal Pavillion.",
+      "Long stretch of west coast beach. Sheltered, calm, and home to iconic restaurants like Lone Star and hotels like Fairmont Royal Pavilion.",
     bestFor: "Swimming, snorkelling, relaxation, couples",
     notes:
       "One of the gems of the St. James coast. Plentiful beachfront venues and excellent for watersports."
@@ -130,10 +130,10 @@ export const beachBatch01: Beach[] = [
     longitude: -59.638,
     webcamUrl: "",
     description:
-      "Established 1981 — the island's premier Marine Protected Area covering 2.1 km² with four distinct managed zones. The Bellairs Fringing Reef just 10m offshore offers the most accessible high-density snorkeling on the island. The SS Stavronikita wreck nearby is a top dive site.",
-    bestFor: "Marine education, snorkeling, scuba diving, families, eco-tourism",
+      "Established 1981 — the island's premier Marine Protected Area covering 2.1 km² with four distinct managed zones. The Bellairs Fringing Reef just 10m offshore offers the most accessible high-density snorkelling on the island. The SS Stavronikita wreck nearby is a top dive site.",
+    bestFor: "Marine education, snorkelling, scuba diving, families, eco-tourism",
     notes:
-      "Marine Park entrance fee. Snorkel gear rental on site. Includes Scientific Zone, Recreational Zone and two Watersports zones."
+      "Snorkel gear rental on site. Includes Scientific Zone, Recreational Zone and two Watersports zones, in addition to a marine museum."
   },
   {
     name: "Heron Bay",
@@ -150,6 +150,6 @@ export const beachBatch01: Beach[] = [
       "Quiet west coast bay near Colony Club hotel. Sheltered and sometimes busy on weekends but a short stroll north and you will find more quiet areas.",
     bestFor: "Swimming, couples, relaxation, seclusion",
     notes:
-      "Sits at the bottom of Porters with very calm conditions very little on it except Colony Club hotel and several exceptional villas."
+      "Sits at the bottom of Porters with very calm conditions, and very little on it except Colony Club hotel and several exceptional villas."
   }
 ];
