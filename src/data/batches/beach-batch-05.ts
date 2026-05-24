@@ -63,9 +63,9 @@ export const beachBatch05: Beach[] = [
     longitude: -59.5494848129094,
     webcamUrl: "",
     description:
-      "Recently benefited from significant coastal reclamation creating a broad expanse of soft white sand. Maintains a serene uncrowded atmosphere unlike Dover or Rockley. Recently emerged as a focal point for e-foiling thanks to smooth deep-water bay.",
+      "Recently benefited from significant coastal reclamation creating a broad expanse of soft white sand. Maintains a serene uncrowded atmosphere unlike [Dover](/beaches/dover-beach) or [Rockley](/beaches/rockley-beach). Recently emerged as a focal point for e-foiling thanks to smooth deep-water bay.",
     bestFor: "E-foiling, windsurfing, sunset walks, uncrowded swimming",
-    notes: "Just west of Oistins Beach. Quieter alternative to the main South Coast beaches."
+    notes: "Just west of [Oistins Beach](/beaches/oistins-bay). Quieter alternative to the main South Coast beaches."
   },
   {
     name: "Worthing Beach",
@@ -96,7 +96,7 @@ export const beachBatch05: Beach[] = [
     longitude: -59.6097,
     webcamUrl: "https://v2.iwcpinc.com/cameras/ncc_brownes_1",
     description:
-      "Remarkably wide, flat expanse bordering the southern arc of Carlisle Bay. The gentle, almost imperceptible slope of the sea floor and complete lack of undertow make it a premier destination for cruise passengers, visitors of all ages and local families.",
+      "Remarkably wide, flat expanse bordering the southern arc of [Carlisle Bay](/beaches/carlisle-bay). The gentle, almost imperceptible slope of the sea floor and complete lack of undertow make it a premier destination for cruise passengers, visitors of all ages and local families.",
     bestFor: "Cruise passengers, families, absolute safe swimming, central location",
     notes: "Walking distance from Bridgetown. The gentlest swimming entry on the island. Busy on cruise days."
   },

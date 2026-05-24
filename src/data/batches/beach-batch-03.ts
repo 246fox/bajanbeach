@@ -47,7 +47,7 @@ export const beachBatch03: Beach[] = [
     description:
       "Deeply secluded bay on the northwest tip of St. Lucy. Access requires navigating a steep unpaved gully but the reward is a pristine deserted crescent of sand and one of the island's most coveted hidden surf breaks.",
     bestFor: "Advanced surfing, extreme seclusion, photography",
-    notes: "⚠️ Steep unpaved access gully — moderate fitness required. Coveted secret surf spot. Just north of Hangmans Bay."
+    notes: "⚠️ Steep unpaved access gully — moderate fitness required. Coveted secret surf spot. Just north of [Hangmans Bay](/beaches/hangmans-bay)."
   },
   {
     name: "Barclays Park Beach",
@@ -79,7 +79,7 @@ export const beachBatch03: Beach[] = [
     description:
       "Wildly beautiful multi-kilometre stretch famous for therapeutic highly oxygenated sea breezes. Exceptionally broad and largely empty — the premier destination for meditative walking, beachcombing, and dramatic sunrise photography.",
     bestFor: "Sunrise walks, meditation, beachcombing, photography, East Coast escape",
-    notes: "Bajans believe the sea air here has healing and restorative properties. South of Lakes Beach."
+    notes: "Bajans believe the sea air here has healing and restorative properties. South of [Lakes Beach](/beaches/lakes-beach)."
   },
   {
     name: "Lakes Beach",
@@ -95,7 +95,7 @@ export const beachBatch03: Beach[] = [
     description:
       "Wild northern East Coast continuation. Dark coarse sand and immense solitude. Borders the entrance to Scotland District river runoffs creating a unique brackish coastal ecosystem favoured by local line fishers.",
     bestFor: "Solitary beach walks, fishing, photography",
-    notes: "Brackish ecosystem — unique for Barbados. Very few visitors. South of Walkers Beach and north of Cattlewash."
+    notes: "Brackish ecosystem — unique for Barbados. Very few visitors. South of [Walkers Beach](/beaches/walkers-beach) and north of [Cattlewash](/beaches/cattlewash)."
   },
   {
     name: "Morgan Lewis Beach",
@@ -111,7 +111,7 @@ export const beachBatch03: Beach[] = [
     description:
       "Remote stretch of sand far below the historic Morgan Lewis Windmill. Severe isolation makes it an untouched ecological haven entirely devoid of tourism infrastructure.",
     bestFor: "Ultimate seclusion, photography, off-grid exploration",
-    notes: "Arguably the most remote accessible beach on the island. Bring everything you need. North of Walkers Beach."
+    notes: "Arguably the most remote accessible beach on the island. Bring everything you need. North of [Walkers Beach](/beaches/walkers-beach)."
   },
   {
     name: "Walkers Beach",
@@ -127,7 +127,7 @@ export const beachBatch03: Beach[] = [
     description:
       "Within Walkers Reserve — globally recognised ecological restoration project transitioning a former silica sand quarry back into natural habitat. Features the island's only significant sand dune ecosystem. Critical nesting habitat for migratory shorebirds.",
     bestFor: "Bird watching, ecological restoration tours, dune ecosystem viewing",
-    notes: "Walkers Reserve project and visitor centre on site just inland from the beach. Not just a beach but a renowned wildlife habitat. Just north of Lakes Beach and south of Morgan Lewis Beach."
+    notes: "Walkers Reserve project and visitor centre on site just inland from the beach. Not just a beach but a renowned wildlife habitat. Just north of [Lakes Beach](/beaches/lakes-beach) and south of [Morgan Lewis Beach](/beaches/morgan-lewis-beach)."
   },
   {
     name: "Conset Bay",

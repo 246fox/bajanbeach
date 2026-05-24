@@ -46,10 +46,10 @@ export const beachBatch06: Beach[] = [
     longitude: -59.441820151218,
     webcamUrl: "",
     description:
-      "Severely eroded cove just north of The Crane, technically a continuation of Crane Beach. Once a secluded swimming spot known for its dramatic limestone caves, the beach has been transformed by rising sea levels into a seasonal, tidal cove with almost no dry sand at high water. Accessible only by walking along the rocks from Crane at low tide.",
+      "Severely eroded cove just north of The Crane, technically a continuation of [Crane Beach](/beaches/crane-beach). Once a secluded swimming spot known for its dramatic limestone caves, the beach has been transformed by rising sea levels into a seasonal, tidal cove with almost no dry sand at high water. Accessible only by walking along the rocks from Crane at low tide.",
     bestFor: "Photography, geology",
     notes:
-      "⚠️ Access stairs have been significantly compromised by erosion, and even at low tide the scramble from Crane Beach is difficult. There is little to no dry sand at high water. During heavy sargassum season, the cove is effectively inaccessible."
+      "⚠️ Access stairs have been significantly compromised by erosion, and even at low tide the scramble from [Crane Beach](/beaches/crane-beach) is difficult. There is little to no dry sand at high water. During heavy sargassum season, the cove is effectively inaccessible."
   },
   {
     name: "Harrismith Beach",
@@ -63,7 +63,7 @@ export const beachBatch06: Beach[] = [
     longitude: -59.4266581018801,
     webcamUrl: "",
     description:
-      "Located in close proximity to Bottom Bay with unique historical integration. Accessed via long stone steps carved directly into the cliffside from the ruins of the 19th-century Harrismith Great House. Small cove somewhat protected by a thick reef shelf on the northern end but still, strong undertows demand respect. Exercise extreme caution.",
+      "Located in close proximity to [Bottom Bay](/beaches/bottom-bay) with unique historical integration. Accessed via long stone steps carved directly into the cliffside from the ruins of the 19th-century Harrismith Great House. Small cove somewhat protected by a thick reef shelf on the northern end but still, strong undertows demand respect. Exercise extreme caution.",
     bestFor: "Adventurous explorers, history, photography",
     notes: "Steep cliff stairs — moderate fitness required."
   },
@@ -130,7 +130,7 @@ export const beachBatch06: Beach[] = [
     longitude: -59.6379911143426,
     webcamUrl: "",
     description:
-      "Quiet reef-protected corridor between Paynes Bay and Fitts Village. Heavy nearshore reef attenuation makes this a premium beginner snorkelling site with an authentic local atmosphere away from major resort crowds.",
+      "Quiet reef-protected corridor between [Paynes Bay](/beaches/paynes-bay) and [Fitts Village](/beaches/fitts-village-beach). Heavy nearshore reef attenuation makes this a premium beginner snorkelling site with an authentic local atmosphere away from major resort crowds.",
     bestFor: "Beginner snorkelling, swimming, local experience, relaxation",
     notes: "Strategically positioned between luxury hub and local community. Peaceful and uncrowded. Beach access is just south of Crystal Cove hotel."
   },

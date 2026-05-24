@@ -16,7 +16,7 @@ export const beachBatch01: Beach[] = [
       "Geological anomaly on the East Coast. Extensive unbroken offshore coral reef creates a massive heavily protected lagoon — the ONLY Atlantic-side location where recreational swimming is generally considered safe. Heavily forested with casuarina trees, public picnic infrastructure.",
     bestFor: "Safe East Coast swimming, family picnics, hiking, eco-tourism",
     notes:
-      "The ONLY safe-swimming beach on the East Coast. Trailhead for the historic 19th-century railway hike to Conset Bay."
+      "The ONLY safe-swimming beach on the East Coast. Trailhead for the historic 19th-century railway hike to [Conset Bay](/beaches/conset-bay)."
   },
   {
     name: "Animal Flower Cave",
@@ -62,7 +62,7 @@ export const beachBatch01: Beach[] = [
     latitude: 13.2908381596494,
     longitude: -59.648945459077,
     webcamUrl: "",
-    description: "Secluded north-coast bay with dramatic cliffs and clear water. Rarely visited by tourists. Just south of Maycocks Bay.",
+    description: "Secluded north-coast bay with dramatic cliffs and clear water. Rarely visited by tourists. Just south of [Maycocks Bay](/beaches/maycocks-bay).",
     bestFor: "Snorkelling, seclusion, photography",
     notes: "Unpaved road access. No facilities — bring supplies."
   },

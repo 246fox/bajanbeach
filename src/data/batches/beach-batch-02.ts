@@ -13,7 +13,7 @@ export const beachBatch02: Beach[] = [
     longitude: -59.6385,
     webcamUrl: "",
     description:
-      "Central west coast beach in the heart of Holetown. Calm and peaceful while still close to all Holetown amenities. An easy beach walk north will bring you to Folkestone Marine Park and further on to Heron Bay, exceptional for long sunset walks.",
+      "Central west coast beach in the heart of Holetown. Calm and peaceful while still close to all Holetown amenities. An easy beach walk north will bring you to [Folkestone Marine Park](/beaches/folkestone-beach) and further on to [Heron Bay](/beaches/heron-bay), exceptional for long sunset walks.",
     bestFor: "Families, swimming, dining nearby, shopping, beach walking",
     notes: "Site of the first English settlement. Limegrove mall walking distance."
   },
@@ -65,7 +65,7 @@ export const beachBatch02: Beach[] = [
       "Exclusive stretch of beach fronting the Sandy Lane Hotel and many luxury villas. Pristine white sand, perfectly calm, and one of the best spots to anchor on the west.",
     bestFor: "Luxury experience, swimming, people-watching",
     notes:
-      "Public beach but hard to access. Difficult, tidal and seasonal access from Paynes Bay to the south and even at low tide, some wading may be required."
+      "Public beach but hard to access. Difficult, tidal and seasonal access from [Paynes Bay](/beaches/paynes-bay) to the south and even at low tide, some wading may be required."
   },
   {
     name: "Freshwater Bay",
@@ -82,7 +82,7 @@ export const beachBatch02: Beach[] = [
     description:
       "Freshwater Bay, known locally as Pile Bay, is a tiny, sparsely wooded inlet historically used by fishermen where Caribbean spiny lobster is seasonally available from local divers. Calm, clear water and a sheltered setting make it a tranquil spot for snorkelling, away from the busier west coast beaches.",
     bestFor: "Snorkelling, beach walks, secluded swimming",
-    notes: "Just south of Paradise Beach and north of Brighton Beach. Local secret."
+    notes: "Just south of [Paradise Beach](/beaches/paradise-beach) and north of [Brighton Beach](/beaches/brighton-beach). Local secret."
   },
   {
     name: "Paradise Beach",
@@ -98,7 +98,7 @@ export const beachBatch02: Beach[] = [
     description:
       "Closely guarded local secret hidden behind the overgrown ruins of a defunct hotel project. Wide expanse of fine golden sand with zero commercial intrusion and typically very small crowds. Does get very busy on Boxing Day however as it is the site of the annual Boxing Day raft up.",
     bestFor: "Secluded wading, local immersion, photography, novice swimming, beach walks",
-    notes: "South of Batts Rock and north of Freshwater Bay. Shallow sandy bottom makes for excellent sea bathing. No facilities."
+    notes: "South of [Batts Rock](/beaches/batts-rock-beach) and north of [Freshwater Bay](/beaches/freshwater-bay). Shallow sandy bottom makes for excellent sea bathing. No facilities."
   },
   {
     name: "Gibbes Beach",

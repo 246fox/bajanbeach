@@ -29,7 +29,7 @@ export const beachBatch04: Beach[] = [
     longitude: -59.443414,
     webcamUrl: "",
     description:
-      "Tiny uninhabited rock formation just off the southeast coast. At extreme low tide adventurous hikers can wade across the shallow channel to explore the island. Less adventurous? Just to the east are two small sandy coves called Culpepper Beach and Bakers and to the west is Skeetes Bay.",
+      "Tiny uninhabited rock formation just off the southeast coast. At extreme low tide adventurous hikers can wade across the shallow channel to explore the island. Less adventurous? Just to the east are two small sandy coves called Culpepper Beach and Bakers and to the west is [Skeetes Bay](/beaches/skeetes-bay).",
     bestFor: "Low-tide wading, extreme exploration, photography",
     notes:
       "⚠️ Incoming tides and unpredictable surges are dangerous. Only at extreme low tide and watch the time."
@@ -62,9 +62,9 @@ export const beachBatch04: Beach[] = [
     longitude: -59.5398421580279,
     webcamUrl: "https://v2.iwcpinc.com/cameras/ncc_enterprise_2",
     description:
-      "Contiguous easterly stretch of the Miami/Enterprise footprint. Fully exposed to open ocean with vigorous shore break that satisfies bodyboarders and active swimmers seeking dynamic water conditions.",
+      "Contiguous easterly stretch of the [Miami](/beaches/miami-beach)/Enterprise footprint. Fully exposed to open ocean with vigorous shore break that satisfies bodyboarders and active swimmers seeking dynamic water conditions.",
     bestFor: "Bodyboarding, active swimming, photography, beach walks",
-    notes: "Easterly exposed stretch — same beach as Miami but very different conditions."
+    notes: "Easterly exposed stretch — same beach as [Miami](/beaches/miami-beach) but very different conditions."
   },
   {
     name: "Inch Marlow Beach",
@@ -114,7 +114,7 @@ export const beachBatch04: Beach[] = [
     description:
       "Quieter enclave populated by hotels and condominiums. Coastal alignment perfectly catches prevailing trade winds, establishing it as the premier hub for Hobie Cat sailing and windsurfing.",
     bestFor: "Hobie Cat sailing, windsurfing, swimming, condo holiday base",
-    notes: "One of the best wind angles on the South Coast for sailing. Quieter than Dover or St. Lawrence."
+    notes: "One of the best wind angles on the South Coast for sailing. Quieter than [Dover](/beaches/dover-beach) or [St. Lawrence](/beaches/st-lawrence-beach)."
   },
   {
     name: "Miami Beach",
@@ -128,10 +128,10 @@ export const beachBatch04: Beach[] = [
     longitude: -59.5407,
     webcamUrl: "https://iwcpinc.com/cameras/ncc_miami_2",
     description:
-      "The highly sheltered westerly cove of the Enterprise/Miami complex, separated by a large protective groin. Impeccably calm waters make it a weekend sanctuary for local families and small children. Pink-tinged sand.",
+      "The highly sheltered westerly cove of the [Enterprise](/beaches/enterprise-beach)/Miami complex, separated by a large protective groin. Impeccably calm waters make it a weekend sanctuary for local families and small children. Pink-tinged sand.",
     bestFor: "Families with children, calm swimming, photography, weekend locals",
     notes:
-      "Westerly sheltered cove — separated from Enterprise by a groin. Calmest stretch of the south coast east of Carlisle Bay."
+      "Westerly sheltered cove — separated from [Enterprise](/beaches/enterprise-beach) by a groin. Calmest stretch of the south coast east of [Carlisle Bay](/beaches/carlisle-bay)."
   },
   {
     name: "Oistins Bay",
@@ -147,6 +147,6 @@ export const beachBatch04: Beach[] = [
     description:
       "Highly functional beachfront intertwining tourism with an active, commercial fishing industry. Waters populated with colourful local fishing vessels — the cultural and visual backdrop for the legendary Friday Night Fish Fry.",
     bestFor: "Friday Night Fish Fry, local culture, families, seaside dining, photography",
-    notes: "The Friday Night Fish Fry is a must-do Bajan experience but can be very busy. Other nights offer the same culinary experience with shorter wait times. Better for seaside dining than swimming, Miami/Enterprise Beach to the east or Welches Beach to the west offer better swimming while being a stone's throw away."
+    notes: "The Friday Night Fish Fry is a must-do Bajan experience but can be very busy. Other nights offer the same culinary experience with shorter wait times. Better for seaside dining than swimming, [Miami](/beaches/miami-beach)/[Enterprise Beach](/beaches/enterprise-beach) to the east or [Welches Beach](/beaches/welches-beach) to the west offer better swimming while being a stone's throw away."
   }
 ];

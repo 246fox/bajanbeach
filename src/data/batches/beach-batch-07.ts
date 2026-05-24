@@ -30,7 +30,7 @@ export const beachBatch07: Beach[] = [
     longitude: -59.6273,
     webcamUrl: "https://v2.iwcpinc.com/cameras/ncc_brandons_1",
     description:
-      "Wide expanse of sand acting as the southern terminus of the Brighton-Brandons stretch. Heavily frequented by cruise passengers due to port proximity.",
+      "Wide expanse of sand acting as the southern terminus of the [Brighton](/beaches/brighton-beach)-Brandons stretch. Heavily frequented by cruise passengers due to port proximity.",
     bestFor: "Cruise passengers, swimming and families",
     notes: "Adjacent to cruise port — busy on cruise days."
   },
@@ -46,7 +46,7 @@ export const beachBatch07: Beach[] = [
     longitude: -59.6304,
     webcamUrl: "https://iwcpinc.com/cameras/brighton_2",
     description:
-      "Calm West Coast beach immediately north of Brandons Beach, historically anchored by the Malibu Rum facility. Exceptionally calm water and immediate coastal access for local residents.",
+      "Calm West Coast beach immediately north of [Brandons Beach](/beaches/brandons-beach), historically anchored by the Malibu Rum facility. Exceptionally calm water and immediate coastal access for local residents.",
     bestFor: "Swimming, families, quick beach visit near Bridgetown, sunset",
     notes:
       "⚠️Caution must be exercised around the northern end of this beach in the area known as the 'Hot Pot', as dangerous currents are present."
@@ -96,7 +96,7 @@ export const beachBatch07: Beach[] = [
     longitude: -59.5146289650811,
     webcamUrl: "https://iwcpinc.com/cameras/tent_bay",
     description:
-      "Small rocky inlet south of Bathsheba serving as the precarious launch point for the local day-boat fishing fleet. Navigating the narrow twisting reef channel requires immense generational local knowledge.",
+      "Small rocky inlet south of [Bathsheba](/beaches/bathsheba-beach) serving as the precarious launch point for the local day-boat fishing fleet. Navigating the narrow twisting reef channel requires immense generational local knowledge.",
     bestFor: "Surfing, fishing culture, photography, East Coast drive stop",
     notes: "Working fishing inlet — boats launch through the reef channel daily. Part of the scenic East Coast road."
   },
@@ -115,7 +115,7 @@ export const beachBatch07: Beach[] = [
       "Narrow south coast beach between Savannah Beach Club and the Hilton peninsula. Best known for the surf break which fires consistently on north swells and is a favourite of local surfers.",
     bestFor: "Surfing, watching surf, photography",
     notes:
-      "Also known to the surfing community as \"Brandons\" (not to be confused with the separate Brandons Beach on the west coast near the cruise terminal). Drill Hall Beach takes its name from the adjacent Drill Hall at the historic St. Ann's Fort, headquarters of the Barbados Defence Force."
+      "Also known to the surfing community as \"Brandons\" (not to be confused with the separate [Brandons Beach](/beaches/brandons-beach) on the west coast near the cruise terminal). Drill Hall Beach takes its name from the adjacent Drill Hall at the historic St. Ann's Fort, headquarters of the Barbados Defence Force."
   },
   {
     name: "Freights Bay",
@@ -147,7 +147,7 @@ export const beachBatch07: Beach[] = [
     description:
       "Rugged wind-exposed promontory where the confluence of open ocean swell and unimpeded trade winds generates chaotic but highly sought-after conditions for beginner to intermediate surfing, advanced kitesurfing and windsurfing.",
     bestFor: "Advanced kitesurfing, windsurfing, surfing, photography",
-    notes: "Adjacent to Long Beach. Chaotic conditions command respect — exercise caution."
+    notes: "Adjacent to [Long Beach](/beaches/long-beach). Chaotic conditions command respect — exercise caution."
   },
   {
     name: "Prospect Beach",
@@ -161,7 +161,7 @@ export const beachBatch07: Beach[] = [
     longitude: -59.6377412984539,
     webcamUrl: "",
     description:
-      "Small west coast bay to the south of Fitts Village Beach. The beach is compact, essentially a single curve of sand in front of Waves Hotel & Spa, which dominates the bay. A short walk north brings you to the more expansive Fitts Village Beach. Calm, clear Caribbean water typical of the Platinum Coast, with the same gentle slope into the sea that the rest of the west coast is known for.",
+      "Small west coast bay to the south of [Fitts Village Beach](/beaches/fitts-village-beach). The beach is compact, essentially a single curve of sand in front of Waves Hotel & Spa, which dominates the bay. A short walk north brings you to the more expansive Fitts Village Beach. Calm, clear Caribbean water typical of the Platinum Coast, with the same gentle slope into the sea that the rest of the west coast is known for.",
     bestFor: "Quiet swimming, west coast sunsets, beach walking",
     notes:
       "Public beach access is on the right of Waves Hotel, opposite Prospect Road. Limited parking, many visitors park at the Good Shepherd Church in Fitts Village and walk south along the sand. The bay can feel busier when the hotel is at capacity in season."
