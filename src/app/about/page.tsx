@@ -169,6 +169,18 @@ export default function AboutPage() {
             posted signs, and lifeguard guidance. If a beach looks unsafe when you arrive, trust what you see over any
             score on this site.
           </p>
+          <p>Specific hazards to be aware of:</p>
+          <ul className="list-disc space-y-2 pl-5">
+            <li>
+              <strong>Manchineel trees</strong> — Several Barbados beaches, especially on the west coast, have
+              manchineel trees growing near the sand. Every part of the tree is toxic: the sap causes painful skin burns
+              and blistering, the small green apple-like fruit is dangerously poisonous, and even sheltering under the
+              canopy during rain can blister your skin from sap dripping in the water. Many specimens around the island
+              are marked with a red painted band on the trunk, but not all of them are. If you&apos;re not sure what one
+              looks like, keep a respectful distance from any unfamiliar tree growing on the back beach, and rinse with
+              fresh water immediately if you think you&apos;ve made contact. Do not eat any fruit you find on a beach.
+            </li>
+          </ul>
         </AboutCard>
       </div>
     </main>
