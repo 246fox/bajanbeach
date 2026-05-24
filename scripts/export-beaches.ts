@@ -152,9 +152,6 @@ async function main() {
   await workbook.xlsx.writeFile(outPath);
 
   console.log(`Wrote ${outPath} (${beaches.length} beaches + header).`);
-  if (beaches.length !== 63) {
-    console.warn(`Expected 63 beaches; got ${beaches.length}.`);
-  }
 }
 
 main().catch((err) => {
