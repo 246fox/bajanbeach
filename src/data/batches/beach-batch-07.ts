@@ -148,5 +148,39 @@ export const beachBatch07: Beach[] = [
       "Rugged wind-exposed promontory where the confluence of open ocean swell and unimpeded trade winds generates chaotic but highly sought-after conditions for beginner to intermediate surfing, advanced kitesurfing and windsurfing.",
     bestFor: "Advanced kitesurfing, windsurfing, surfing, photography",
     notes: "Adjacent to Long Beach. Chaotic conditions command respect — exercise caution."
+  },
+  {
+    name: "Prospect Beach",
+    slug: "prospect-beach",
+    parish: "St. James",
+    coast: "West",
+    seaState: "calm",
+    waveActionBaseline: "low",
+    isSurfSpot: false,
+    latitude: 13.142601647293134,
+    longitude: -59.6377412984539,
+    webcamUrl: "",
+    description:
+      "Small west coast bay to the south of Fitts Village Beach. The beach is compact, essentially a single curve of sand in front of Waves Hotel & Spa, which dominates the bay. A short walk north brings you to the more expansive Fitts Village Beach. Calm, clear Caribbean water typical of the Platinum Coast, with the same gentle slope into the sea that the rest of the west coast is known for.",
+    bestFor: "Quiet swimming, west coast sunsets, beach walking",
+    notes:
+      "Public beach access is on the right of Waves Hotel, opposite Prospect Road. Limited parking, many visitors park at the Good Shepherd Church in Fitts Village and walk south along the sand. The bay can feel busier when the hotel is at capacity in season."
+  },
+  {
+    name: "Godings Bay",
+    slug: "godings-bay",
+    parish: "St. Peter",
+    coast: "West",
+    seaState: "calm",
+    waveActionBaseline: "low",
+    isSurfSpot: false,
+    latitude: 13.244840255215284,
+    longitude: -59.644187086221244,
+    webcamUrl: "",
+    description:
+      "Quiet west coast bay in St. Peter, dominated by luxury villas and bordered by Schooner Bay development to the north and Cobblers Cove hotel to the south. Known locally as Queen Street Beach, after Queens Street where the public beach access is. Calm, clear water and a gentle slope into the sea give it the same character as the busier west coast bays, but with noticeably less foot traffic.",
+    bestFor: "Swimming, families, sunset, escaping the crowds",
+    notes:
+      "Access is via Queens Street off Highway 1. Limited parking near the access but plentiful parking further north in the commercial areas. Zero amenities directly on the beach, so bring supplies."
   }
 ];
