@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BeachConditionPanel } from "@/components/BeachConditionPanel";
+import BeachShareRow from "@/components/BeachShareRow";
 import { BeachTidePanel } from "@/components/BeachTidePanel";
 import { WaveForecastChart } from "@/components/WaveForecastChart";
 import { beaches, getBeachBySlug } from "@/data/beaches";
@@ -314,6 +315,8 @@ export default async function BeachDetailPage({ params }: PageProps) {
             <p className="mt-3 text-base leading-relaxed text-slate-600">{beach.notes}</p>
           </section>
         )}
+
+        <BeachShareRow beachName={beach.name} slug={beach.slug} />
 
         <div className="border-t border-ocean-100/70 pt-8">
           <Link
