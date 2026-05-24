@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { BeachCardData, BeachCoast } from "@/types/beach";
 import {
   activityLabel,
@@ -18,6 +18,7 @@ import {
   seaStateLabel
 } from "@/lib/beach-format";
 import { BEACH_PHOTO_PLACEHOLDER } from "@/lib/beach-photo-placeholder";
+import { formatDistanceKm, haversineKm } from "@/lib/distance";
 import { BeachProse } from "@/components/BeachProse";
 import { CoastIntroBanner } from "@/components/CoastIntroBanner";
 import { SargassumBadge } from "@/components/SargassumBadge";
@@ -88,21 +89,53 @@ function parseCoastFromQuery(value: string | null): CoastFilter {
   return COAST_QUERY_TO_FILTER[value.toLowerCase()] ?? "All";
 }
 
-type SortOption = "coast" | "name" | "swim" | "surf" | "scenic";
+const SESSION_LOCATION_KEY = "bajanbeach:userLocation";
+
+function readSessionLocation(): { lat: number; lng: number } | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  try {
+    const raw = sessionStorage.getItem(SESSION_LOCATION_KEY);
+    if (!raw) {
+      return null;
+    }
+    const o = JSON.parse(raw) as { lat?: unknown; lng?: unknown };
+    if (
+      typeof o.lat === "number" &&
+      typeof o.lng === "number" &&
+      Number.isFinite(o.lat) &&
+      Number.isFinite(o.lng)
+    ) {
+      return { lat: o.lat, lng: o.lng };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function writeSessionLocation(lat: number, lng: number): void {
+  sessionStorage.setItem(SESSION_LOCATION_KEY, JSON.stringify({ lat, lng }));
+}
+
+type SortOption = "coast" | "name" | "swim" | "surf" | "scenic" | "nearest";
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "coast", label: "Coast" },
   { value: "name", label: "Name (A-Z)" },
   { value: "swim", label: "Best for swimming today" },
   { value: "surf", label: "Best for surfing today" },
-  { value: "scenic", label: "Best for scenic visits today" }
+  { value: "scenic", label: "Best for scenic visits today" },
+  { value: "nearest", label: "Nearest first" }
 ];
 
 const SORT_QUERY_TO_VALUE: Record<string, SortOption> = {
   name: "name",
   swim: "swim",
   surf: "surf",
-  scenic: "scenic"
+  scenic: "scenic",
+  nearest: "nearest"
 };
 
 function parseSortFromQuery(value: string | null): SortOption {
@@ -283,6 +316,9 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
   const [sortOption, setSortOption] = useState<SortOption>(() =>
     parseSortFromQuery(searchParams.get("sort"))
   );
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const pendingGeoRef = useRef(false);
 
   useEffect(() => {
     const nextFilter = parseCoastFromQuery(searchParams.get("coast"));
@@ -290,6 +326,26 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
     const nextSort = parseSortFromQuery(searchParams.get("sort"));
     setSortOption((currentSort) => (currentSort === nextSort ? currentSort : nextSort));
   }, [searchParams]);
+
+  useEffect(() => {
+    const sortQ = searchParams.get("sort")?.toLowerCase();
+    if (sortQ !== "nearest") {
+      return;
+    }
+    const loc = readSessionLocation();
+    if (loc) {
+      setUserCoords(loc);
+      return;
+    }
+    if (pendingGeoRef.current) {
+      return;
+    }
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("sort");
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    setSortOption("coast");
+  }, [searchParams, pathname, router]);
 
   const coastFiltered = useMemo(() => {
     if (coastFilter === "All") {
@@ -338,10 +394,20 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
         const scenic = list.filter((b) => b.seaState === "rough");
         return [...scenic].sort(compareScoreDesc);
       }
+      case "nearest": {
+        if (!userCoords) {
+          return [...list];
+        }
+        return [...list].sort((a, b) => {
+          const da = haversineKm(userCoords.lat, userCoords.lng, a.latitude, a.longitude);
+          const db = haversineKm(userCoords.lat, userCoords.lng, b.latitude, b.longitude);
+          return da - db;
+        });
+      }
       default:
         return list;
     }
-  }, [searchFiltered, sortOption]);
+  }, [searchFiltered, sortOption, userCoords]);
 
   const searchActive = searchQuery.trim() !== "";
 
@@ -396,6 +462,56 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
 
     const query = params.toString();
     router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  };
+
+  const handleSortSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value as SortOption;
+    if (value === sortOption) {
+      return;
+    }
+
+    setLocationError(null);
+
+    if (value === "nearest") {
+      const cached = readSessionLocation();
+      if (cached) {
+        setUserCoords(cached);
+        updateSortOption("nearest");
+        return;
+      }
+
+      const previous = sortOption;
+      pendingGeoRef.current = true;
+      updateSortOption("nearest");
+
+      if (typeof navigator === "undefined" || !navigator.geolocation) {
+        pendingGeoRef.current = false;
+        updateSortOption(previous);
+        setLocationError("Allow location access to sort by distance.");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          pendingGeoRef.current = false;
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          writeSessionLocation(lat, lng);
+          setUserCoords({ lat, lng });
+          setLocationError(null);
+        },
+        () => {
+          pendingGeoRef.current = false;
+          updateSortOption(previous);
+          setUserCoords(null);
+          setLocationError("Allow location access to sort by distance.");
+        },
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 }
+      );
+      return;
+    }
+
+    updateSortOption(value);
   };
 
   return (
@@ -485,7 +601,7 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
             <select
               id="beach-sort"
               value={sortOption}
-              onChange={(e) => updateSortOption(e.target.value as SortOption)}
+              onChange={handleSortSelectChange}
               title="Sort beaches"
               className="min-w-0 flex-1 cursor-pointer bg-transparent text-sm font-medium text-slate-800 focus:outline-none"
             >
@@ -496,6 +612,11 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
               ))}
             </select>
           </div>
+          {locationError ? (
+            <p className="mt-1.5 text-xs text-slate-600" aria-live="polite">
+              {locationError}
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -584,13 +705,22 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
                     <p className="mt-0.5 text-[11px] leading-snug text-slate-400">Photo unavailable</p>
                   ) : null}
                 </div>
-                <p
-                  className={`inline-flex shrink-0 rounded-full px-3 py-1 text-sm font-semibold ${scoreStyles(
-                    beach.conditions.swimScore
-                  )}`}
-                >
-                  {activityLabel(beach)} {formatScoreLabel(beach.conditions.swimScore)}
-                </p>
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  <p
+                    className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${scoreStyles(
+                      beach.conditions.swimScore
+                    )}`}
+                  >
+                    {activityLabel(beach)} {formatScoreLabel(beach.conditions.swimScore)}
+                  </p>
+                  {sortOption === "nearest" && userCoords ? (
+                    <span className="text-xs text-slate-500">
+                      {formatDistanceKm(
+                        haversineKm(userCoords.lat, userCoords.lng, beach.latitude, beach.longitude)
+                      )}
+                    </span>
+                  ) : null}
+                </div>
               </div>
               {beach.conditions.swimScore === null && (
                 <p className="text-xs text-slate-500">{missingScoreReason(beach.conditions)}</p>
