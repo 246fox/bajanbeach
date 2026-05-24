@@ -20,7 +20,9 @@ import {
   rowToDisplay,
   sargassumLevelForScoring
 } from "@/lib/sargassum";
+import { BeachProse } from "@/components/BeachProse";
 import { SargassumBadge } from "@/components/SargassumBadge";
+import { stripMarkdown } from "@/lib/strip-markdown";
 
 export const revalidate = 3600;
 
@@ -51,7 +53,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const title = `${beach.name} Conditions Today | BajanBeach`;
-  const description = truncateMetaDescription(beach.description);
+  const description = truncateMetaDescription(stripMarkdown(beach.description));
   const override = await fetchPhotoOverrideForSlug(beach.slug);
   const photoUrls = await getBeachPhotoUrlsUnlessOverridden(beach, override);
   const ogImageUrl = resolvePublicBeachHeroUrl(override, photoUrls);
@@ -194,7 +196,9 @@ export default async function BeachDetailPage({ params }: PageProps) {
       <article className="mt-10 space-y-10">
         <section>
           <h2 className="sr-only">About</h2>
-          <p className="text-base leading-relaxed text-slate-700">{beach.description}</p>
+          <p className="text-base leading-relaxed text-slate-700">
+            <BeachProse markdown={beach.description} />
+          </p>
         </section>
 
         <section>
@@ -305,14 +309,16 @@ export default async function BeachDetailPage({ params }: PageProps) {
             <div>
               <h2 className="text-base font-semibold text-amber-900">Safety notice</h2>
               <p className="mt-1 text-sm leading-relaxed text-amber-900/90">
-                {beach.notes.replace(/^⚠️\s*/, "")}
+                <BeachProse markdown={beach.notes.replace(/^⚠️\s*/, "")} />
               </p>
             </div>
           </section>
         ) : (
           <section>
             <h2 className="text-lg font-semibold text-slate-800">Notes</h2>
-            <p className="mt-3 text-base leading-relaxed text-slate-600">{beach.notes}</p>
+            <p className="mt-3 text-base leading-relaxed text-slate-600">
+              <BeachProse markdown={beach.notes} />
+            </p>
           </section>
         )}
 

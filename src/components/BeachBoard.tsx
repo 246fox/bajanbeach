@@ -18,6 +18,7 @@ import {
   seaStateLabel
 } from "@/lib/beach-format";
 import { BEACH_PHOTO_PLACEHOLDER } from "@/lib/beach-photo-placeholder";
+import { BeachProse } from "@/components/BeachProse";
 import { CoastIntroBanner } from "@/components/CoastIntroBanner";
 import { SargassumBadge } from "@/components/SargassumBadge";
 
@@ -594,7 +595,9 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
               {beach.conditions.swimScore === null && (
                 <p className="text-xs text-slate-500">{missingScoreReason(beach.conditions)}</p>
               )}
-              <p className="text-sm text-slate-600">{beach.description}</p>
+              <p className="text-sm text-slate-600">
+                <BeachProse markdown={beach.description} />
+              </p>
               <p className="text-xs leading-relaxed text-slate-600">
                 <span className="font-semibold text-slate-700">Best for:</span> {beach.bestFor}
               </p>
@@ -644,7 +647,7 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
                 </div>
               )}
               <p className="border-t border-slate-100 pt-3 text-xs italic leading-relaxed text-slate-500">
-                {beach.notes}
+                <BeachProse markdown={beach.notes} />
               </p>
               <p
                 className={`pt-1 text-xs ${
