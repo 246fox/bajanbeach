@@ -27,3 +27,10 @@ pnpm-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# derived editorial export (regenerate with npm run beaches:export)
+BajanBeach_Master_List.xlsx
+
+# one-off diagnostic dump / local-only historical projection script
+score-dump-output.md
+scripts/project-sargassum-floors.ts
