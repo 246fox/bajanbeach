@@ -127,7 +127,7 @@ export const beachBatch07: Beach[] = [
     isSurfSpot: true,
     latitude: 13.0529,
     longitude: -59.5352,
-    webcamUrl: "",
+    webcamUrl: "https://www.surfline.com/surf-report/freights-bay/584204204e65fad6a77099c0",
     description:
       "Highly consistent, cleanly peeling left-hand reef break. Sheltered from the fiercest cross-shore trade winds but highly receptive to south and southeast swells. The island's most celebrated venue for longboarding and intermediate surfing instruction.",
     bestFor: "Longboarding, intermediate surfing, surf lessons, surf photography",

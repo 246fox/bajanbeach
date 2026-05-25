@@ -28,7 +28,7 @@ export const beachBatch05: Beach[] = [
     isSurfSpot: false,
     latitude: 13.0473278299464,
     longitude: -59.5169586339891,
-    webcamUrl: "",
+    webcamUrl: "https://www.skylinewebcams.com/en/webcam/barbados/christ-church/silver-sands/silver-sands.html",
     description:
       "Globally recognised kitesurfing amphitheatre, along with the adjacent Silver Rock Beach. Exceptionally wide white sand beach provides ample rigging space for massive kites, while constant onshore winds create a wind-tunnel effect perfect for high-velocity aerial watersports.",
     bestFor: "Kitesurfing, windsurfing, photography, watching watersports",
