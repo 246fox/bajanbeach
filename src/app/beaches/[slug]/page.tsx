@@ -99,6 +99,24 @@ function LiveCamCameraIcon() {
   );
 }
 
+function webcamProviderDisplayName(urlString: string): string {
+  try {
+    const host = new URL(urlString).hostname.toLowerCase();
+    if (host.includes("iwcpinc.com")) {
+      return "IWCP";
+    }
+    if (host.includes("skylinewebcams.com")) {
+      return "SkylineWebcams";
+    }
+    if (host.includes("surfline.com")) {
+      return "Surfline";
+    }
+  } catch {
+    // invalid URL
+  }
+  return "the webcam provider";
+}
+
 function BackLink() {
   return (
     <Link
@@ -256,7 +274,7 @@ export default async function BeachDetailPage({ params }: PageProps) {
               <span className="min-w-0">
                 <span className="block font-semibold text-slate-800">Watch the live webcam</span>
                 <span className="mt-0.5 block text-sm text-slate-500">
-                  Live stream provided by IWCP — opens in a new tab
+                  {`Live stream provided by ${webcamProviderDisplayName(beach.webcamUrl)} — opens in a new tab`}
                 </span>
               </span>
             </a>
