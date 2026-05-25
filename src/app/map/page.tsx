@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
-import { ABOUT_CARD_CLASS } from "@/lib/ui-classes";
+import { Suspense } from "react";
+import { MapExperience } from "@/components/MapExperience";
 import { buildBeachCards } from "@/lib/build-beach-cards";
 import type { BeachCardData } from "@/types/beach";
 
@@ -15,21 +15,14 @@ export const metadata: Metadata = {
   }
 };
 
-const BeachMap = dynamic(() => import("@/components/BeachMap"), { ssr: false });
-
 export default async function MapPage() {
   const beachCards: BeachCardData[] = await buildBeachCards();
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
-      <h1 className="text-2xl font-semibold tracking-tight text-slate-800 sm:text-3xl">
-        Barbados beach map
-      </h1>
-      <div className="mt-10">
-        <section className={ABOUT_CARD_CLASS}>
-          <BeachMap beachCards={beachCards} />
-        </section>
-      </div>
+      <Suspense fallback={null}>
+        <MapExperience beachCards={beachCards} />
+      </Suspense>
     </main>
   );
 }

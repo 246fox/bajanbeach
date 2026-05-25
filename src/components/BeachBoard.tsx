@@ -21,20 +21,15 @@ import { BEACH_PHOTO_PLACEHOLDER } from "@/lib/beach-photo-placeholder";
 import { formatDistanceKm, haversineKm } from "@/lib/distance";
 import { BeachProse } from "@/components/BeachProse";
 import { CoastIntroBanner } from "@/components/CoastIntroBanner";
+import { CoastPills } from "@/components/CoastPills";
+import { ListMapToggle } from "@/components/ListMapToggle";
 import { SargassumBadge } from "@/components/SargassumBadge";
-
-const COAST_FILTERS = ["All", "North", "West", "South", "Southeast", "East"] as const;
-
-type CoastFilter = (typeof COAST_FILTERS)[number];
-
-const COAST_QUERY_TO_FILTER: Record<string, CoastFilter> = {
-  all: "All",
-  north: "North",
-  west: "West",
-  south: "South",
-  southeast: "Southeast",
-  east: "East"
-};
+import {
+  COAST_FILTERS,
+  coastToQueryParam,
+  type CoastFilter,
+  parseCoastFromQuery
+} from "@/lib/coast-filter";
 
 type VibeCard = {
   coast: Exclude<CoastFilter, "All">;
@@ -81,13 +76,6 @@ const VIBE_CARDS: VibeCard[] = [
     fallbackClass: "bg-teal-400"
   }
 ];
-
-function parseCoastFromQuery(value: string | null): CoastFilter {
-  if (!value) {
-    return "All";
-  }
-  return COAST_QUERY_TO_FILTER[value.toLowerCase()] ?? "All";
-}
 
 const SESSION_LOCATION_KEY = "bajanbeach:userLocation";
 
@@ -309,23 +297,25 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const coastParam = searchParams.get("coast");
+  const sortParam = searchParams.get("sort");
   const [coastFilter, setCoastFilter] = useState<CoastFilter>(() =>
-    parseCoastFromQuery(searchParams.get("coast"))
+    parseCoastFromQuery(coastParam)
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState<SortOption>(() =>
-    parseSortFromQuery(searchParams.get("sort"))
+    parseSortFromQuery(sortParam)
   );
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const pendingGeoRef = useRef(false);
 
   useEffect(() => {
-    const nextFilter = parseCoastFromQuery(searchParams.get("coast"));
+    const nextFilter = parseCoastFromQuery(coastParam);
     setCoastFilter((currentFilter) => (currentFilter === nextFilter ? currentFilter : nextFilter));
-    const nextSort = parseSortFromQuery(searchParams.get("sort"));
+    const nextSort = parseSortFromQuery(sortParam);
     setSortOption((currentSort) => (currentSort === nextSort ? currentSort : nextSort));
-  }, [searchParams]);
+  }, [coastParam, sortParam]);
 
   useEffect(() => {
     const sortQ = searchParams.get("sort")?.toLowerCase();
@@ -434,10 +424,11 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
     setCoastFilter(nextFilter);
 
     const params = new URLSearchParams(searchParams.toString());
-    if (nextFilter === "All") {
+    const coastQ = coastToQueryParam(nextFilter);
+    if (coastQ === null) {
       params.delete("coast");
     } else {
-      params.set("coast", nextFilter.toLowerCase());
+      params.set("coast", coastQ);
     }
 
     const query = params.toString();
@@ -572,7 +563,11 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
         </div>
       </section>
 
-      <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-stretch sm:gap-4">
+      <div className="mt-10">
+        <ListMapToggle />
+      </div>
+
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-stretch sm:gap-4">
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <label htmlFor="beach-search" className="sr-only">
             Find a beach
@@ -620,25 +615,7 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
         </div>
       </div>
 
-      <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-        {COAST_FILTERS.map((label) => {
-          const active = coastFilter === label;
-          return (
-            <button
-              key={label}
-              type="button"
-              onClick={() => updateCoastFilter(label)}
-              className={
-                active
-                  ? "rounded-full bg-ocean-500 px-4 py-2 text-sm font-semibold text-white shadow-sm ring-2 ring-ocean-500 ring-offset-2 ring-offset-white"
-                  : "rounded-full bg-white px-4 py-2 text-sm font-medium text-slate-600 ring-1 ring-slate-200 transition hover:bg-slate-50"
-              }
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
+      <CoastPills activeCoast={coastFilter} onChange={(next) => updateCoastFilter(next)} />
 
       {coastFilter !== "All" && (
         <CoastIntroBanner

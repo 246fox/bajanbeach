@@ -22,11 +22,15 @@ export default function BeachMap({ beachCards }: { beachCards: BeachCardData[] }
         if (cancelled || !containerRef.current) {
           return;
         }
-        const map = new google.maps.Map(containerRef.current, {
-          center: { lat: 13.1939, lng: -59.5432 },
-          zoom: 11
-        });
-        mapRef.current = map;
+        if (!mapRef.current) {
+          mapRef.current = new google.maps.Map(containerRef.current, {
+            center: { lat: 13.1939, lng: -59.5432 },
+            zoom: 11
+          });
+        }
+        const map = mapRef.current;
+        markersRef.current.forEach((m) => m.setMap(null));
+        markersRef.current = [];
         const markers: google.maps.Marker[] = [];
         for (const beach of beachCards) {
           if (cancelled) {
@@ -51,6 +55,11 @@ export default function BeachMap({ beachCards }: { beachCards: BeachCardData[] }
       cancelled = true;
       markersRef.current.forEach((m) => m.setMap(null));
       markersRef.current = [];
+    };
+  }, [beachCards]);
+
+  useEffect(() => {
+    return () => {
       mapRef.current = null;
     };
   }, []);
