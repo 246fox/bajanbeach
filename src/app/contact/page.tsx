@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ABOUT_CARD_CLASS } from "@/app/about/page";
+import { ABOUT_CARD_CLASS } from "@/lib/ui-classes";
 
 export const metadata: Metadata = {
   title: "Contact BajanBeach",

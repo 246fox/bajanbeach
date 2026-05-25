@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { ABOUT_CARD_CLASS } from "@/lib/ui-classes";
 
 export const metadata: Metadata = {
   title: "About BajanBeach — How our beach scores work",
@@ -9,9 +10,6 @@ export const metadata: Metadata = {
     canonical: "/about"
   }
 };
-
-export const ABOUT_CARD_CLASS =
-  "scroll-mt-6 overflow-hidden rounded-3xl border border-ocean-100/70 bg-white/85 p-6 shadow-sm backdrop-blur-sm sm:p-8";
 
 const JUMP_LINKS = [
   { label: "Swim & Scenic scores", href: "#scores" },

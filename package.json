@@ -12,6 +12,7 @@
     "beaches:import": "tsx scripts/import-beaches.ts"
   },
   "dependencies": {
+    "@googlemaps/js-api-loader": "^1.16.8",
     "@supabase/supabase-js": "^2.105.4",
     "jose": "^6.2.3",
     "next": "^14.2.0",
@@ -22,6 +23,7 @@
     "sharp": "^0.34.5"
   },
   "devDependencies": {
+    "@types/google.maps": "^3.64.1",
     "@types/node": "^20.14.11",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
