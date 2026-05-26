@@ -31,7 +31,7 @@ export default async function Home() {
   const beachCards: BeachCardData[] = await buildBeachCards();
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
+    <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
       <section className="text-center">
         <p className="text-sm font-semibold uppercase tracking-[0.22em] text-ocean-700">
           Barbados Beach Guide
