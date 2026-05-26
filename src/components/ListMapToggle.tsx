@@ -19,7 +19,7 @@ export function ListMapToggle() {
   const mapActive = pathname === "/map";
 
   return (
-    <div className="inline-flex flex-wrap gap-2">
+    <div className="flex flex-wrap justify-center gap-2">
       <Link href={listHref} className={listActive ? ACTIVE : INACTIVE} scroll={false}>
         List
       </Link>

@@ -13,6 +13,8 @@ export default function BeachMap({ beachCards }: { beachCards: BeachCardData[] }
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
+  const prevFilteredCountRef = useRef<number | null>(null);
+  const prevSingleSlugRef = useRef<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -44,6 +46,22 @@ export default function BeachMap({ beachCards }: { beachCards: BeachCardData[] }
           );
         }
         markersRef.current = markers;
+
+        const len = beachCards.length;
+        const prevCount = prevFilteredCountRef.current;
+        if (len === 1) {
+          const b = beachCards[0];
+          const arrivedAtOne = prevCount !== 1;
+          const slugChanged = prevSingleSlugRef.current !== b.slug;
+          if (arrivedAtOne || slugChanged) {
+            map.panTo({ lat: b.latitude, lng: b.longitude });
+            map.setZoom(14);
+          }
+          prevSingleSlugRef.current = b.slug;
+        } else {
+          prevSingleSlugRef.current = null;
+        }
+        prevFilteredCountRef.current = len;
       } catch (err) {
         console.warn(
           "Maps JavaScript API failed to load. Check the NEXT_PUBLIC_GOOGLE_MAPS_KEY restrictions in Google Cloud Console.",

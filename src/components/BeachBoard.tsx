@@ -18,7 +18,9 @@ import {
   seaStateLabel
 } from "@/lib/beach-format";
 import { BEACH_PHOTO_PLACEHOLDER } from "@/lib/beach-photo-placeholder";
+import { filterBeachesBySearch } from "@/lib/beach-search";
 import { formatDistanceKm, haversineKm } from "@/lib/distance";
+import { BeachSearchInput } from "@/components/BeachSearchInput";
 import { BeachProse } from "@/components/BeachProse";
 import { CoastIntroBanner } from "@/components/CoastIntroBanner";
 import { CoastPills } from "@/components/CoastPills";
@@ -344,18 +346,10 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
     return beachCards.filter((b) => b.coast === coastFilter);
   }, [beachCards, coastFilter]);
 
-  const searchFiltered = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) {
-      return coastFiltered;
-    }
-    return coastFiltered.filter(
-      (b) =>
-        b.name.toLowerCase().includes(q) ||
-        b.parish.toLowerCase().includes(q) ||
-        b.slug.toLowerCase().includes(q)
-    );
-  }, [coastFiltered, searchQuery]);
+  const searchFiltered = useMemo(
+    () => filterBeachesBySearch(coastFiltered, searchQuery),
+    [coastFiltered, searchQuery]
+  );
 
   const displayedCards = useMemo(() => {
     const list = searchFiltered;
@@ -572,15 +566,7 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
           <label htmlFor="beach-search" className="sr-only">
             Find a beach
           </label>
-          <input
-            id="beach-search"
-            type="search"
-            autoComplete="off"
-            placeholder="Find a beach..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-2xl border border-ocean-100/80 bg-white px-4 py-2.5 text-sm text-slate-800 shadow-sm placeholder:text-slate-400 focus:border-ocean-400 focus:outline-none focus:ring-2 focus:ring-ocean-400/35"
-          />
+          <BeachSearchInput id="beach-search" value={searchQuery} onChange={setSearchQuery} />
           {searchActive && (
             <p className="text-xs text-slate-600" aria-live="polite">
               {displayedCards.length} beaches found
