@@ -3,6 +3,7 @@
 import { Loader } from "@googlemaps/js-api-loader";
 import type { BeachCardData } from "@/types/beach";
 import { BeachPinContent } from "@/components/BeachPinContent";
+import { scorePinFill } from "@/lib/beach-format";
 import { useEffect, useRef, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
@@ -116,9 +117,27 @@ export default function BeachMap({ beachCards, selectedBeach, onBeachSelect }: P
           if (cancelled) {
             break;
           }
+          const score = beach.conditions.swimScore;
           const marker = new google.maps.Marker({
             map,
-            position: { lat: beach.latitude, lng: beach.longitude }
+            position: { lat: beach.latitude, lng: beach.longitude },
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              fillColor: scorePinFill(score),
+              fillOpacity: 1,
+              strokeColor: "#FFFFFF",
+              strokeWeight: 2,
+              scale: 14
+            },
+            label:
+              score !== null
+                ? {
+                    text: String(score),
+                    color: "#FFFFFF",
+                    fontSize: "13px",
+                    fontWeight: "700"
+                  }
+                : undefined
           });
           marker.addListener("click", () => {
             const desktop = window.matchMedia("(min-width: 640px)").matches;

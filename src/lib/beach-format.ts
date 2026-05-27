@@ -49,6 +49,19 @@ export function scoreStyles(score: number | null): string {
   return "bg-rose-100 text-rose-700";
 }
 
+export function scorePinFill(score: number | null): string {
+  if (score === null) {
+    return "#94a3b8"; // slate-400
+  }
+  if (score > 7) {
+    return "#10b981"; // emerald-500
+  }
+  if (score >= 4) {
+    return "#f59e0b"; // amber-500
+  }
+  return "#f43f5e"; // rose-500
+}
+
 export function formatScoreLabel(score: number | null): string {
   if (score === null) {
     return "Not available";
