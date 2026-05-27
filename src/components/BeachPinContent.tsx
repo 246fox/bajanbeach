@@ -63,7 +63,7 @@ export function BeachPinContent({ beach, layout = "compact" }: Props) {
     return (
       <div className="flex flex-col gap-4">
         <div className="flex justify-center">{image}</div>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col items-center gap-2 text-center">
           {title}
           {badge}
           {link}

@@ -245,7 +245,7 @@ export default function BeachMap({ beachCards, selectedBeach, onBeachSelect }: P
         <button
           type="button"
           onClick={requestUserLocation}
-          className="absolute right-3 top-3 z-10 rounded-full bg-white px-3 py-1.5 text-sm font-medium text-ocean-700 shadow-md ring-1 ring-slate-200 transition hover:bg-ocean-50"
+          className="absolute bottom-8 left-3 z-10 rounded-full bg-white px-3 py-1.5 text-sm font-medium text-ocean-700 shadow-md ring-1 ring-slate-200 transition hover:bg-ocean-50"
         >
           Use my location
         </button>
