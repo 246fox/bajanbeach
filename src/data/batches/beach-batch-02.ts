@@ -76,8 +76,8 @@ export const beachBatch02: Beach[] = [
     seaState: "calm",
     waveActionBaseline: "low",
     isSurfSpot: false,
-    latitude: 13.13062,
-    longitude: -59.63572,
+    latitude: 13.126550721487206,
+    longitude: -59.63382611287895,
     webcamUrl: "",
     description:
       "Freshwater Bay, known locally as Pile Bay, is a tiny, sparsely wooded inlet historically used by fishermen where Caribbean spiny lobster is seasonally available from local divers. Calm, clear water and a sheltered setting make it a tranquil spot for snorkelling, away from the busier west coast beaches.",
