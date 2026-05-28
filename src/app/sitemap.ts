@@ -20,6 +20,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8
   }));
 
+  const mapEntry: MetadataRoute.Sitemap[number] = {
+    url: `${BASE_URL}/map`,
+    lastModified,
+    changeFrequency: "monthly",
+    priority: 0.7
+  };
+
   const aboutEntry: MetadataRoute.Sitemap[number] = {
     url: `${BASE_URL}/about`,
     lastModified,
@@ -34,5 +41,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.5
   };
 
-  return [homeEntry, aboutEntry, contactEntry, ...beachEntries];
+  return [homeEntry, mapEntry, aboutEntry, contactEntry, ...beachEntries];
 }

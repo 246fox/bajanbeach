@@ -8,6 +8,9 @@ export function SiteFooter() {
           className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm font-medium"
           aria-label="Site"
         >
+          <Link href="/map" className="text-ocean-700 transition hover:text-ocean-600">
+            Map
+          </Link>
           <Link href="/about" className="text-ocean-700 transition hover:text-ocean-600">
             About
           </Link>
