@@ -51,7 +51,8 @@ type Props = {
 export default function BeachMap({ beachCards, selectedBeach, onBeachSelect }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<google.maps.Marker[]>([]);
+  const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const beachMarkerDisposersRef = useRef<Array<() => void>>([]);
   const prevFilteredCountRef = useRef<number | null>(null);
   const prevSingleSlugRef = useRef<string | null>(null);
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
@@ -60,7 +61,7 @@ export default function BeachMap({ beachCards, selectedBeach, onBeachSelect }: P
   const [mapInitialized, setMapInitialized] = useState(false);
   const mapFirstReadyRef = useRef(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const userMarkerRef = useRef<google.maps.Marker | null>(null);
+  const userMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
 
   useEffect(() => {
     onBeachSelectRef.current = onBeachSelect;
@@ -88,14 +89,23 @@ export default function BeachMap({ beachCards, selectedBeach, onBeachSelect }: P
     let cancelled = false;
     (async () => {
       try {
-        await mapsLoader.load();
+        await mapsLoader.importLibrary("maps");
+        await mapsLoader.importLibrary("marker");
         if (cancelled || !containerRef.current) {
           return;
         }
         if (!mapRef.current) {
+          const rawMapId = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID;
+          const mapId = rawMapId?.trim();
+          if (!mapId) {
+            console.warn(
+              "NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID is not set — advanced markers will not render. Set it in .env.local and restart the dev server."
+            );
+          }
           mapRef.current = new google.maps.Map(containerRef.current, {
             center: { lat: 13.1939, lng: -59.5432 },
-            zoom: 11
+            zoom: 11,
+            ...(mapId ? { mapId } : {})
           });
         }
         const map = mapRef.current;
@@ -109,37 +119,31 @@ export default function BeachMap({ beachCards, selectedBeach, onBeachSelect }: P
           infoWindowRef.current = iw;
         }
 
-        markersRef.current.forEach((m) => m.setMap(null));
+        beachMarkerDisposersRef.current.forEach((dispose) => dispose());
+        beachMarkerDisposersRef.current = [];
         markersRef.current = [];
-        const markers: google.maps.Marker[] = [];
+        const markers: google.maps.marker.AdvancedMarkerElement[] = [];
+        const disposers: Array<() => void> = [];
 
         for (const beach of beachCards) {
           if (cancelled) {
             break;
           }
           const score = beach.conditions.swimScore;
-          const marker = new google.maps.Marker({
+          const pinOptions: google.maps.marker.PinElementOptions = {
+            background: scorePinFill(score),
+            borderColor: "#FFFFFF",
+            glyphColor: "#FFFFFF",
+            ...(score !== null ? { glyphText: String(score) } : {})
+          };
+          const pinElement = new google.maps.marker.PinElement(pinOptions);
+          const marker = new google.maps.marker.AdvancedMarkerElement({
             map,
             position: { lat: beach.latitude, lng: beach.longitude },
-            icon: {
-              path: google.maps.SymbolPath.CIRCLE,
-              fillColor: scorePinFill(score),
-              fillOpacity: 1,
-              strokeColor: "#FFFFFF",
-              strokeWeight: 2,
-              scale: 14
-            },
-            label:
-              score !== null
-                ? {
-                    text: String(score),
-                    color: "#FFFFFF",
-                    fontSize: "13px",
-                    fontWeight: "700"
-                  }
-                : undefined
+            content: pinElement,
+            gmpClickable: true
           });
-          marker.addListener("click", () => {
+          const onPinClick = (_ev: google.maps.marker.AdvancedMarkerClickEvent) => {
             const desktop = window.matchMedia("(min-width: 640px)").matches;
             onBeachSelectRef.current(beach);
             const iw = infoWindowRef.current;
@@ -153,15 +157,21 @@ export default function BeachMap({ beachCards, selectedBeach, onBeachSelect }: P
               infoWindowRootRef.current = root;
               root.render(<BeachPinContent beach={beach} layout="compact" />);
               iw.setContent(div);
-              iw.open(map, marker);
+              iw.open({ map, anchor: marker });
             } else {
               iw.close();
               cleanupInfoWindowDom();
             }
+          };
+          marker.addEventListener("gmp-click", onPinClick);
+          disposers.push(() => {
+            marker.removeEventListener("gmp-click", onPinClick);
+            marker.map = null;
           });
           markers.push(marker);
         }
         markersRef.current = markers;
+        beachMarkerDisposersRef.current = disposers;
 
         const len = beachCards.length;
         const prevCount = prevFilteredCountRef.current;
@@ -192,7 +202,8 @@ export default function BeachMap({ beachCards, selectedBeach, onBeachSelect }: P
     })();
     return () => {
       cancelled = true;
-      markersRef.current.forEach((m) => m.setMap(null));
+      beachMarkerDisposersRef.current.forEach((dispose) => dispose());
+      beachMarkerDisposersRef.current = [];
       markersRef.current = [];
     };
   }, [beachCards]);
@@ -203,28 +214,36 @@ export default function BeachMap({ beachCards, selectedBeach, onBeachSelect }: P
     }
     const map = mapRef.current;
     if (userMarkerRef.current) {
-      userMarkerRef.current.setMap(null);
+      userMarkerRef.current.map = null;
       userMarkerRef.current = null;
     }
     if (userLocation) {
-      userMarkerRef.current = new google.maps.Marker({
+      const wrap = document.createElement("div");
+      wrap.style.position = "relative";
+      wrap.style.width = "0";
+      wrap.style.height = "0";
+      const dot = document.createElement("div");
+      dot.style.position = "absolute";
+      dot.style.left = "50%";
+      dot.style.top = "50%";
+      dot.style.transform = "translate(-50%, -50%)";
+      dot.style.width = "16px";
+      dot.style.height = "16px";
+      dot.style.borderRadius = "50%";
+      dot.style.backgroundColor = "#4285F4";
+      dot.style.border = "3px solid #FFFFFF";
+      dot.style.boxShadow = "0 1px 3px rgba(0,0,0,0.35)";
+      wrap.appendChild(dot);
+      userMarkerRef.current = new google.maps.marker.AdvancedMarkerElement({
         map,
         position: userLocation,
-        clickable: false,
-        zIndex: 999,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          fillColor: "#4285F4",
-          fillOpacity: 1,
-          strokeColor: "#FFFFFF",
-          strokeWeight: 3,
-          scale: 8
-        }
+        content: wrap,
+        zIndex: 999
       });
     }
     return () => {
       if (userMarkerRef.current) {
-        userMarkerRef.current.setMap(null);
+        userMarkerRef.current.map = null;
         userMarkerRef.current = null;
       }
     };
