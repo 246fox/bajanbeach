@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import type { OffshoreConditionsResult } from "@/lib/offshore-conditions";
 import type { BeachCardData } from "@/types/beach";
 import { ABOUT_CARD_CLASS } from "@/lib/ui-classes";
 import { BeachPinContent } from "@/components/BeachPinContent";
@@ -16,9 +17,10 @@ const BeachMap = dynamic(() => import("@/components/BeachMap"), { ssr: false });
 
 type Props = {
   beachCards: BeachCardData[];
+  offshoreConditions: OffshoreConditionsResult;
 };
 
-export function MapExperience({ beachCards }: Props) {
+export function MapExperience({ beachCards, offshoreConditions }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -121,11 +123,16 @@ export function MapExperience({ beachCards }: Props) {
 
       <CoastPills activeCoast={coastFilter} onChange={updateCoastFilter} />
 
+      <p className="mt-4 max-w-3xl text-sm leading-relaxed text-slate-600">
+        open-ocean readings — beach conditions vary with local sheltering.
+      </p>
+
       <div className="mt-10">
         <section className={ABOUT_CARD_CLASS}>
           <div className="relative">
             <BeachMap
               beachCards={filteredBeachCards}
+              offshoreConditions={offshoreConditions}
               selectedBeach={selectedBeach}
               onBeachSelect={setSelectedBeach}
             />

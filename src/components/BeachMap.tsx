@@ -3,7 +3,9 @@
 import { Loader } from "@googlemaps/js-api-loader";
 import type { BeachCardData } from "@/types/beach";
 import { BeachPinContent } from "@/components/BeachPinContent";
+import { OffshoreConditionCard } from "@/components/OffshoreConditionCard";
 import { scorePinFill, seaStatePinBorderColor } from "@/lib/beach-format";
+import type { OffshoreConditionsResult } from "@/lib/offshore-conditions";
 import { useEffect, useRef, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
@@ -54,11 +56,17 @@ function writeCachedUserLocation(lat: number, lng: number): void {
 
 type Props = {
   beachCards: BeachCardData[];
+  offshoreConditions: OffshoreConditionsResult;
   selectedBeach: BeachCardData | null;
   onBeachSelect: (beach: BeachCardData | null) => void;
 };
 
-export default function BeachMap({ beachCards, selectedBeach, onBeachSelect }: Props) {
+export default function BeachMap({
+  beachCards,
+  offshoreConditions,
+  selectedBeach,
+  onBeachSelect
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
@@ -67,6 +75,10 @@ export default function BeachMap({ beachCards, selectedBeach, onBeachSelect }: P
   const prevSingleSlugRef = useRef<string | null>(null);
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
   const infoWindowRootRef = useRef<Root | null>(null);
+  const offshoreInfoWindowRef = useRef<google.maps.InfoWindow | null>(null);
+  const offshoreInfoWindowRootRef = useRef<Root | null>(null);
+  const offshoreMarkerDisposersRef = useRef<Array<() => void>>([]);
+  const offshoreConditionsRef = useRef(offshoreConditions);
   const onBeachSelectRef = useRef(onBeachSelect);
   const [mapInitialized, setMapInitialized] = useState(false);
   const mapFirstReadyRef = useRef(false);
@@ -75,6 +87,8 @@ export default function BeachMap({ beachCards, selectedBeach, onBeachSelect }: P
   const locateControlContainerRef = useRef<HTMLDivElement | null>(null);
   const locateControlPositionRef = useRef<google.maps.ControlPosition | null>(null);
   const requestUserLocationRef = useRef<() => void>(() => {});
+
+  offshoreConditionsRef.current = offshoreConditions;
 
   useEffect(() => {
     onBeachSelectRef.current = onBeachSelect;
@@ -88,6 +102,13 @@ export default function BeachMap({ beachCards, selectedBeach, onBeachSelect }: P
     if (infoWindowRootRef.current) {
       infoWindowRootRef.current.unmount();
       infoWindowRootRef.current = null;
+    }
+  };
+
+  const cleanupOffshoreInfoWindowDom = () => {
+    if (offshoreInfoWindowRootRef.current) {
+      offshoreInfoWindowRootRef.current.unmount();
+      offshoreInfoWindowRootRef.current = null;
     }
   };
 
@@ -236,6 +257,8 @@ export default function BeachMap({ beachCards, selectedBeach, onBeachSelect }: P
           });
           const onPinClick = (_ev: google.maps.marker.AdvancedMarkerClickEvent) => {
             const desktop = window.matchMedia("(min-width: 640px)").matches;
+            offshoreInfoWindowRef.current?.close();
+            cleanupOffshoreInfoWindowDom();
             onBeachSelectRef.current(beach);
             const iw = infoWindowRef.current;
             if (!iw) {
@@ -340,6 +363,94 @@ export default function BeachMap({ beachCards, selectedBeach, onBeachSelect }: P
     };
   }, [userLocation, mapInitialized]);
 
+  useEffect(() => {
+    if (!mapInitialized || !mapRef.current) {
+      return;
+    }
+    const map = mapRef.current;
+    const rows = offshoreConditionsRef.current;
+
+    if (!offshoreInfoWindowRef.current) {
+      const oiw = new google.maps.InfoWindow();
+      oiw.addListener("closeclick", () => {
+        if (offshoreInfoWindowRootRef.current) {
+          offshoreInfoWindowRootRef.current.unmount();
+          offshoreInfoWindowRootRef.current = null;
+        }
+      });
+      offshoreInfoWindowRef.current = oiw;
+    }
+
+    const disposers: Array<() => void> = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const wrap = document.createElement("div");
+      wrap.style.position = "relative";
+      wrap.style.width = "0";
+      wrap.style.height = "0";
+      const ring = document.createElement("div");
+      ring.style.position = "absolute";
+      ring.style.left = "50%";
+      ring.style.top = "50%";
+      ring.style.transform = "translate(-50%, -50%)";
+      ring.style.width = "20px";
+      ring.style.height = "20px";
+      ring.style.boxSizing = "border-box";
+      ring.style.borderRadius = "50%";
+      ring.style.border = "3px solid #0f766e";
+      ring.style.backgroundColor = "rgba(255,255,255,0.92)";
+      ring.style.boxShadow = "0 1px 3px rgba(0,0,0,0.35)";
+      wrap.appendChild(ring);
+
+      const marker = new google.maps.marker.AdvancedMarkerElement({
+        map,
+        position: { lat: row.latitude, lng: row.longitude },
+        content: wrap,
+        gmpClickable: true,
+        zIndex: 50
+      });
+
+      const onOffshoreClick = () => {
+        infoWindowRef.current?.close();
+        cleanupInfoWindowDom();
+        if (offshoreInfoWindowRootRef.current) {
+          offshoreInfoWindowRootRef.current.unmount();
+          offshoreInfoWindowRootRef.current = null;
+        }
+        const oiw = offshoreInfoWindowRef.current;
+        if (!oiw) {
+          return;
+        }
+        const div = document.createElement("div");
+        const root = createRoot(div);
+        offshoreInfoWindowRootRef.current = root;
+        root.render(<OffshoreConditionCard row={row} />);
+        oiw.setContent(div);
+        oiw.open({ map, anchor: marker });
+      };
+
+      marker.addEventListener("gmp-click", onOffshoreClick);
+      disposers.push(() => {
+        marker.removeEventListener("gmp-click", onOffshoreClick);
+        marker.map = null;
+      });
+    }
+
+    offshoreMarkerDisposersRef.current = disposers;
+
+    return () => {
+      offshoreMarkerDisposersRef.current.forEach((dispose) => dispose());
+      offshoreMarkerDisposersRef.current = [];
+      offshoreInfoWindowRef.current?.close();
+      if (offshoreInfoWindowRootRef.current) {
+        offshoreInfoWindowRootRef.current.unmount();
+        offshoreInfoWindowRootRef.current = null;
+      }
+      offshoreInfoWindowRef.current = null;
+    };
+  }, [mapInitialized]);
+
   const requestUserLocation = () => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       console.warn("Geolocation is not available in this browser.");
@@ -375,6 +486,12 @@ export default function BeachMap({ beachCards, selectedBeach, onBeachSelect }: P
       }
       locateControlContainerRef.current = null;
       locateControlPositionRef.current = null;
+
+      offshoreMarkerDisposersRef.current.forEach((dispose) => dispose());
+      offshoreMarkerDisposersRef.current = [];
+      offshoreInfoWindowRef.current?.close();
+      cleanupOffshoreInfoWindowDom();
+      offshoreInfoWindowRef.current = null;
 
       infoWindowRef.current?.close();
       cleanupInfoWindowDom();
