@@ -87,7 +87,7 @@ export function MapExperience({ beachCards }: Props) {
       <div className="mt-4 max-w-3xl text-sm leading-relaxed text-slate-600">
         <p>
           Pins are colored by sea conditions — green is calmest, red is roughest — with today&apos;s 1–10 score on
-          each. Calm beaches are scored for swimming; rougher ones for their scenery.{" "}
+          each. Calm beaches are scored for swimming; rougher scenic beaches (shown with a dark outline) are scored for their scenery.{" "}
           <a
             href="https://bajanbeach.com/about#scores"
             className="font-medium text-ocean-700 transition hover:text-ocean-600"
