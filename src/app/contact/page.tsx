@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 const CONTACT_EMAIL_CTA_CLASS =
-  "mt-6 inline-flex w-full items-center justify-center rounded-xl bg-ocean-700 px-5 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-ocean-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-400 focus-visible:ring-offset-2";
+  "mt-6 flex w-full sm:w-fit sm:mx-auto items-center justify-center rounded-xl bg-ocean-700 px-5 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-ocean-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-400 focus-visible:ring-offset-2";
 
 export default function ContactPage() {
   return (
