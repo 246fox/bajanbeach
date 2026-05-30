@@ -84,7 +84,20 @@ export function MapExperience({ beachCards }: Props) {
         Barbados beach map
       </h1>
 
-      <div className="mt-10">
+      <div className="mt-4 max-w-3xl text-sm leading-relaxed text-slate-600">
+        <p>
+          Pins are colored by sea conditions — green is calmest, red is roughest — with today&apos;s 1–10 score on
+          each. Calm beaches are scored for swimming; rougher ones for their scenery.{" "}
+          <a
+            href="https://bajanbeach.com/about#scores"
+            className="font-medium text-ocean-700 transition hover:text-ocean-600"
+          >
+            How scoring works →
+          </a>
+        </p>
+      </div>
+
+      <div className="mt-8">
         <ListMapToggle />
       </div>
 
