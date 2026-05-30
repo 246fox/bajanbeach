@@ -3,7 +3,7 @@
 import { Loader } from "@googlemaps/js-api-loader";
 import type { BeachCardData } from "@/types/beach";
 import { BeachPinContent } from "@/components/BeachPinContent";
-import { scorePinFill } from "@/lib/beach-format";
+import { scorePinFill, seaStatePinBorderColor } from "@/lib/beach-format";
 import { useEffect, useRef, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
@@ -223,7 +223,7 @@ export default function BeachMap({ beachCards, selectedBeach, onBeachSelect }: P
           const score = beach.conditions.swimScore;
           const pinOptions: google.maps.marker.PinElementOptions = {
             background: scorePinFill(score),
-            borderColor: "#FFFFFF",
+            borderColor: seaStatePinBorderColor(beach.seaState),
             glyphColor: "#FFFFFF",
             ...(score !== null ? { glyphText: String(score) } : {})
           };

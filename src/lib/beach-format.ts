@@ -62,6 +62,14 @@ export function scorePinFill(score: number | null): string {
   return "#f43f5e"; // rose-500
 }
 
+/** Pin outline: dark ring for scenic (rough) beaches; white for swim-type (calm/moderate). */
+export function seaStatePinBorderColor(seaState: SeaState): string {
+  if (seaState === "rough") {
+    return "#1e293b"; // slate-800
+  }
+  return "#FFFFFF";
+}
+
 export function formatScoreLabel(score: number | null): string {
   if (score === null) {
     return "Not available";
