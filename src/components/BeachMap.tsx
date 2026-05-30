@@ -14,6 +14,16 @@ const mapsLoader = new Loader({
 
 const SESSION_LOCATION_KEY = "bajanbeach:userLocation";
 
+/** Logical bottom-end (LTR: bottom-right). Fallback if enum missing in a given API/types combo. */
+function getLocateMapControlPosition(): google.maps.ControlPosition {
+  const CP = google.maps.ControlPosition as unknown as Record<string, google.maps.ControlPosition>;
+  const logical = CP.INLINE_END_BLOCK_END;
+  if (logical !== undefined) {
+    return logical;
+  }
+  return CP.BOTTOM_RIGHT;
+}
+
 function readCachedUserLocation(): { lat: number; lng: number } | null {
   if (typeof window === "undefined") {
     return null;
@@ -62,6 +72,9 @@ export default function BeachMap({ beachCards, selectedBeach, onBeachSelect }: P
   const mapFirstReadyRef = useRef(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const userMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+  const locateControlContainerRef = useRef<HTMLDivElement | null>(null);
+  const locateControlPositionRef = useRef<google.maps.ControlPosition | null>(null);
+  const requestUserLocationRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     onBeachSelectRef.current = onBeachSelect;
@@ -86,6 +99,14 @@ export default function BeachMap({ beachCards, selectedBeach, onBeachSelect }: P
   }, [selectedBeach]);
 
   useEffect(() => {
+    const el = locateControlContainerRef.current;
+    if (!el) {
+      return;
+    }
+    el.style.display = userLocation ? "none" : "";
+  }, [userLocation, mapInitialized]);
+
+  useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
@@ -107,6 +128,76 @@ export default function BeachMap({ beachCards, selectedBeach, onBeachSelect }: P
             zoom: 11,
             ...(mapId ? { mapId } : {})
           });
+
+          const position = getLocateMapControlPosition();
+          locateControlPositionRef.current = position;
+
+          const outer = document.createElement("div");
+          outer.style.boxSizing = "border-box";
+          outer.style.margin = "10px";
+
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.setAttribute("aria-label", "Use my location");
+          btn.title = "Use my location";
+          btn.style.boxSizing = "border-box";
+          btn.style.width = "40px";
+          btn.style.height = "40px";
+          btn.style.display = "flex";
+          btn.style.alignItems = "center";
+          btn.style.justifyContent = "center";
+          btn.style.cursor = "pointer";
+          btn.style.background = "#ffffff";
+          btn.style.border = "none";
+          btn.style.borderRadius = "2px";
+          btn.style.boxShadow = "0 1px 4px rgba(0,0,0,0.3)";
+          btn.style.color = "#0f766e";
+          btn.style.padding = "0";
+          btn.addEventListener("mouseenter", () => {
+            btn.style.background = "#f0fdfa";
+          });
+          btn.addEventListener("mouseleave", () => {
+            btn.style.background = "#ffffff";
+          });
+          btn.addEventListener("click", () => {
+            requestUserLocationRef.current();
+          });
+
+          const svgNs = "http://www.w3.org/2000/svg";
+          const svg = document.createElementNS(svgNs, "svg");
+          svg.setAttribute("viewBox", "0 0 24 24");
+          svg.setAttribute("width", "22");
+          svg.setAttribute("height", "22");
+          svg.setAttribute("aria-hidden", "true");
+          const ring = document.createElementNS(svgNs, "circle");
+          ring.setAttribute("cx", "12");
+          ring.setAttribute("cy", "12");
+          ring.setAttribute("r", "6");
+          ring.setAttribute("fill", "none");
+          ring.setAttribute("stroke", "currentColor");
+          ring.setAttribute("stroke-width", "1.5");
+          const centerDot = document.createElementNS(svgNs, "circle");
+          centerDot.setAttribute("cx", "12");
+          centerDot.setAttribute("cy", "12");
+          centerDot.setAttribute("r", "2");
+          centerDot.setAttribute("fill", "currentColor");
+          const ticks = document.createElementNS(svgNs, "path");
+          ticks.setAttribute(
+            "d",
+            "M12 2v4M12 18v4M2 12h4M18 12h4"
+          );
+          ticks.setAttribute("fill", "none");
+          ticks.setAttribute("stroke", "currentColor");
+          ticks.setAttribute("stroke-width", "1.5");
+          ticks.setAttribute("stroke-linecap", "round");
+          svg.appendChild(ring);
+          svg.appendChild(centerDot);
+          svg.appendChild(ticks);
+          btn.appendChild(svg);
+          outer.appendChild(btn);
+
+          locateControlContainerRef.current = outer;
+          mapRef.current.controls[position].push(outer);
         }
         const map = mapRef.current;
 
@@ -249,15 +340,6 @@ export default function BeachMap({ beachCards, selectedBeach, onBeachSelect }: P
     };
   }, [userLocation, mapInitialized]);
 
-  useEffect(() => {
-    return () => {
-      infoWindowRef.current?.close();
-      cleanupInfoWindowDom();
-      infoWindowRef.current = null;
-      mapRef.current = null;
-    };
-  }, []);
-
   const requestUserLocation = () => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       console.warn("Geolocation is not available in this browser.");
@@ -277,18 +359,29 @@ export default function BeachMap({ beachCards, selectedBeach, onBeachSelect }: P
     );
   };
 
-  return (
-    <div className="relative">
-      {!userLocation ? (
-        <button
-          type="button"
-          onClick={requestUserLocation}
-          className="absolute bottom-8 left-3 z-10 rounded-full bg-white px-3 py-1.5 text-sm font-medium text-ocean-700 shadow-md ring-1 ring-slate-200 transition hover:bg-ocean-50"
-        >
-          Use my location
-        </button>
-      ) : null}
-      <div ref={containerRef} className="h-[70vh] w-full overflow-hidden rounded-2xl" />
-    </div>
-  );
+  requestUserLocationRef.current = requestUserLocation;
+
+  useEffect(() => {
+    return () => {
+      const map = mapRef.current;
+      const el = locateControlContainerRef.current;
+      const position = locateControlPositionRef.current;
+      if (map && el && position !== null) {
+        const slot = map.controls[position] as google.maps.MVCArray<HTMLElement>;
+        const index = slot.getArray().indexOf(el);
+        if (index !== -1) {
+          slot.removeAt(index);
+        }
+      }
+      locateControlContainerRef.current = null;
+      locateControlPositionRef.current = null;
+
+      infoWindowRef.current?.close();
+      cleanupInfoWindowDom();
+      infoWindowRef.current = null;
+      mapRef.current = null;
+    };
+  }, []);
+
+  return <div ref={containerRef} className="h-[70vh] w-full overflow-hidden rounded-2xl" />;
 }
