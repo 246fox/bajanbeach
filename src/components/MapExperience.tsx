@@ -13,7 +13,6 @@ import { ListMapToggle } from "@/components/ListMapToggle";
 import { coastToQueryParam, parseCoastFromQuery, type CoastFilter } from "@/lib/coast-filter";
 import { filterBeachesBySearch } from "@/lib/beach-search";
 import { MAP_VIEWPORT_DESKTOP_MQ } from "@/lib/map-viewport";
-import { OffshoreTile } from "@/components/OffshoreTile";
 
 const BeachMap = dynamic(() => import("@/components/BeachMap"), { ssr: false });
 
@@ -84,15 +83,6 @@ export function MapExperience({ beachCards, offshoreConditions }: Props) {
     setSelectedBeach(null);
   }, []);
 
-  const offshoreWestRow = useMemo(
-    () => offshoreConditions.find((r) => r.id === "offshore-west"),
-    [offshoreConditions]
-  );
-  const offshoreEastRow = useMemo(
-    () => offshoreConditions.find((r) => r.id === "offshore-east"),
-    [offshoreConditions]
-  );
-
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight text-slate-800 sm:text-3xl">
@@ -142,21 +132,10 @@ export function MapExperience({ beachCards, offshoreConditions }: Props) {
             <BeachMap
               beachCards={filteredBeachCards}
               offshoreConditions={offshoreConditions}
-              plantOffshoreMarkersOnMap={!isMobileViewport}
               selectedBeach={selectedBeach}
               onBeachSelect={setSelectedBeach}
             />
           </div>
-          {isMobileViewport && offshoreWestRow && offshoreEastRow ? (
-            <div className="mt-3 flex flex-wrap justify-center gap-2">
-              <div className="flex min-w-0 shrink justify-center">
-                <OffshoreTile row={offshoreWestRow} />
-              </div>
-              <div className="flex min-w-0 shrink justify-center">
-                <OffshoreTile row={offshoreEastRow} />
-              </div>
-            </div>
-          ) : null}
         </section>
       </div>
 

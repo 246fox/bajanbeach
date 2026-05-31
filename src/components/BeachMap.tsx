@@ -6,8 +6,12 @@ import { BeachPinContent } from "@/components/BeachPinContent";
 import { OffshoreTile } from "@/components/OffshoreTile";
 import { scorePinFill, seaStatePinBorderColor } from "@/lib/beach-format";
 import type { OffshoreConditionsResult } from "@/lib/offshore-conditions";
-import { MAP_VIEWPORT_DESKTOP_MQ } from "@/lib/map-viewport";
-import { useEffect, useRef, useState } from "react";
+import {
+  MAP_VIEWPORT_DESKTOP_MQ,
+  OFFSHORE_PLANTED_MIN_HEIGHT_PX,
+  OFFSHORE_PLANTED_MIN_WIDTH_PX
+} from "@/lib/map-viewport";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 const mapsLoader = new Loader({
@@ -58,8 +62,6 @@ function writeCachedUserLocation(lat: number, lng: number): void {
 type Props = {
   beachCards: BeachCardData[];
   offshoreConditions: OffshoreConditionsResult;
-  /** When false (mobile), skip on-map offshore markers; MapExperience renders tiles below the map. */
-  plantOffshoreMarkersOnMap: boolean;
   selectedBeach: BeachCardData | null;
   onBeachSelect: (beach: BeachCardData | null) => void;
 };
@@ -67,7 +69,6 @@ type Props = {
 export default function BeachMap({
   beachCards,
   offshoreConditions,
-  plantOffshoreMarkersOnMap,
   selectedBeach,
   onBeachSelect
 }: Props) {
@@ -84,6 +85,7 @@ export default function BeachMap({
   const onBeachSelectRef = useRef(onBeachSelect);
   const [mapInitialized, setMapInitialized] = useState(false);
   const mapFirstReadyRef = useRef(false);
+  const [mapBoxBigEnough, setMapBoxBigEnough] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const userMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
   const locateControlContainerRef = useRef<HTMLDivElement | null>(null);
@@ -98,6 +100,40 @@ export default function BeachMap({
 
   useEffect(() => {
     setUserLocation(readCachedUserLocation());
+  }, []);
+
+  /**
+   * Map container is the Google Maps host div (containerRef). useLayoutEffect runs after
+   * the ref is attached so we always observe the real element; initial clientWidth/height
+   * plus ResizeObserver cover first paint at desktop width without requiring a manual resize.
+   */
+  useLayoutEffect(() => {
+    const el = containerRef.current;
+    if (!el) {
+      return;
+    }
+
+    const applyDimensions = (width: number, height: number) => {
+      const next =
+        width >= OFFSHORE_PLANTED_MIN_WIDTH_PX && height >= OFFSHORE_PLANTED_MIN_HEIGHT_PX;
+      setMapBoxBigEnough((prev) => (prev === next ? prev : next));
+    };
+
+    const ro = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) {
+        return;
+      }
+      const { width, height } = entry.contentRect;
+      applyDimensions(width, height);
+    });
+
+    ro.observe(el);
+    applyDimensions(el.clientWidth, el.clientHeight);
+
+    return () => {
+      ro.disconnect();
+    };
   }, []);
 
   const cleanupInfoWindowDom = () => {
@@ -358,12 +394,8 @@ export default function BeachMap({
 
   useEffect(() => {
     /**
-     * Planted offshore markers: symmetric teardown across viewport toggles.
-     * - desktop -> mobile: React runs this effect's prior cleanup first (dispose all), then
-     *   the mobile branch runs dispose again (no-op if empty) so roots/markers never linger;
-     *   below-map tiles are only in MapExperience.
-     * - mobile -> desktop: same clean slate, then we create markers once; dispose before
-     *   create avoids duplicate markers if the effect re-enters while desktop.
+     * Planted offshore markers: symmetric teardown when the map box crosses size thresholds
+     * or unmounts. mapBoxBigEnough comes from ResizeObserver on the map container (not viewport).
      */
     const disposeAllOffshoreMarkers = () => {
       offshoreMarkerDisposersRef.current.forEach((dispose) => dispose());
@@ -374,7 +406,7 @@ export default function BeachMap({
       return;
     }
 
-    if (!plantOffshoreMarkersOnMap) {
+    if (!mapBoxBigEnough) {
       disposeAllOffshoreMarkers();
       return () => {
         disposeAllOffshoreMarkers();
@@ -431,7 +463,7 @@ export default function BeachMap({
     return () => {
       disposeAllOffshoreMarkers();
     };
-  }, [mapInitialized, plantOffshoreMarkersOnMap]);
+  }, [mapInitialized, mapBoxBigEnough]);
 
   const requestUserLocation = () => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
