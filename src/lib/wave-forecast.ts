@@ -1,3 +1,5 @@
+import { openMeteoFetch } from "@/lib/open-meteo-fetch";
+
 export type DailyWavePoint = {
   /** Chart label (short, local to Barbados) */
   label: string;
@@ -24,7 +26,10 @@ export async function fetchSevenDayWaveForecast(
     "&hourly=wave_height&forecast_days=8&timezone=America/Barbados";
 
   try {
-    const response = await fetch(url, { next: { revalidate: 3600 } });
+    const response = await openMeteoFetch(url, { revalidate: 3600 });
+    if (response === null) {
+      return [];
+    }
     if (!response.ok) {
       return [];
     }

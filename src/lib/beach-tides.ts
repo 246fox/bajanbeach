@@ -1,5 +1,6 @@
 import type { Beach, BeachTides, TidePhase } from "@/types/beach";
 import { parseOpenMeteoTimestamp } from "@/lib/beach-conditions";
+import { openMeteoFetch } from "@/lib/open-meteo-fetch";
 
 const OPEN_METEO_MARINE = "https://marine-api.open-meteo.com/v1/marine";
 const TIDE_REVALIDATE_SECONDS = 6 * 60 * 60;
@@ -154,7 +155,15 @@ export async function fetchBeachTides(beach: Beach): Promise<BeachTides> {
   const url = `${OPEN_METEO_MARINE}?${params.toString()}`;
 
   try {
-    const response = await fetch(url, { next: { revalidate: TIDE_REVALIDATE_SECONDS } });
+    const response = await openMeteoFetch(url, { revalidate: TIDE_REVALIDATE_SECONDS });
+
+    if (response === null) {
+      console.error("[beach-tides] Open-Meteo tide fetch exhausted retries", {
+        beachSlug: beach.slug,
+        beachName: beach.name
+      });
+      return { ...EMPTY_TIDES };
+    }
 
     if (!response.ok) {
       const body = await safeReadBodySnippet(response);

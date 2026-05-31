@@ -1,4 +1,5 @@
 import { OFFSHORE_POINTS } from "@/lib/offshore-points";
+import { openMeteoFetch } from "@/lib/open-meteo-fetch";
 
 export type OffshoreConditionRow = {
   id: string;
@@ -91,9 +92,17 @@ export async function fetchOffshoreConditions(): Promise<OffshoreConditionsResul
 
   try {
     const [marineResponse, forecastResponse] = await Promise.all([
-      fetch(marineUrl, { next: { revalidate: 3600 } }),
-      fetch(forecastUrl, { next: { revalidate: 3600 } })
+      openMeteoFetch(marineUrl, { revalidate: 3600 }),
+      openMeteoFetch(forecastUrl, { revalidate: 3600 })
     ]);
+
+    if (marineResponse === null || forecastResponse === null) {
+      console.error("[offshore-conditions] Open-Meteo request failed", {
+        marineMissed: marineResponse === null,
+        forecastMissed: forecastResponse === null
+      });
+      return nullRows();
+    }
 
     if (!marineResponse.ok || !forecastResponse.ok) {
       const marineErrorBody = marineResponse.ok ? null : await safeReadBodySnippet(marineResponse);

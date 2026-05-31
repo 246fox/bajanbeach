@@ -1,4 +1,9 @@
 import type { SargassumLevelForScore } from "@/lib/sargassum";
+import {
+  readBeachConditionsFromCache,
+  upsertBeachConditionsCache
+} from "@/lib/beach-conditions-cache";
+import { openMeteoFetch } from "@/lib/open-meteo-fetch";
 import type { Beach, BeachConditions } from "@/types/beach";
 
 type WeatherResponse = {
@@ -400,6 +405,15 @@ export function parseOpenMeteoTimestamp(value: string | null | undefined): numbe
   return Number.isNaN(parsed) ? null : parsed;
 }
 
+const EMPTY_BEACH_CONDITIONS: BeachConditions = {
+  waveHeight: null,
+  wavePeriod: null,
+  windSpeed: null,
+  windDirection: null,
+  swimScore: null,
+  lastUpdatedAt: null
+};
+
 export async function fetchBeachConditions(
   beach: Beach,
   options?: FetchBeachConditionsOptions
@@ -414,9 +428,19 @@ export async function fetchBeachConditions(
 
   try {
     const [weatherResponse, marineResponse] = await Promise.all([
-      fetch(weatherUrl, { next: { revalidate: 3600 } }),
-      fetch(marineUrl, { next: { revalidate: 3600 } })
+      openMeteoFetch(weatherUrl, { revalidate: 3600 }),
+      openMeteoFetch(marineUrl, { revalidate: 3600 })
     ]);
+
+    if (weatherResponse === null || marineResponse === null) {
+      console.error("[beach-conditions] Open-Meteo request failed", {
+        beachSlug: beach.slug,
+        beachName: beach.name,
+        weatherMissed: weatherResponse === null,
+        marineMissed: marineResponse === null
+      });
+      return (await readBeachConditionsFromCache(beach.slug)) ?? EMPTY_BEACH_CONDITIONS;
+    }
 
     if (!weatherResponse.ok || !marineResponse.ok) {
       const weatherErrorBody = weatherResponse.ok ? null : await safeReadBodySnippet(weatherResponse);
@@ -431,7 +455,7 @@ export async function fetchBeachConditions(
         marineStatusText: marineResponse.statusText,
         marineErrorBody
       });
-      throw new Error("Failed to fetch one or more APIs");
+      return (await readBeachConditionsFromCache(beach.slug)) ?? EMPTY_BEACH_CONDITIONS;
     }
 
     const weatherData = (await weatherResponse.json()) as WeatherResponse;
@@ -469,9 +493,10 @@ export async function fetchBeachConditions(
         weatherHourlyCount: weatherData.hourly?.time?.length ?? 0,
         marineHourlyCount: marineData.hourly?.time?.length ?? 0
       });
+      return (await readBeachConditionsFromCache(beach.slug)) ?? EMPTY_BEACH_CONDITIONS;
     }
 
-    return {
+    const live: BeachConditions = {
       waveHeight,
       wavePeriod,
       windSpeed,
@@ -486,19 +511,23 @@ export async function fetchBeachConditions(
       ),
       lastUpdatedAt: combinedTimestamp !== null ? new Date(combinedTimestamp).toISOString() : null
     };
+
+    try {
+      await upsertBeachConditionsCache(beach.slug, live);
+    } catch (cacheErr) {
+      console.error("[beach-conditions] Unexpected error awaiting cache upsert", {
+        beachSlug: beach.slug,
+        message: cacheErr instanceof Error ? cacheErr.message : "Unknown error"
+      });
+    }
+
+    return live;
   } catch (error) {
     console.error("[beach-conditions] Failed to build beach conditions", {
       beachSlug: beach.slug,
       beachName: beach.name,
       message: error instanceof Error ? error.message : "Unknown error"
     });
-    return {
-      waveHeight: null,
-      wavePeriod: null,
-      windSpeed: null,
-      windDirection: null,
-      swimScore: null,
-      lastUpdatedAt: null
-    };
+    return (await readBeachConditionsFromCache(beach.slug)) ?? EMPTY_BEACH_CONDITIONS;
   }
 }
