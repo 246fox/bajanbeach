@@ -2,6 +2,10 @@ import { degreesToCompass } from "@/lib/beach-format";
 import type { OffshoreConditionRow } from "@/lib/offshore-conditions";
 import { weatherBucket, type WeatherBucket } from "@/lib/weather-bucket";
 
+/**
+ * Dash / numeric formatting mirrors OffshoreConditionCard so map tiles and popup card
+ * stay aligned — if you change rules there, update here too.
+ */
 function compassOrDash(degrees: number | null): string {
   if (degrees === null || Number.isNaN(degrees)) {
     return "—";
@@ -17,7 +21,7 @@ function fmtM(value: number | null, digits: number): string {
 }
 
 function WeatherGlyph({ bucket }: { bucket: WeatherBucket }) {
-  const common = { className: "h-8 w-8 shrink-0 text-slate-600", "aria-hidden": true as const };
+  const common = { className: "h-4 w-4 shrink-0 text-slate-600", "aria-hidden": true as const };
   switch (bucket) {
     case "clear":
       return (
@@ -68,47 +72,42 @@ type Props = {
   row: OffshoreConditionRow;
 };
 
-export function OffshoreConditionCard({ row }: Props) {
+export function OffshoreTile({ row }: Props) {
   const bucket = weatherBucket(row.weatherCode);
   const swellDir = compassOrDash(row.swellWaveDirection);
-  const windDir = compassOrDash(row.windDirection);
   const swellHeight = fmtM(row.swellWaveHeight, 1);
-  const swellPeriod = row.swellWavePeriod !== null && !Number.isNaN(row.swellWavePeriod) ? row.swellWavePeriod.toFixed(0) : "—";
-  const swellLine =
-    swellHeight === "—" && swellPeriod === "—" && swellDir === "—"
-      ? "—"
-      : `${swellHeight} m · ${swellPeriod} s · ${swellDir}`;
+  const swellPeriod =
+    row.swellWavePeriod !== null && !Number.isNaN(row.swellWavePeriod)
+      ? row.swellWavePeriod.toFixed(0)
+      : "—";
 
-  const windLine =
+  const swellHeightPeriodValue =
+    swellHeight === "—" && swellPeriod === "—" ? "—" : `${swellHeight} m · ${swellPeriod} s`;
+
+  const windDir = compassOrDash(row.windDirection);
+  const windValue =
     row.windSpeed === null || Number.isNaN(row.windSpeed)
       ? "—"
       : `${windDir} ${row.windSpeed.toFixed(0)} km/h`;
 
   return (
-    <div className="max-w-xs p-4 text-sm text-slate-700">
-      <div className="flex items-start gap-3 border-b border-slate-200 pb-3">
+    <div className="w-[160px] rounded-lg bg-white p-2 text-xs text-slate-700 shadow-md ring-1 ring-slate-200">
+      <div className="flex items-center justify-between gap-1 border-b border-slate-200 pb-1.5">
+        <span className="font-semibold text-slate-800">{row.label}</span>
         <WeatherGlyph bucket={bucket} />
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Open ocean</p>
-          <h3 className="text-lg font-semibold text-slate-800">{row.label} coast</h3>
-        </div>
       </div>
-      <dl className="mt-3 space-y-2">
-        <div className="flex justify-between gap-4">
-          <dt className="text-slate-500">Waves</dt>
-          <dd className="font-medium text-slate-800">{fmtM(row.waveHeight, 1)} m</dd>
+      <dl className="mt-1.5 space-y-1">
+        <div className="flex justify-between gap-2">
+          <dt className="shrink-0 text-slate-500">Swell</dt>
+          <dd className="text-right font-medium text-slate-800">{swellHeightPeriodValue}</dd>
         </div>
-        <div className="flex justify-between gap-4">
-          <dt className="text-slate-500">Swell</dt>
-          <dd className="text-right font-medium text-slate-800">{swellLine}</dd>
+        <div className="flex justify-between gap-2">
+          <dt className="shrink-0 text-slate-500">Swell dir</dt>
+          <dd className="text-right font-medium text-slate-800">{swellDir}</dd>
         </div>
-        <div className="flex justify-between gap-4">
-          <dt className="text-slate-500">Wind</dt>
-          <dd className="text-right font-medium text-slate-800">{windLine}</dd>
-        </div>
-        <div className="flex justify-between gap-4">
-          <dt className="text-slate-500">Sea</dt>
-          <dd className="font-medium text-slate-800">{fmtM(row.seaSurfaceTemperature, 1)} °C</dd>
+        <div className="flex justify-between gap-2">
+          <dt className="shrink-0 text-slate-500">Wind</dt>
+          <dd className="text-right font-medium text-slate-800">{windValue}</dd>
         </div>
       </dl>
     </div>

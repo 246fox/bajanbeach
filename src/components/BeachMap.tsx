@@ -3,9 +3,10 @@
 import { Loader } from "@googlemaps/js-api-loader";
 import type { BeachCardData } from "@/types/beach";
 import { BeachPinContent } from "@/components/BeachPinContent";
-import { OffshoreConditionCard } from "@/components/OffshoreConditionCard";
+import { OffshoreTile } from "@/components/OffshoreTile";
 import { scorePinFill, seaStatePinBorderColor } from "@/lib/beach-format";
 import type { OffshoreConditionsResult } from "@/lib/offshore-conditions";
+import { MAP_VIEWPORT_DESKTOP_MQ } from "@/lib/map-viewport";
 import { useEffect, useRef, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
@@ -57,6 +58,8 @@ function writeCachedUserLocation(lat: number, lng: number): void {
 type Props = {
   beachCards: BeachCardData[];
   offshoreConditions: OffshoreConditionsResult;
+  /** When false (mobile), skip on-map offshore markers; MapExperience renders tiles below the map. */
+  plantOffshoreMarkersOnMap: boolean;
   selectedBeach: BeachCardData | null;
   onBeachSelect: (beach: BeachCardData | null) => void;
 };
@@ -64,6 +67,7 @@ type Props = {
 export default function BeachMap({
   beachCards,
   offshoreConditions,
+  plantOffshoreMarkersOnMap,
   selectedBeach,
   onBeachSelect
 }: Props) {
@@ -75,8 +79,6 @@ export default function BeachMap({
   const prevSingleSlugRef = useRef<string | null>(null);
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
   const infoWindowRootRef = useRef<Root | null>(null);
-  const offshoreInfoWindowRef = useRef<google.maps.InfoWindow | null>(null);
-  const offshoreInfoWindowRootRef = useRef<Root | null>(null);
   const offshoreMarkerDisposersRef = useRef<Array<() => void>>([]);
   const offshoreConditionsRef = useRef(offshoreConditions);
   const onBeachSelectRef = useRef(onBeachSelect);
@@ -102,13 +104,6 @@ export default function BeachMap({
     if (infoWindowRootRef.current) {
       infoWindowRootRef.current.unmount();
       infoWindowRootRef.current = null;
-    }
-  };
-
-  const cleanupOffshoreInfoWindowDom = () => {
-    if (offshoreInfoWindowRootRef.current) {
-      offshoreInfoWindowRootRef.current.unmount();
-      offshoreInfoWindowRootRef.current = null;
     }
   };
 
@@ -256,9 +251,7 @@ export default function BeachMap({
             gmpClickable: true
           });
           const onPinClick = (_ev: google.maps.marker.AdvancedMarkerClickEvent) => {
-            const desktop = window.matchMedia("(min-width: 640px)").matches;
-            offshoreInfoWindowRef.current?.close();
-            cleanupOffshoreInfoWindowDom();
+            const desktop = window.matchMedia(MAP_VIEWPORT_DESKTOP_MQ).matches;
             onBeachSelectRef.current(beach);
             const iw = infoWindowRef.current;
             if (!iw) {
@@ -364,22 +357,34 @@ export default function BeachMap({
   }, [userLocation, mapInitialized]);
 
   useEffect(() => {
+    /**
+     * Planted offshore markers: symmetric teardown across viewport toggles.
+     * - desktop -> mobile: React runs this effect's prior cleanup first (dispose all), then
+     *   the mobile branch runs dispose again (no-op if empty) so roots/markers never linger;
+     *   below-map tiles are only in MapExperience.
+     * - mobile -> desktop: same clean slate, then we create markers once; dispose before
+     *   create avoids duplicate markers if the effect re-enters while desktop.
+     */
+    const disposeAllOffshoreMarkers = () => {
+      offshoreMarkerDisposersRef.current.forEach((dispose) => dispose());
+      offshoreMarkerDisposersRef.current = [];
+    };
+
     if (!mapInitialized || !mapRef.current) {
       return;
     }
+
+    if (!plantOffshoreMarkersOnMap) {
+      disposeAllOffshoreMarkers();
+      return () => {
+        disposeAllOffshoreMarkers();
+      };
+    }
+
+    disposeAllOffshoreMarkers();
+
     const map = mapRef.current;
     const rows = offshoreConditionsRef.current;
-
-    if (!offshoreInfoWindowRef.current) {
-      const oiw = new google.maps.InfoWindow();
-      oiw.addListener("closeclick", () => {
-        if (offshoreInfoWindowRootRef.current) {
-          offshoreInfoWindowRootRef.current.unmount();
-          offshoreInfoWindowRootRef.current = null;
-        }
-      });
-      offshoreInfoWindowRef.current = oiw;
-    }
 
     const disposers: Array<() => void> = [];
 
@@ -389,50 +394,34 @@ export default function BeachMap({
       wrap.style.position = "relative";
       wrap.style.width = "0";
       wrap.style.height = "0";
-      const ring = document.createElement("div");
-      ring.style.position = "absolute";
-      ring.style.left = "50%";
-      ring.style.top = "50%";
-      ring.style.transform = "translate(-50%, -50%)";
-      ring.style.width = "20px";
-      ring.style.height = "20px";
-      ring.style.boxSizing = "border-box";
-      ring.style.borderRadius = "50%";
-      ring.style.border = "3px solid #0f766e";
-      ring.style.backgroundColor = "rgba(255,255,255,0.92)";
-      ring.style.boxShadow = "0 1px 3px rgba(0,0,0,0.35)";
-      wrap.appendChild(ring);
+
+      const tileHost = document.createElement("div");
+      tileHost.style.position = "absolute";
+      tileHost.style.top = "50%";
+      if (row.id === "offshore-west") {
+        tileHost.style.left = "50%";
+        tileHost.style.transform = "translate(calc(-100% - 14px), -50%)";
+      } else {
+        tileHost.style.left = "50%";
+        tileHost.style.marginLeft = "14px";
+        tileHost.style.transform = "translateY(-50%)";
+      }
+
+      wrap.appendChild(tileHost);
+
+      const root = createRoot(tileHost);
+      root.render(<OffshoreTile row={row} />);
 
       const marker = new google.maps.marker.AdvancedMarkerElement({
         map,
         position: { lat: row.latitude, lng: row.longitude },
         content: wrap,
-        gmpClickable: true,
-        zIndex: 50
+        gmpClickable: false,
+        zIndex: 100
       });
 
-      const onOffshoreClick = () => {
-        infoWindowRef.current?.close();
-        cleanupInfoWindowDom();
-        if (offshoreInfoWindowRootRef.current) {
-          offshoreInfoWindowRootRef.current.unmount();
-          offshoreInfoWindowRootRef.current = null;
-        }
-        const oiw = offshoreInfoWindowRef.current;
-        if (!oiw) {
-          return;
-        }
-        const div = document.createElement("div");
-        const root = createRoot(div);
-        offshoreInfoWindowRootRef.current = root;
-        root.render(<OffshoreConditionCard row={row} />);
-        oiw.setContent(div);
-        oiw.open({ map, anchor: marker });
-      };
-
-      marker.addEventListener("gmp-click", onOffshoreClick);
       disposers.push(() => {
-        marker.removeEventListener("gmp-click", onOffshoreClick);
+        root.unmount();
         marker.map = null;
       });
     }
@@ -440,16 +429,9 @@ export default function BeachMap({
     offshoreMarkerDisposersRef.current = disposers;
 
     return () => {
-      offshoreMarkerDisposersRef.current.forEach((dispose) => dispose());
-      offshoreMarkerDisposersRef.current = [];
-      offshoreInfoWindowRef.current?.close();
-      if (offshoreInfoWindowRootRef.current) {
-        offshoreInfoWindowRootRef.current.unmount();
-        offshoreInfoWindowRootRef.current = null;
-      }
-      offshoreInfoWindowRef.current = null;
+      disposeAllOffshoreMarkers();
     };
-  }, [mapInitialized]);
+  }, [mapInitialized, plantOffshoreMarkersOnMap]);
 
   const requestUserLocation = () => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
@@ -489,9 +471,6 @@ export default function BeachMap({
 
       offshoreMarkerDisposersRef.current.forEach((dispose) => dispose());
       offshoreMarkerDisposersRef.current = [];
-      offshoreInfoWindowRef.current?.close();
-      cleanupOffshoreInfoWindowDom();
-      offshoreInfoWindowRef.current = null;
 
       infoWindowRef.current?.close();
       cleanupInfoWindowDom();

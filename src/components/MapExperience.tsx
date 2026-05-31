@@ -12,6 +12,8 @@ import { CoastPills } from "@/components/CoastPills";
 import { ListMapToggle } from "@/components/ListMapToggle";
 import { coastToQueryParam, parseCoastFromQuery, type CoastFilter } from "@/lib/coast-filter";
 import { filterBeachesBySearch } from "@/lib/beach-search";
+import { MAP_VIEWPORT_DESKTOP_MQ } from "@/lib/map-viewport";
+import { OffshoreTile } from "@/components/OffshoreTile";
 
 const BeachMap = dynamic(() => import("@/components/BeachMap"), { ssr: false });
 
@@ -32,11 +34,13 @@ export function MapExperience({ beachCards, offshoreConditions }: Props) {
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBeach, setSelectedBeach] = useState<BeachCardData | null>(null);
-  const [isMobileViewport, setIsMobileViewport] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(() =>
+    typeof window !== "undefined" ? !window.matchMedia(MAP_VIEWPORT_DESKTOP_MQ).matches : false
+  );
 
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 639px)");
-    const update = () => setIsMobileViewport(mq.matches);
+    const mq = window.matchMedia(MAP_VIEWPORT_DESKTOP_MQ);
+    const update = () => setIsMobileViewport(!mq.matches);
     update();
     mq.addEventListener("change", update);
     return () => mq.removeEventListener("change", update);
@@ -79,6 +83,15 @@ export function MapExperience({ beachCards, offshoreConditions }: Props) {
   const dismissSheet = useCallback(() => {
     setSelectedBeach(null);
   }, []);
+
+  const offshoreWestRow = useMemo(
+    () => offshoreConditions.find((r) => r.id === "offshore-west"),
+    [offshoreConditions]
+  );
+  const offshoreEastRow = useMemo(
+    () => offshoreConditions.find((r) => r.id === "offshore-east"),
+    [offshoreConditions]
+  );
 
   return (
     <>
@@ -123,20 +136,27 @@ export function MapExperience({ beachCards, offshoreConditions }: Props) {
 
       <CoastPills activeCoast={coastFilter} onChange={updateCoastFilter} />
 
-      <p className="mt-4 max-w-3xl text-sm leading-relaxed text-slate-600">
-        open-ocean readings — beach conditions vary with local sheltering.
-      </p>
-
       <div className="mt-10">
         <section className={ABOUT_CARD_CLASS}>
           <div className="relative">
             <BeachMap
               beachCards={filteredBeachCards}
               offshoreConditions={offshoreConditions}
+              plantOffshoreMarkersOnMap={!isMobileViewport}
               selectedBeach={selectedBeach}
               onBeachSelect={setSelectedBeach}
             />
           </div>
+          {isMobileViewport && offshoreWestRow && offshoreEastRow ? (
+            <div className="mt-3 flex flex-wrap justify-center gap-2">
+              <div className="flex min-w-0 shrink justify-center">
+                <OffshoreTile row={offshoreWestRow} />
+              </div>
+              <div className="flex min-w-0 shrink justify-center">
+                <OffshoreTile row={offshoreEastRow} />
+              </div>
+            </div>
+          ) : null}
         </section>
       </div>
 

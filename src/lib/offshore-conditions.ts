@@ -15,12 +15,7 @@ export type OffshoreConditionRow = {
   weatherCode: number | null;
 };
 
-export type OffshoreConditionsResult = [
-  OffshoreConditionRow,
-  OffshoreConditionRow,
-  OffshoreConditionRow,
-  OffshoreConditionRow
-];
+export type OffshoreConditionsResult = OffshoreConditionRow[];
 
 async function safeReadBodySnippet(response: Response): Promise<string | null> {
   try {
@@ -48,7 +43,7 @@ function nullRows(): OffshoreConditionsResult {
     windSpeed: null,
     windDirection: null,
     weatherCode: null
-  })) as OffshoreConditionsResult;
+  }));
 }
 
 type MarineStation = {
@@ -69,19 +64,20 @@ type ForecastStation = {
   };
 };
 
-function isLength4MarineArray(data: unknown): data is MarineStation[] {
-  return Array.isArray(data) && data.length === 4;
+function isMarineStationsArray(data: unknown, expectedN: number): data is MarineStation[] {
+  return Array.isArray(data) && data.length === expectedN;
 }
 
-function isLength4ForecastArray(data: unknown): data is ForecastStation[] {
-  return Array.isArray(data) && data.length === 4;
+function isForecastStationsArray(data: unknown, expectedN: number): data is ForecastStation[] {
+  return Array.isArray(data) && data.length === expectedN;
 }
 
 /**
  * Fetches open-ocean conditions at OFFSHORE_POINTS (one marine + one forecast call).
- * Never throws — returns four null-filled rows on any failure or unexpected response shape.
+ * Never throws — returns null-filled rows on any failure or unexpected response shape.
  */
 export async function fetchOffshoreConditions(): Promise<OffshoreConditionsResult> {
+  const expectedN = OFFSHORE_POINTS.length;
   const latParam = OFFSHORE_POINTS.map((p) => p.latitude).join(",");
   const lngParam = OFFSHORE_POINTS.map((p) => p.longitude).join(",");
 
@@ -116,8 +112,9 @@ export async function fetchOffshoreConditions(): Promise<OffshoreConditionsResul
     const marineJson: unknown = await marineResponse.json();
     const forecastJson: unknown = await forecastResponse.json();
 
-    if (!isLength4MarineArray(marineJson) || !isLength4ForecastArray(forecastJson)) {
-      console.error("[offshore-conditions] Unexpected response shape (expected array of length 4)", {
+    if (!isMarineStationsArray(marineJson, expectedN) || !isForecastStationsArray(forecastJson, expectedN)) {
+      console.error("[offshore-conditions] Unexpected response shape (marine/forecast array length mismatch)", {
+        expectedN,
         marineIsArray: Array.isArray(marineJson),
         marineLength: Array.isArray(marineJson) ? marineJson.length : null,
         forecastIsArray: Array.isArray(forecastJson),
@@ -126,7 +123,7 @@ export async function fetchOffshoreConditions(): Promise<OffshoreConditionsResul
       return nullRows();
     }
 
-    const out = OFFSHORE_POINTS.map((p, i) => {
+    return OFFSHORE_POINTS.map((p, i) => {
       const mc = marineJson[i]?.current;
       const fc = forecastJson[i]?.current;
       return {
@@ -143,9 +140,7 @@ export async function fetchOffshoreConditions(): Promise<OffshoreConditionsResul
         windDirection: fc?.wind_direction_10m ?? null,
         weatherCode: fc?.weather_code ?? null
       };
-    }) as OffshoreConditionsResult;
-
-    return out;
+    });
   } catch (error) {
     console.error("[offshore-conditions] Failed to fetch offshore conditions", {
       message: error instanceof Error ? error.message : "Unknown error"
