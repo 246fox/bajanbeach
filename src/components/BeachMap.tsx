@@ -4,8 +4,8 @@ import { Loader } from "@googlemaps/js-api-loader";
 import type { BeachCardData } from "@/types/beach";
 import { BeachPinContent } from "@/components/BeachPinContent";
 import { OffshoreTile } from "@/components/OffshoreTile";
-import { scorePinFill, seaStatePinBorderColor } from "@/lib/beach-format";
-import type { OffshoreConditionsResult } from "@/lib/offshore-conditions";
+import { degreesToCompass, scorePinFill, seaStatePinBorderColor } from "@/lib/beach-format";
+import type { OffshoreConditionRow, OffshoreConditionsResult } from "@/lib/offshore-conditions";
 import {
   MAP_VIEWPORT_DESKTOP_MQ,
   OFFSHORE_PLANTED_MIN_HEIGHT_PX,
@@ -59,18 +59,86 @@ function writeCachedUserLocation(lat: number, lng: number): void {
   sessionStorage.setItem(SESSION_LOCATION_KEY, JSON.stringify({ lat, lng }));
 }
 
+/** Landward longitude nudge (degrees) so small-map offshore markers stay on-screen. */
+const OFFSHORE_SMALL_MAP_LNG_NUDGE_DEG = 0.02;
+
+function nudgedOffshoreLatLng(row: OffshoreConditionRow): google.maps.LatLngLiteral {
+  if (row.id === "offshore-west") {
+    return { lat: row.latitude, lng: row.longitude + OFFSHORE_SMALL_MAP_LNG_NUDGE_DEG };
+  }
+  return { lat: row.latitude, lng: row.longitude - OFFSHORE_SMALL_MAP_LNG_NUDGE_DEG };
+}
+
+function offshoreSwellChipLabel(row: OffshoreConditionRow): string {
+  const h = row.swellWaveHeight;
+  const heightPart =
+    h === null || Number.isNaN(h) ? "—" : `${h.toFixed(1)}m`;
+  const d = row.swellWaveDirection;
+  const dirPart =
+    d === null || Number.isNaN(d) ? "—" : degreesToCompass(d);
+  return `${heightPart} ${dirPart}`;
+}
+
+/** Small-map offshore chip: swell glyph + height/direction (DOM, matches inline-SVG style elsewhere in this file). */
+function buildOffshoreSwellChipElement(row: OffshoreConditionRow): HTMLDivElement {
+  const chip = document.createElement("div");
+  chip.style.boxSizing = "border-box";
+  chip.style.cursor = "pointer";
+  chip.style.borderRadius = "10px";
+  chip.style.border = "1.5px solid #0f766e";
+  chip.style.backgroundColor = "#ffffff";
+  chip.style.boxShadow = "0 1px 4px rgba(0,0,0,0.25)";
+  chip.style.padding = "4px 8px 5px";
+  chip.style.fontSize = "11px";
+  chip.style.fontWeight = "600";
+  chip.style.color = "#1e293b";
+  chip.style.fontFamily = "system-ui, sans-serif";
+  chip.style.display = "flex";
+  chip.style.flexDirection = "column";
+  chip.style.alignItems = "center";
+  chip.style.gap = "3px";
+
+  const svgNs = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNs, "svg");
+  svg.setAttribute("viewBox", "0 0 24 12");
+  svg.setAttribute("width", "16");
+  svg.setAttribute("height", "8");
+  svg.setAttribute("aria-hidden", "true");
+  const wave = document.createElementNS(svgNs, "path");
+  wave.setAttribute("fill", "none");
+  wave.setAttribute("stroke", "#0f766e");
+  wave.setAttribute("stroke-width", "2");
+  wave.setAttribute("stroke-linecap", "round");
+  wave.setAttribute(
+    "d",
+    "M2 8c2.5-3.2 5-3.2 7.5 0s5 3.2 7.5 0 5-3.2 7.5 0"
+  );
+  svg.appendChild(wave);
+
+  const label = document.createElement("div");
+  label.style.whiteSpace = "nowrap";
+  label.style.lineHeight = "1.2";
+  label.textContent = offshoreSwellChipLabel(row);
+
+  chip.appendChild(svg);
+  chip.appendChild(label);
+  return chip;
+}
+
 type Props = {
   beachCards: BeachCardData[];
   offshoreConditions: OffshoreConditionsResult;
   selectedBeach: BeachCardData | null;
   onBeachSelect: (beach: BeachCardData | null) => void;
+  onOffshoreSelect: (row: OffshoreConditionRow) => void;
 };
 
 export default function BeachMap({
   beachCards,
   offshoreConditions,
   selectedBeach,
-  onBeachSelect
+  onBeachSelect,
+  onOffshoreSelect
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -83,6 +151,7 @@ export default function BeachMap({
   const offshoreMarkerDisposersRef = useRef<Array<() => void>>([]);
   const offshoreConditionsRef = useRef(offshoreConditions);
   const onBeachSelectRef = useRef(onBeachSelect);
+  const onOffshoreSelectRef = useRef(onOffshoreSelect);
   const [mapInitialized, setMapInitialized] = useState(false);
   const mapFirstReadyRef = useRef(false);
   const [mapBoxBigEnough, setMapBoxBigEnough] = useState(false);
@@ -97,6 +166,10 @@ export default function BeachMap({
   useEffect(() => {
     onBeachSelectRef.current = onBeachSelect;
   }, [onBeachSelect]);
+
+  useEffect(() => {
+    onOffshoreSelectRef.current = onOffshoreSelect;
+  }, [onOffshoreSelect]);
 
   useEffect(() => {
     setUserLocation(readCachedUserLocation());
@@ -394,31 +467,70 @@ export default function BeachMap({
 
   useEffect(() => {
     /**
-     * Planted offshore markers: symmetric teardown when the map box crosses size thresholds
-     * or unmounts. mapBoxBigEnough comes from ResizeObserver on the map container (not viewport).
+     * Offshore UI: large map box → planted OffshoreTiles (CSS offset from true lat/lng);
+     * small map box → compact clickable chips at landward-nudged coordinates + sheet from parent.
+     * Symmetric dispose on threshold changes and unmount.
      */
     const disposeAllOffshoreMarkers = () => {
       offshoreMarkerDisposersRef.current.forEach((dispose) => dispose());
       offshoreMarkerDisposersRef.current = [];
     };
 
-    if (!mapInitialized || !mapRef.current) {
-      return;
-    }
+    disposeAllOffshoreMarkers();
 
-    if (!mapBoxBigEnough) {
-      disposeAllOffshoreMarkers();
+    if (!mapInitialized || !mapRef.current) {
       return () => {
         disposeAllOffshoreMarkers();
       };
     }
 
-    disposeAllOffshoreMarkers();
-
     const map = mapRef.current;
     const rows = offshoreConditionsRef.current;
-
     const disposers: Array<() => void> = [];
+
+    if (!mapBoxBigEnough) {
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const wrap = document.createElement("div");
+        wrap.style.position = "relative";
+        wrap.style.width = "0";
+        wrap.style.height = "0";
+
+        const chipHost = document.createElement("div");
+        chipHost.style.position = "absolute";
+        chipHost.style.left = "50%";
+        chipHost.style.top = "50%";
+        chipHost.style.transform = "translate(-50%, -50%)";
+
+        const chip = buildOffshoreSwellChipElement(row);
+
+        chipHost.appendChild(chip);
+        wrap.appendChild(chipHost);
+
+        const marker = new google.maps.marker.AdvancedMarkerElement({
+          map,
+          position: nudgedOffshoreLatLng(row),
+          content: wrap,
+          gmpClickable: true,
+          zIndex: 100
+        });
+
+        const onChipClick = (_ev: google.maps.marker.AdvancedMarkerClickEvent) => {
+          onOffshoreSelectRef.current(row);
+        };
+        marker.addEventListener("gmp-click", onChipClick);
+
+        disposers.push(() => {
+          marker.removeEventListener("gmp-click", onChipClick);
+          marker.map = null;
+        });
+      }
+
+      offshoreMarkerDisposersRef.current = disposers;
+      return () => {
+        disposeAllOffshoreMarkers();
+      };
+    }
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];

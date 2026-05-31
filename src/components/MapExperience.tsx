@@ -3,13 +3,14 @@
 import dynamic from "next/dynamic";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { OffshoreConditionsResult } from "@/lib/offshore-conditions";
+import type { OffshoreConditionRow, OffshoreConditionsResult } from "@/lib/offshore-conditions";
 import type { BeachCardData } from "@/types/beach";
 import { ABOUT_CARD_CLASS } from "@/lib/ui-classes";
 import { BeachPinContent } from "@/components/BeachPinContent";
 import { BeachSearchInput } from "@/components/BeachSearchInput";
 import { CoastPills } from "@/components/CoastPills";
 import { ListMapToggle } from "@/components/ListMapToggle";
+import { OffshoreTile } from "@/components/OffshoreTile";
 import { coastToQueryParam, parseCoastFromQuery, type CoastFilter } from "@/lib/coast-filter";
 import { filterBeachesBySearch } from "@/lib/beach-search";
 import { MAP_VIEWPORT_DESKTOP_MQ } from "@/lib/map-viewport";
@@ -33,6 +34,7 @@ export function MapExperience({ beachCards, offshoreConditions }: Props) {
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBeach, setSelectedBeach] = useState<BeachCardData | null>(null);
+  const [selectedOffshore, setSelectedOffshore] = useState<OffshoreConditionRow | null>(null);
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
     typeof window !== "undefined" ? !window.matchMedia(MAP_VIEWPORT_DESKTOP_MQ).matches : false
   );
@@ -78,9 +80,24 @@ export function MapExperience({ beachCards, offshoreConditions }: Props) {
   const showEmptySearchMessage = searchActive && filteredBeachCards.length === 0;
 
   const showMobileSheet = selectedBeach !== null && isMobileViewport;
+  const showOffshoreSheet = selectedOffshore !== null;
 
   const dismissSheet = useCallback(() => {
     setSelectedBeach(null);
+  }, []);
+
+  const dismissOffshoreSheet = useCallback(() => {
+    setSelectedOffshore(null);
+  }, []);
+
+  const handleBeachSelect = useCallback((beach: BeachCardData | null) => {
+    setSelectedOffshore(null);
+    setSelectedBeach(beach);
+  }, []);
+
+  const handleOffshoreSelect = useCallback((row: OffshoreConditionRow) => {
+    setSelectedBeach(null);
+    setSelectedOffshore(row);
   }, []);
 
   return (
@@ -133,7 +150,8 @@ export function MapExperience({ beachCards, offshoreConditions }: Props) {
               beachCards={filteredBeachCards}
               offshoreConditions={offshoreConditions}
               selectedBeach={selectedBeach}
-              onBeachSelect={setSelectedBeach}
+              onBeachSelect={handleBeachSelect}
+              onOffshoreSelect={handleOffshoreSelect}
             />
           </div>
         </section>
@@ -166,6 +184,38 @@ export function MapExperience({ beachCards, offshoreConditions }: Props) {
             </div>
             <div className="px-5 pb-8 pt-1">
               <BeachPinContent beach={selectedBeach} layout="sheet" />
+            </div>
+          </div>
+        </>
+      ) : null}
+
+      {showOffshoreSheet ? (
+        <>
+          <button
+            type="button"
+            aria-label="Dismiss offshore conditions"
+            className="fixed inset-0 z-[55] bg-slate-900/40"
+            onClick={dismissOffshoreSheet}
+          />
+          <div className="fixed inset-x-0 bottom-0 z-[60] max-h-[85vh] overflow-y-auto rounded-t-2xl bg-white shadow-2xl ring-1 ring-slate-200">
+            <div className="relative px-5 pt-3">
+              <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-slate-300" aria-hidden />
+              <button
+                type="button"
+                onClick={dismissOffshoreSheet}
+                className="absolute right-4 top-2 rounded-full p-1.5 text-slate-500 ring-1 ring-slate-200 transition hover:bg-slate-50 hover:text-slate-800"
+                aria-label="Close"
+              >
+                <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M6.4 4.55 12 10.15l5.6-5.6 1.85 1.85-5.6 5.6 5.6 5.6-1.85 1.85-5.6-5.6-5.6 5.6-1.85-1.85 5.6-5.6-5.6-5.6Z"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div className="flex justify-center px-5 pb-8 pt-1">
+              <OffshoreTile row={selectedOffshore} />
             </div>
           </div>
         </>
