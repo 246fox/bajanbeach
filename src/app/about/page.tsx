@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { ScoreFlow, SeaStateScale, SargassumScale, DataSources, ManchineelCallout } from "@/components/about/ScoreExplainer";
 import { ABOUT_CARD_CLASS } from "@/lib/ui-classes";
 
 export const metadata: Metadata = {
@@ -63,122 +64,71 @@ export default function AboutPage() {
 
       <div className="mt-10 space-y-8">
         <AboutCard id="scores" heading="The score: Swim or Scenic">
+          <ScoreFlow />
           <p>
-            Every beach carries a single score out of 10 for the current day. What that score measures depends on
-            the kind of beach.
+            Every beach gets one score out of 10 for today, and what it measures depends on the beach. A swim score
+            shows on calm and moderate beaches, for example the west and south coast swimming spots, and answers one
+            thing: how good is the water for a swim right now? Higher means better.
           </p>
           <p>
-            A Swim score appears on calm and moderate beaches like west and south coast swimming beaches. It answers
-            one question: how good is the water for swimming right now? A high score means gentle conditions and a
-            pleasant time in the sea; a low score means choppier water or wind that makes for a less enjoyable swim.
-          </p>
-          <p>
-            A Scenic score appears on rough beaches like the wild Atlantic stretches of the east and south-east.
-            Conditions on these beaches are generally not safe for swimming, you visit them for the drama of the
-            coastline and picturesque scenery. The Scenic score answers a different question: is today a good day to
-            make the trip out there? It leans on weather, wind, sargassum levels and visibility rather than wave
-            size, because a rough water beach is meant to have big waves.
-          </p>
-          <p>
-            Our score is only a guide, not a promise. It&apos;s built from modelled data and a fixed read on each
-            beach&apos;s character, so conditions on the day can still surprise you. Always trust a webcam and your
-            own eyes over a number.
+            A scenic score shows on the rough Atlantic beaches, for example most of the east coast, where you go for
+            the drama — not the swim. It asks whether today is a good day to make the trip out, leaning on weather,
+            wind, sargassum and visibility rather than wave size. The score is a guide, not a promise — always trust
+            your own eyes or a live webcam feed over a number.
           </p>
         </AboutCard>
 
-        <AboutCard id="sea-state" heading="Sea state: calm, moderate, rough">
+        <AboutCard id="sea-state" heading="Sea state">
+          <SeaStateScale />
           <p>
-            Each beach has a sea state describing how its water generally behaves: calm, moderate, or rough.
+            Each beach has a sea state describing how its water generally behaves, relative to other Barbados beaches.
+            It is not a promise that it will match your expectation on the day. Even the most sheltered west coast
+            beach sits on the open ocean and will never be as still as a pool, and what counts as &quot;rough&quot;
+            varies just as much.
           </p>
           <p>
-            It&apos;s worth being honest about the sea state. Calm, Moderate or Rough in Barbados is subjective. Even
-            the most sheltered west coast beach sits on the open Caribbean and will have gentle swell, the odd wave,
-            and a current somewhere – it will never be as still as a lake or swimming pool. That&apos;s true for the
-            other end of the spectrum as well where what is considered as a &apos;rough sea&apos; will vary greatly.
-            Sea state describes how a beach behaves relative to other Barbados beaches — not a promise that sea
-            conditions will match your expectation.
-          </p>
-          <ul className="list-disc space-y-2 pl-5">
-            <li>
-              <strong>Calm</strong> — Sheltered, swimming-first beaches. The west coast and protected south coast.
-            </li>
-            <li>
-              <strong>Moderate</strong> — Genuine wave action, comfortable for confident swimmers, good for
-              bodyboarding and general beach days.
-            </li>
-            <li>
-              <strong>Rough</strong> — Strong Atlantic waves, currents and shore break. Spectacular to look at, not
-              generally safe to swim. These carry a Scenic score, not a Swim score.
-            </li>
-          </ul>
-          <p>
-            Separately, seven beaches are flagged as surf spots. The flag simply tells you people come here
+            Separately, several beaches are flagged as surf spots. That flag simply tells you people come there
             specifically to surf.
           </p>
         </AboutCard>
 
         <AboutCard id="sargassum" heading="Sargassum">
+          <SargassumScale />
           <p>
-            Sargassum is the brown seaweed that drifts across the Atlantic and washes up on Caribbean shores, mostly
-            between spring and late summer. When it arrives in volume it can pile up on the sand and in the shallows.
-            It isn&apos;t dangerous, but it affects whether a beach is pleasant on a given week.
+            Sargassum is the brown seaweed that drifts across the Atlantic onto Caribbean shores, mostly between spring
+            and late summer. It isn&apos;t dangerous, but in volume it piles up on the sand and in the shallows and
+            affects how pleasant a beach is.
           </p>
-          <p>BajanBeach tracks sargassum at the coast level and shows it as one of three states:</p>
-          <ul className="list-disc space-y-2 pl-5">
-            <li>
-              <strong>Clear</strong> — little or no sargassum reported.
-            </li>
-            <li>
-              <strong>Some present</strong> — patchy seaweed; worth checking before you go.
-            </li>
-            <li>
-              <strong>Heavy</strong> — significant accumulation; the beach experience is affected.
-            </li>
-          </ul>
           <p>
-            These are estimates, updated weekly by hand from regional bulletins. Sargassum can shift within days and
-            varies a lot along a single coast, so treat the level as a general signal. Where a beach has a webcam,
-            that will tell you more than a coast-wide estimate.
+            We track it at coast level as clear, some present, or heavy. These estimates are updated weekly, by hand,
+            from local bulletins and direct observation. It can shift rapidly within days and varies along a single
+            coast, so treat the level as a general signal. Where a beach has a webcam, that tells you more than a
+            coast-wide estimate could.
           </p>
         </AboutCard>
 
         <AboutCard id="data" heading="Where our data comes from">
+          <DataSources />
           <p>
-            BajanBeach is built on a small number of public data sources, and we&apos;re honest about their limits.
+            BajanBeach runs on a few public data sources, and we&apos;re honest about their limits. Wave height,
+            period, wind and tide come from marine and weather models built on offshore data. They give a good general
+            read but don&apos;t know individual beach factors like the presence of a reef or breakwater that softens
+            the swell.
           </p>
           <p>
-            Wave height, wave period, wind speed, wind direction and tide times come from marine and weather models
-            based on offshore data. They give a good general read on the day, but they don&apos;t know about
-            individual beach factors, for example a reef or breakwater that attenuates ocean swells. Our algorithm
-            makes adjustments for this based on local insights but still, the numbers reported for a beach are just
-            indicative. They are not a substitute for a webcam, local advice, or standing on the sand.
+            Our algorithm adjusts for these with local insight, but the numbers are still indicative. They are not a
+            substitute for a webcam, local advice, or standing on the sand.
           </p>
         </AboutCard>
 
         <AboutCard id="safety" heading="Safety">
           <p>
-            BajanBeach is a discovery and planning tool, not a navigational or safety authority. The scores and
-            conditions here are there to help you choose a beach — they are not a substitute for your own judgement
-            on the day.
+            BajanBeach is a discovery and planning tool, not a safety authority. Conditions can change quickly so
+            before heading out, especially to the rougher Atlantic coasts, check official sources like the Barbados
+            Meteorological Services and respect marine warnings, posted signs and lifeguard guidance. If a beach looks
+            unsafe when you arrive, trust what you see over any score from our site.
           </p>
-          <p>
-            Sea conditions can change quickly. Before heading out, especially to the rougher Atlantic coasts, check
-            official sources such as the Barbados Meteorological Services, and always respect marine warnings,
-            posted signs, and lifeguard guidance. If a beach looks unsafe when you arrive, trust what you see over any
-            score on this site.
-          </p>
-          <p>Specific hazards to be aware of:</p>
-          <ul className="list-disc space-y-2 pl-5">
-            <li>
-              <strong>Manchineel trees</strong> — Several Barbados beaches, especially on the west coast, have
-              manchineel trees growing near the sand. Every part of the tree is toxic: the sap causes painful skin burns
-              and blistering, the small green apple-like fruit is dangerously poisonous, and even sheltering under the
-              canopy during rain can blister your skin from sap dripping in the water. Many specimens around the island
-              are marked with a red painted band on the trunk, but not all of them are. If you&apos;re not sure what one
-              looks like, keep a respectful distance from any unfamiliar tree growing on the back beach, and rinse with
-              fresh water immediately if you think you&apos;ve made contact. Do not eat any fruit you find on a beach.
-            </li>
-          </ul>
+          <ManchineelCallout />
         </AboutCard>
       </div>
     </main>
