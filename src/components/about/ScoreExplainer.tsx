@@ -108,9 +108,9 @@ export function ScoreFlow() {
             <path d="M210 150 Q260 110 320 104 V150 Z" fill="#F2E4C6" />
             <path d="M20 86 q26 -6 52 0" fill="none" stroke="#ffffff" strokeWidth="2" opacity=".6" strokeLinecap="round" />
             <path d="M30 104 q26 -6 52 0" fill="none" stroke="#ffffff" strokeWidth="2" opacity=".5" strokeLinecap="round" />
-            <circle cx="232" cy="86" r="32" fill="#ffffff" stroke="#1D9E75" strokeWidth="2.5" />
-            <text x="232" y="84" textAnchor="middle" fontSize="22" fontWeight="600" fill="#0F6E56">8.2</text>
-            <text x="232" y="100" textAnchor="middle" fontSize="10" fill="#0F6E56">/10</text>
+            <circle cx="160" cy="88" r="32" fill="#ffffff" stroke="#1D9E75" strokeWidth="2.5" />
+            <text x="160" y="86" textAnchor="middle" fontSize="22" fontWeight="600" fill="#0F6E56">8.2</text>
+            <text x="160" y="102" textAnchor="middle" fontSize="10" fill="#0F6E56">/10</text>
           </svg>
           <div className="mx-3.5 mb-3.5 mt-2.5 rounded-md bg-[#E1F5EE] px-3 py-1.5 text-center text-xs font-medium text-[#0F6E56]">West &amp; south coast · best for swimming</div>
         </div>
@@ -128,9 +128,9 @@ export function ScoreFlow() {
             <path d="M260 64 L286 90 L300 60 L320 84 V96 L300 78 L286 104 L260 86 Z" fill="#828B96" />
             <path d="M40 92 q22 -7 44 0" fill="none" stroke="#EAF2FA" strokeWidth="2" opacity=".7" strokeLinecap="round" />
             <path d="M70 110 q22 -7 44 0" fill="none" stroke="#EAF2FA" strokeWidth="2" opacity=".6" strokeLinecap="round" />
-            <circle cx="170" cy="92" r="32" fill="#ffffff" stroke="#185FA5" strokeWidth="2.5" />
-            <text x="170" y="90" textAnchor="middle" fontSize="22" fontWeight="600" fill="#0C447C">7.1</text>
-            <text x="170" y="106" textAnchor="middle" fontSize="10" fill="#0C447C">/10</text>
+            <circle cx="160" cy="88" r="32" fill="#ffffff" stroke="#185FA5" strokeWidth="2.5" />
+            <text x="160" y="86" textAnchor="middle" fontSize="22" fontWeight="600" fill="#0C447C">7.1</text>
+            <text x="160" y="102" textAnchor="middle" fontSize="10" fill="#0C447C">/10</text>
           </svg>
           <div className="mx-3.5 mb-3.5 mt-2.5 rounded-md bg-[#E6F1FB] px-3 py-1.5 text-center text-xs font-medium text-[#0C447C]">Atlantic coast · best for scenery</div>
         </div>
