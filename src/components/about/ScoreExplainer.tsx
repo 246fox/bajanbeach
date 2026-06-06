@@ -170,9 +170,9 @@ export function SargassumScale() {
 export function DataSources() {
   const card = "flex min-w-[230px] flex-1 flex-col items-center gap-2 rounded-xl border border-ocean-100 bg-ocean-50 px-3.5 py-[18px] text-center";
   return (
-    <div className="flex flex-wrap items-stretch justify-center gap-2.5">
+    <div className="flex flex-col items-stretch gap-2.5 sm:flex-row sm:justify-center">
       <div className={card}><IconSatellite className="h-7 w-7 text-[#185FA5]" /><div className="text-[15px] font-medium">Marine &amp; weather models</div></div>
-      <span className="flex items-center text-lg text-slate-400">+</span>
+      <span className="flex items-center justify-center text-lg text-slate-400">+</span>
       <div className={card}><IconMapPin className="h-7 w-7 text-[#0F6E56]" /><div className="text-[15px] font-medium">Local knowledge</div></div>
     </div>
   );
