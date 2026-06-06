@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { FooterEmailSignup } from "@/components/FooterEmailSignup";
 
 export function SiteFooter() {
   return (
     <footer className="mt-auto border-t border-ocean-100/60 bg-white/90 backdrop-blur-sm">
       <div className="mx-auto max-w-6xl px-4 py-8 text-center sm:px-6">
+        <FooterEmailSignup />
         <nav
           className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm font-medium"
           aria-label="Site"
