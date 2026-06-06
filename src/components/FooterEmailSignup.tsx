@@ -70,7 +70,7 @@ export function FooterEmailSignup() {
       <div className={PANEL_CLASS}>
         <p className="m-0 text-sm leading-relaxed text-slate-700">
           {alreadySubscribed
-            ? "You're already on the list — we'll be in touch when there's something new."
+            ? "You're already on the list. We'll be in touch when there's something new."
             : "You're on the list. We'll be in touch when there's something new."}
         </p>
       </div>
@@ -80,8 +80,7 @@ export function FooterEmailSignup() {
   return (
     <div className={PANEL_CLASS}>
       <p className="m-0 text-sm leading-relaxed text-slate-700">
-        Be first to hear when we add new beaches, features and partnerships. Occasional emails only — no daily
-        noise.
+        Be first to hear when we add new beaches, features and partnerships. Just occasional updates, never daily.
       </p>
       <form className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-stretch" onSubmit={handleSubmit} noValidate>
         <label htmlFor={emailFieldId} className="sr-only">
