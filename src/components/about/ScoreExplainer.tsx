@@ -88,14 +88,7 @@ export function ScoreFlow() {
         <IconSatellite className="h-3.5 w-3.5" /> Live marine &amp; weather data · updated hourly
       </div>
 
-      <div className="mx-auto mt-3 max-w-[400px]">
-        <svg width="100%" viewBox="0 0 400 40" role="img" aria-label="The score becomes a swim score or a scenic score">
-          <path d="M200 4 C200 24, 80 16, 70 36" fill="none" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="3 4" />
-          <path d="M200 4 C200 24, 320 16, 330 36" fill="none" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="3 4" />
-        </svg>
-      </div>
-
-      <div className="mt-1.5 flex flex-wrap gap-3.5">
+      <div className="mt-4 flex flex-col gap-3.5 sm:flex-row sm:items-stretch">
         <div className="min-w-[250px] flex-1 overflow-hidden rounded-xl border border-ocean-100 bg-ocean-50">
           <div className="flex items-center gap-2.5 px-4 pb-2.5 pt-3.5">
             <span className="flex h-[34px] w-[34px] flex-none items-center justify-center rounded-full bg-[#E1F5EE]"><IconSwimmer className="h-[18px] w-[18px] text-[#0F6E56]" /></span>
@@ -114,6 +107,8 @@ export function ScoreFlow() {
           </svg>
           <div className="mx-3.5 mb-3.5 mt-2.5 rounded-md bg-[#E1F5EE] px-3 py-1.5 text-center text-xs font-medium text-[#0F6E56]">West &amp; south coast · best for swimming</div>
         </div>
+
+        <div className="flex items-center justify-center text-sm text-slate-400">or</div>
 
         <div className="min-w-[250px] flex-1 overflow-hidden rounded-xl border border-ocean-100 bg-ocean-50">
           <div className="flex items-center gap-2.5 px-4 pb-2.5 pt-3.5">
