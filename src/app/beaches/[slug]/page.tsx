@@ -21,6 +21,7 @@ import {
   sargassumLevelForScoring
 } from "@/lib/sargassum";
 import { BeachProse } from "@/components/BeachProse";
+import { JsonLd } from "@/components/JsonLd";
 import { SargassumBadge } from "@/components/SargassumBadge";
 import { stripMarkdown } from "@/lib/strip-markdown";
 
@@ -29,6 +30,9 @@ export const revalidate = 3600;
 type PageProps = {
   params: { slug: string };
 };
+
+/** Matches `metadataBase` in `src/app/layout.tsx` — all JSON-LD URLs must be absolute https. */
+const METADATA_ORIGIN = "https://bajanbeach.com";
 
 const META_DESCRIPTION_MAX = 155;
 
@@ -173,8 +177,60 @@ export default async function BeachDetailPage({ params }: PageProps) {
   }).toString()}`;
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${beach.latitude},${beach.longitude}`;
 
+  const beachPageUrl = new URL(`/beaches/${beach.slug}`, METADATA_ORIGIN).href;
+  const homePageUrl = new URL("/", METADATA_ORIGIN).href;
+  const beachDescriptionLd = truncateMetaDescription(stripMarkdown(beach.description));
+
+  const beachLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Beach",
+    name: beach.name,
+    url: beachPageUrl,
+    description: beachDescriptionLd,
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: beach.latitude,
+      longitude: beach.longitude
+    },
+    address: {
+      "@type": "PostalAddress",
+      addressRegion: beach.parish,
+      addressCountry: "BB"
+    }
+  };
+
+  try {
+    const absoluteHero = new URL(heroUrl, METADATA_ORIGIN).href;
+    if (absoluteHero.startsWith("https://")) {
+      beachLd.image = absoluteHero;
+    }
+  } catch {
+    /* omit image if URL resolution fails */
+  }
+
+  const breadcrumbLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: homePageUrl
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: beach.name,
+        item: beachPageUrl
+      }
+    ]
+  };
+
   return (
     <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
+      <JsonLd data={beachLd} />
+      <JsonLd data={breadcrumbLd} />
       <BackLink />
 
       <header className="overflow-hidden rounded-3xl border border-ocean-100/70 bg-white/80 shadow-sm backdrop-blur-sm">

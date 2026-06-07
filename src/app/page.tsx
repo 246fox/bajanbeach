@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { BeachBoard } from "@/components/BeachBoard";
+import { JsonLd } from "@/components/JsonLd";
 import { beaches } from "@/data/beaches";
 import { buildBeachCards } from "@/lib/build-beach-cards";
 import type { BeachCardData } from "@/types/beach";
@@ -10,6 +11,9 @@ export const revalidate = 3600;
 const HOME_SEO_TITLE = "BajanBeach — The Barbados Beach Guide";
 const HOME_SEO_DESCRIPTION =
   `Local insights, live conditions, and sargassum updates for ${beaches.length} Barbados beaches. From calm West Coast swimming to Soup Bowl surf — find your perfect beach today.`;
+
+/** Matches `metadataBase` in `src/app/layout.tsx`. */
+const METADATA_ORIGIN = "https://bajanbeach.com";
 
 export const metadata: Metadata = {
   title: HOME_SEO_TITLE,
@@ -32,6 +36,15 @@ export default async function Home() {
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "BajanBeach",
+          url: new URL("/", METADATA_ORIGIN).href,
+          description: HOME_SEO_DESCRIPTION
+        }}
+      />
       <section className="text-center">
         <p className="text-sm font-semibold uppercase tracking-[0.22em] text-ocean-700">
           Barbados Beach Guide
