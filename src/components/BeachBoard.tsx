@@ -32,6 +32,7 @@ import {
   type CoastFilter,
   parseCoastFromQuery
 } from "@/lib/coast-filter";
+import { trackEvent } from "@/lib/analytics";
 
 type VibeCard = {
   coast: Exclude<CoastFilter, "All">;
@@ -518,6 +519,7 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
                 key={card.coast}
                 href={`/?coast=${card.coast.toLowerCase()}`}
                 onClick={(event) => {
+                  trackEvent("select_vibe", { coast: card.coast, vibe_label: card.vibe });
                   event.preventDefault();
                   updateCoastFilter(card.coast, { scrollToGrid: true });
                 }}
@@ -622,10 +624,14 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
             role="link"
             tabIndex={0}
             className="group h-full cursor-pointer overflow-hidden rounded-2xl border border-ocean-100/70 bg-white/75 shadow-sm backdrop-blur-sm transition hover:border-ocean-300/80 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-ocean-400 focus:ring-offset-2"
-            onClick={() => router.push(`/beaches/${beach.slug}`)}
+            onClick={() => {
+              trackEvent("select_beach", { beach_slug: beach.slug, beach_name: beach.name });
+              router.push(`/beaches/${beach.slug}`);
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
+                trackEvent("select_beach", { beach_slug: beach.slug, beach_name: beach.name });
                 router.push(`/beaches/${beach.slug}`);
               }
             }}
