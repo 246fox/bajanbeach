@@ -25,7 +25,7 @@ import { JsonLd } from "@/components/JsonLd";
 import { SargassumBadge } from "@/components/SargassumBadge";
 import { stripMarkdown } from "@/lib/strip-markdown";
 
-export const revalidate = 3600;
+export const revalidate = 0;
 
 type PageProps = {
   params: { slug: string };
