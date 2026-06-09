@@ -46,10 +46,6 @@ function truncateMetaDescription(text: string, max = META_DESCRIPTION_MAX): stri
   return `${trimmed.slice(0, Math.max(0, cut))}${ellipsis}`;
 }
 
-export async function generateStaticParams() {
-  return beaches.map((b) => ({ slug: b.slug }));
-}
-
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const beach = getBeachBySlug(params.slug);
   if (!beach) {
