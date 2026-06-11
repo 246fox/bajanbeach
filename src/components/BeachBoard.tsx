@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { BeachCardData, BeachCoast } from "@/types/beach";
@@ -33,6 +34,7 @@ import {
   parseCoastFromQuery
 } from "@/lib/coast-filter";
 import { trackEvent } from "@/lib/analytics";
+import { isSupabaseStorageUrl } from "@/lib/is-supabase-storage-url";
 
 type VibeCard = {
   coast: Exclude<CoastFilter, "All">;
@@ -526,17 +528,18 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
                 className={`group relative block overflow-hidden rounded-2xl border border-ocean-100/80 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-400 focus-visible:ring-offset-2 ${desktopSpanClass}`}
               >
                 <div
-                  className={`relative h-40 w-full sm:h-44 md:h-48 ${photoUrl ? "" : card.fallbackClass}`}
-                  style={
-                    photoUrl
-                      ? {
-                          backgroundImage: `url("${photoUrl}")`,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center"
-                        }
-                      : undefined
-                  }
+                  className={`relative h-40 w-full overflow-hidden sm:h-44 md:h-48 ${photoUrl ? "" : card.fallbackClass}`}
                 >
+                  {photoUrl ? (
+                    <Image
+                      src={photoUrl}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 33vw"
+                      unoptimized={!isSupabaseStorageUrl(photoUrl)}
+                    />
+                  ) : null}
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-slate-900/25 to-slate-900/5 transition group-hover:from-slate-900/60" />
                   <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
                     <p className="inline-flex rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white ring-1 ring-white/40">
@@ -636,18 +639,18 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
               }
             }}
           >
-            <div
-              className={`h-32 w-full ${beach.heroClass}`}
-              style={
-                beach.photoUrl
-                  ? {
-                      backgroundImage: `url("${beach.photoUrl}")`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center"
-                    }
-                  : undefined
-              }
-            />
+            <div className={`relative h-32 w-full overflow-hidden ${beach.heroClass}`}>
+              {beach.photoUrl ? (
+                <Image
+                  src={beach.photoUrl}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 400px"
+                  unoptimized={!isSupabaseStorageUrl(beach.photoUrl)}
+                />
+              ) : null}
+            </div>
             <div className="space-y-4 p-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">

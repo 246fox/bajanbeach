@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { BeachCardData } from "@/types/beach";
 import { activityLabel, formatScoreLabel, scoreStyles } from "@/lib/beach-format";
 import { BEACH_PHOTO_PLACEHOLDER } from "@/lib/beach-photo-placeholder";
+import { isSupabaseStorageUrl } from "@/lib/is-supabase-storage-url";
 
 type Props = {
   beach: BeachCardData;
@@ -14,10 +15,7 @@ type Props = {
 export function BeachPinContent({ beach, layout = "compact" }: Props) {
   const isSheet = layout === "sheet";
   const photoSrc = beach.photoUrl ?? BEACH_PHOTO_PLACEHOLDER;
-  const useUnoptimized =
-    photoSrc.startsWith("http://") ||
-    photoSrc.startsWith("https://") ||
-    photoSrc.startsWith("/api");
+  const unoptimized = !isSupabaseStorageUrl(photoSrc);
 
   const badge = (
     <p
@@ -44,19 +42,28 @@ export function BeachPinContent({ beach, layout = "compact" }: Props) {
     </Link>
   );
 
-  const image = (
-    <Image
-      src={photoSrc}
-      alt=""
-      width={isSheet ? 320 : 112}
-      height={isSheet ? 200 : 96}
-      className={
-        isSheet
-          ? "h-32 w-full max-w-xs rounded-xl object-cover sm:h-36"
-          : "h-24 w-28 shrink-0 rounded-xl object-cover"
-      }
-      unoptimized={useUnoptimized}
-    />
+  const image = isSheet ? (
+    <div className="relative mx-auto h-32 w-full max-w-xs overflow-hidden rounded-xl sm:h-36">
+      <Image
+        src={photoSrc}
+        alt=""
+        fill
+        className="object-cover"
+        sizes="(max-width: 640px) 100vw, 320px"
+        unoptimized={unoptimized}
+      />
+    </div>
+  ) : (
+    <div className="relative h-24 w-28 shrink-0 overflow-hidden rounded-xl">
+      <Image
+        src={photoSrc}
+        alt=""
+        fill
+        className="object-cover"
+        sizes="112px"
+        unoptimized={unoptimized}
+      />
+    </div>
   );
 
   if (isSheet) {

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BeachConditionPanel } from "@/components/BeachConditionPanel";
@@ -24,6 +25,7 @@ import { BeachProse } from "@/components/BeachProse";
 import { JsonLd } from "@/components/JsonLd";
 import { SargassumBadge } from "@/components/SargassumBadge";
 import { stripMarkdown } from "@/lib/strip-markdown";
+import { isSupabaseStorageUrl } from "@/lib/is-supabase-storage-url";
 
 export const revalidate = 0;
 
@@ -231,15 +233,21 @@ export default async function BeachDetailPage({ params }: PageProps) {
 
       <header className="overflow-hidden rounded-3xl border border-ocean-100/70 bg-white/80 shadow-sm backdrop-blur-sm">
         <div
-          className={`relative min-h-[280px] w-full sm:min-h-[360px] ${heroUrl === BEACH_PHOTO_PLACEHOLDER ? "bg-gradient-to-br from-sky-200 via-cyan-100 to-ocean-100" : ""}`}
-          style={{
-            backgroundImage: `url("${heroUrl}")`,
-            backgroundSize: "cover",
-            backgroundPosition: "center"
-          }}
+          className={`relative min-h-[280px] w-full overflow-hidden sm:min-h-[360px] ${heroUrl === BEACH_PHOTO_PLACEHOLDER ? "bg-gradient-to-br from-sky-200 via-cyan-100 to-ocean-100" : ""}`}
         >
+          {heroUrl !== BEACH_PHOTO_PLACEHOLDER ? (
+            <Image
+              src={heroUrl}
+              alt={`${beach.name}`}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 768px"
+              priority={isSupabaseStorageUrl(heroUrl)}
+              unoptimized={!isSupabaseStorageUrl(heroUrl)}
+            />
+          ) : null}
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900/75 via-slate-900/25 to-transparent" />
-          <div className="relative flex min-h-[280px] flex-col justify-end p-6 sm:min-h-[360px] sm:p-10">
+          <div className="relative z-10 flex min-h-[280px] flex-col justify-end p-6 sm:min-h-[360px] sm:p-10">
             <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">{beach.name}</h1>
             <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-2 text-base text-white/90">
               <span>{beach.parish}</span>
