@@ -428,8 +428,8 @@ export async function fetchBeachConditions(
 
   try {
     const [weatherResponse, marineResponse] = await Promise.all([
-      openMeteoFetch(weatherUrl, { revalidate: 3600 }),
-      openMeteoFetch(marineUrl, { revalidate: 3600 })
+      openMeteoFetch(weatherUrl, { revalidate: 1800 }),
+      openMeteoFetch(marineUrl, { revalidate: 1800 })
     ]);
 
     if (weatherResponse === null || marineResponse === null) {

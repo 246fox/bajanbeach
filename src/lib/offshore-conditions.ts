@@ -92,8 +92,8 @@ export async function fetchOffshoreConditions(): Promise<OffshoreConditionsResul
 
   try {
     const [marineResponse, forecastResponse] = await Promise.all([
-      openMeteoFetch(marineUrl, { revalidate: 3600 }),
-      openMeteoFetch(forecastUrl, { revalidate: 3600 })
+      openMeteoFetch(marineUrl, { revalidate: 1800 }),
+      openMeteoFetch(forecastUrl, { revalidate: 1800 })
     ]);
 
     if (marineResponse === null || forecastResponse === null) {
