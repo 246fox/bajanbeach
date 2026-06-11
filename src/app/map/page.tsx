@@ -4,7 +4,7 @@ import { MapExperience } from "@/components/MapExperience";
 import { buildBeachCards } from "@/lib/build-beach-cards";
 import { fetchOffshoreConditions } from "@/lib/offshore-conditions";
 
-export const revalidate = 3600;
+export const revalidate = 1800;
 
 export const metadata: Metadata = {
   title: "Barbados Beach Map — BajanBeach",

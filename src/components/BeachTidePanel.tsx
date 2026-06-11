@@ -51,7 +51,7 @@ export function BeachTidePanel({ tides }: { tides: BeachTides }) {
     <div className="rounded-2xl border border-ocean-100/80 bg-white/85 p-6 shadow-sm backdrop-blur-sm">
       <h2 className="text-lg font-semibold text-slate-800">Tides</h2>
       <p className="mt-1 text-xs leading-relaxed text-slate-500">
-        Model sea level from Open-Meteo (hourly)—not for coastal navigation.
+        Model sea level from Open-Meteo—not for coastal navigation.
       </p>
 
       {!hasAny ? (

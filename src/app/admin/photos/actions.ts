@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import sharp from "sharp";
 import { beaches } from "@/data/beaches";
 import { requireAdminSession } from "@/lib/admin-session";
@@ -61,6 +61,8 @@ export async function saveBeachPhotoOverride(
 
   revalidatePath(`/beaches/${slug}`);
   revalidatePath("/admin/photos");
+  revalidatePath("/map");
+  revalidateTag("beach-cards");
 
   return { ok: true };
 }
@@ -141,6 +143,8 @@ export async function uploadBeachHeroPhoto(formData: FormData): Promise<PhotoOve
 
   revalidatePath(`/beaches/${slugRaw}`);
   revalidatePath("/admin/photos");
+  revalidatePath("/map");
+  revalidateTag("beach-cards");
 
   return { ok: true };
 }
@@ -213,6 +217,8 @@ export async function clearBeachPhotoOverride(slug: string): Promise<PhotoOverri
   revalidatePath("/");
   revalidatePath(`/beaches/${slug}`);
   revalidatePath("/admin/photos");
+  revalidatePath("/map");
+  revalidateTag("beach-cards");
 
   return { ok: true };
 }

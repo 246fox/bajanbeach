@@ -9,6 +9,7 @@ import { WaveForecastChart } from "@/components/WaveForecastChart";
 import { beaches, getBeachBySlug } from "@/data/beaches";
 import { fetchBeachConditions } from "@/lib/beach-conditions";
 import { fetchBeachTides } from "@/lib/beach-tides";
+import { buildBeachCards } from "@/lib/build-beach-cards";
 import { BEACH_PHOTO_PLACEHOLDER } from "@/lib/beach-photo-placeholder";
 import { fetchPhotoOverrideForSlug } from "@/lib/beach-photo-overrides";
 import { getBeachPhotoUrlsUnlessOverridden } from "@/lib/beach-photos";
@@ -26,6 +27,7 @@ import { JsonLd } from "@/components/JsonLd";
 import { SargassumBadge } from "@/components/SargassumBadge";
 import { stripMarkdown } from "@/lib/strip-markdown";
 import { isSupabaseStorageUrl } from "@/lib/is-supabase-storage-url";
+import type { SargassumDisplay } from "@/types/beach";
 
 export const revalidate = 0;
 
@@ -150,19 +152,41 @@ export default async function BeachDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const override = await fetchPhotoOverrideForSlug(beach.slug);
-  const [tides, sargassumRow, photoUrls, waveForecast] = await Promise.all([
-    fetchBeachTides(beach),
-    fetchSargassumRowForCoast(coastForSargassumLookup(beach)),
-    getBeachPhotoUrlsUnlessOverridden(beach, override),
-    fetchSevenDayWaveForecast(beach.latitude, beach.longitude)
+  const [beachCards, override] = await Promise.all([
+    buildBeachCards(),
+    fetchPhotoOverrideForSlug(beach.slug)
   ]);
+  const card = beachCards.find((c) => c.slug === beach.slug);
 
-  const conditions = await fetchBeachConditions(beach, {
-    sargassumLevel: sargassumLevelForScoring(sargassumRow)
-  });
+  let conditions;
+  let sargassumDisplay: SargassumDisplay;
+  let tides: Awaited<ReturnType<typeof fetchBeachTides>>;
+  let photoUrls: Awaited<ReturnType<typeof getBeachPhotoUrlsUnlessOverridden>>;
+  let waveForecast: Awaited<ReturnType<typeof fetchSevenDayWaveForecast>>;
 
-  const sargassumDisplay = rowToDisplay(sargassumRow);
+  if (card) {
+    conditions = card.conditions;
+    sargassumDisplay = card.sargassum ?? { status: "unavailable" };
+    [tides, photoUrls, waveForecast] = await Promise.all([
+      fetchBeachTides(beach),
+      getBeachPhotoUrlsUnlessOverridden(beach, override),
+      fetchSevenDayWaveForecast(beach.latitude, beach.longitude)
+    ]);
+  } else {
+    const [tidesResult, sargassumRow, photoUrlsResult, waveForecastResult] = await Promise.all([
+      fetchBeachTides(beach),
+      fetchSargassumRowForCoast(coastForSargassumLookup(beach)),
+      getBeachPhotoUrlsUnlessOverridden(beach, override),
+      fetchSevenDayWaveForecast(beach.latitude, beach.longitude)
+    ]);
+    tides = tidesResult;
+    photoUrls = photoUrlsResult;
+    waveForecast = waveForecastResult;
+    conditions = await fetchBeachConditions(beach, {
+      sargassumLevel: sargassumLevelForScoring(sargassumRow)
+    });
+    sargassumDisplay = rowToDisplay(sargassumRow);
+  }
 
   const heroUrl = resolvePublicBeachHeroUrl(override, photoUrls);
   const hasWebcam = beach.webcamUrl.trim() !== "";

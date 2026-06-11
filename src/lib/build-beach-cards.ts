@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { beaches } from "@/data/beaches";
 import { fetchBeachConditions } from "@/lib/beach-conditions";
 import { fetchAllBeachPhotoOverrides } from "@/lib/beach-photo-overrides";
@@ -41,7 +42,7 @@ async function mapWithConcurrency<T, R>(
   return results;
 }
 
-export async function buildBeachCards(): Promise<BeachCardData[]> {
+async function buildBeachCardsUncached(): Promise<BeachCardData[]> {
   const [sargassumByCoast, photoOverrides] = await Promise.all([
     fetchSargassumByCoast(),
     fetchAllBeachPhotoOverrides()
@@ -66,4 +67,13 @@ export async function buildBeachCards(): Promise<BeachCardData[]> {
   });
 
   return beachCards;
+}
+
+const getCachedBeachCards = unstable_cache(buildBeachCardsUncached, ["beach-cards", "v1"], {
+  tags: ["beach-cards"],
+  revalidate: 1800
+});
+
+export async function buildBeachCards(): Promise<BeachCardData[]> {
+  return getCachedBeachCards();
 }

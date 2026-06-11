@@ -6,7 +6,7 @@ import { beaches } from "@/data/beaches";
 import { buildBeachCards } from "@/lib/build-beach-cards";
 import type { BeachCardData } from "@/types/beach";
 
-export const revalidate = 3600;
+export const revalidate = 1800;
 
 const HOME_SEO_TITLE = "BajanBeach — The Barbados Beach Guide";
 const HOME_SEO_DESCRIPTION =

@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import type { BeachCoast } from "@/types/beach";
 import { requireAdminSession } from "@/lib/admin-session";
@@ -58,6 +58,8 @@ export async function saveSargassumLevels(
 
   revalidatePath("/");
   revalidatePath("/beaches/[slug]", "page");
+  revalidatePath("/map");
+  revalidateTag("beach-cards");
 
   redirect("/admin/sargassum?saved=1");
 }
