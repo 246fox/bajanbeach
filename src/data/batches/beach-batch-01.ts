@@ -128,7 +128,7 @@ export const beachBatch01: Beach[] = [
     isSurfSpot: false,
     latitude: 13.191271639846025,
     longitude: -59.64014648653384,
-    webcamUrl: "",
+    webcamUrl: "https://iwcpinc.com/cameras/ncc_folkstone_2",
     description:
       "Established 1981 — the island's premier Marine Protected Area covering 2.1 km² with four distinct managed zones. The Bellairs Fringing Reef just 10m offshore offers the most accessible high-density snorkelling on the island. The SS Stavronikita wreck nearby is a top dive site.",
     bestFor: "Marine education, snorkelling, scuba diving, families, eco-tourism",
