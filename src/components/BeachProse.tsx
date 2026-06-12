@@ -25,7 +25,20 @@ const DISALLOWED_ELEMENTS = [
   "td"
 ] as const;
 
-export function BeachProse({ markdown }: { markdown: string }) {
+type BeachProseProps = {
+  markdown: string;
+  /** Merged onto markdown links only (e.g. grid card stacking above a block-link overlay). */
+  linkOverlayClassName?: string;
+};
+
+export function BeachProse({ markdown, linkOverlayClassName }: BeachProseProps) {
+  const linkClassName = [
+    "text-ocean-700 underline underline-offset-2 hover:text-ocean-600",
+    linkOverlayClassName
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <ReactMarkdown
       disallowedElements={[...DISALLOWED_ELEMENTS]}
@@ -34,7 +47,7 @@ export function BeachProse({ markdown }: { markdown: string }) {
       components={{
         p: ({ children }) => <>{children}</>,
         a: ({ href, children }) => (
-          <a href={href} className="text-ocean-700 underline underline-offset-2 hover:text-ocean-600">
+          <a href={href} className={linkClassName}>
             {children}
           </a>
         )

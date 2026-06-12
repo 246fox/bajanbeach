@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { BeachCardData, BeachCoast } from "@/types/beach";
@@ -624,20 +625,7 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
             {displayedCards.map((beach) => (
           <article
             key={beach.slug}
-            role="link"
-            tabIndex={0}
-            className="group h-full cursor-pointer overflow-hidden rounded-2xl border border-ocean-100/70 bg-white/75 shadow-sm backdrop-blur-sm transition hover:border-ocean-300/80 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-ocean-400 focus:ring-offset-2"
-            onClick={() => {
-              trackEvent("select_beach", { beach_slug: beach.slug, beach_name: beach.name });
-              router.push(`/beaches/${beach.slug}`);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                trackEvent("select_beach", { beach_slug: beach.slug, beach_name: beach.name });
-                router.push(`/beaches/${beach.slug}`);
-              }
-            }}
+            className="group relative isolate h-full overflow-hidden rounded-2xl border border-ocean-100/70 bg-white/75 shadow-sm backdrop-blur-sm transition hover:border-ocean-300/80 hover:shadow-md focus-within:outline-none focus-within:ring-2 focus-within:ring-ocean-400 focus-within:ring-offset-2"
           >
             <div className={`relative h-32 w-full overflow-hidden ${beach.heroClass}`}>
               {beach.photoUrl ? (
@@ -655,11 +643,21 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start gap-2">
-                    <h2 className="text-xl font-semibold leading-snug text-slate-800">{beach.name}</h2>
+                    <h2 className="text-xl font-semibold leading-snug text-slate-800">
+                      <Link
+                        href={`/beaches/${beach.slug}`}
+                        onClick={() =>
+                          trackEvent("select_beach", { beach_slug: beach.slug, beach_name: beach.name })
+                        }
+                        className="text-inherit no-underline decoration-transparent outline-none ring-0 visited:text-inherit hover:text-inherit hover:no-underline hover:decoration-transparent focus:outline-none after:absolute after:inset-0 after:z-[1] after:content-['']"
+                      >
+                        {beach.name}
+                      </Link>
+                    </h2>
                     {beach.webcamUrl.trim() !== "" && (
                       <button
                         type="button"
-                        className="mt-0.5 shrink-0 rounded-md p-0.5 hover:bg-ocean-50"
+                        className="relative z-[2] mt-0.5 shrink-0 rounded-md p-0.5 hover:bg-ocean-50"
                         title="Live webcam"
                         aria-label={`Live webcam for ${beach.name}`}
                         onClick={(e) => {
@@ -698,7 +696,7 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
                 <p className="text-xs text-slate-500">{missingScoreReason(beach.conditions)}</p>
               )}
               <p className="text-sm text-slate-600">
-                <BeachProse markdown={beach.description} />
+                <BeachProse markdown={beach.description} linkOverlayClassName="relative z-[2]" />
               </p>
               <p className="text-xs leading-relaxed text-slate-600">
                 <span className="font-semibold text-slate-700">Best for:</span> {beach.bestFor}
@@ -749,7 +747,7 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
                 </div>
               )}
               <p className="border-t border-slate-100 pt-3 text-xs italic leading-relaxed text-slate-500">
-                <BeachProse markdown={beach.notes} />
+                <BeachProse markdown={beach.notes} linkOverlayClassName="relative z-[2]" />
               </p>
               <p
                 className={`pt-1 text-xs ${
