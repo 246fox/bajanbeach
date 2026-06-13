@@ -170,7 +170,7 @@ export function MapExperience({ beachCards, offshoreConditions }: Props) {
               <button
                 type="button"
                 onClick={dismissSheet}
-                className="absolute right-4 top-2 rounded-full p-1.5 text-slate-500 ring-1 ring-slate-200 transition hover:bg-slate-50 hover:text-slate-800"
+                className="absolute right-4 top-2 z-10 rounded-full p-1.5 text-slate-500 ring-1 ring-slate-200 transition hover:bg-slate-50 hover:text-slate-800"
                 aria-label="Close"
               >
                 <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
