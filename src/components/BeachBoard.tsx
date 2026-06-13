@@ -1,39 +1,23 @@
 "use client";
 
-import type { ReactNode } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { BeachCardData, BeachCoast } from "@/types/beach";
-import {
-  activityLabel,
-  coastChipStyles,
-  degreesToCompass,
-  formatUpdatedTime,
-  formatValue,
-  formatScoreLabel,
-  isStaleTimestamp,
-  missingScoreReason,
-  scoreStyles,
-  seaStateChipStyles,
-  seaStateLabel
-} from "@/lib/beach-format";
 import { BEACH_PHOTO_PLACEHOLDER } from "@/lib/beach-photo-placeholder";
-import { filterBeachesBySearch } from "@/lib/beach-search";
 import { formatDistanceKm, haversineKm } from "@/lib/distance";
 import { BeachSearchInput } from "@/components/BeachSearchInput";
-import { BeachProse } from "@/components/BeachProse";
+import { BeachCard } from "@/components/BeachCard";
 import { CoastIntroBanner } from "@/components/CoastIntroBanner";
 import { CoastPills } from "@/components/CoastPills";
 import { ListMapToggle } from "@/components/ListMapToggle";
-import { SargassumBadge } from "@/components/SargassumBadge";
 import {
   COAST_FILTERS,
   coastToQueryParam,
   type CoastFilter,
   parseCoastFromQuery
 } from "@/lib/coast-filter";
+import { getDisplayedBeachCards, type BeachBoardSortOption } from "@/lib/beach-board-display";
 import { trackEvent } from "@/lib/analytics";
 import { isSupabaseStorageUrl } from "@/lib/is-supabase-storage-url";
 
@@ -113,9 +97,7 @@ function writeSessionLocation(lat: number, lng: number): void {
   sessionStorage.setItem(SESSION_LOCATION_KEY, JSON.stringify({ lat, lng }));
 }
 
-type SortOption = "coast" | "name" | "swim" | "surf" | "scenic" | "nearest";
-
-const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+const SORT_OPTIONS: { value: BeachBoardSortOption; label: string }[] = [
   { value: "coast", label: "Coast" },
   { value: "name", label: "Name (A-Z)" },
   { value: "swim", label: "Best for swimming today" },
@@ -124,7 +106,7 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "nearest", label: "Nearest first" }
 ];
 
-const SORT_QUERY_TO_VALUE: Record<string, SortOption> = {
+const SORT_QUERY_TO_VALUE: Record<string, BeachBoardSortOption> = {
   name: "name",
   swim: "swim",
   surf: "surf",
@@ -132,171 +114,11 @@ const SORT_QUERY_TO_VALUE: Record<string, SortOption> = {
   nearest: "nearest"
 };
 
-function parseSortFromQuery(value: string | null): SortOption {
+function parseSortFromQuery(value: string | null): BeachBoardSortOption {
   if (!value) {
     return "coast";
   }
   return SORT_QUERY_TO_VALUE[value.toLowerCase()] ?? "coast";
-}
-
-/** Matches coast filter chip order — North first, East last. */
-function coastSortRank(coast: BeachCoast): number {
-  const i = COAST_FILTERS.indexOf(coast);
-  return i > 0 ? i - 1 : 0;
-}
-
-function compareScoreDesc(a: BeachCardData, b: BeachCardData): number {
-  const sa = a.conditions.swimScore;
-  const sb = b.conditions.swimScore;
-  if (sa === null && sb === null) {
-    return 0;
-  }
-  if (sa === null) {
-    return 1;
-  }
-  if (sb === null) {
-    return -1;
-  }
-  return sb - sa;
-}
-
-function MetricRow({
-  icon,
-  label,
-  value
-}: {
-  icon: ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4 text-sm">
-      <div className="flex items-center gap-2 text-slate-600">
-        {icon}
-        <span>{label}</span>
-      </div>
-      <span className="font-medium text-slate-800">{value}</span>
-    </div>
-  );
-}
-
-function WaveIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 text-ocean-700">
-      <path
-        d="M2 14c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-      <path
-        d="M2 18c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function WindIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 text-ocean-700">
-      <path
-        d="M3 10h11a2.5 2.5 0 1 0-2.5-2.5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-      <path
-        d="M3 14h15a2.5 2.5 0 1 1-2.5 2.5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function CompassIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 text-ocean-700">
-      <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="1.8" />
-      <path
-        d="M9 15l2-6 6-2-2 6-6 2z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function TimerIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 text-ocean-700">
-      <circle cx="12" cy="14" r="7" fill="none" stroke="currentColor" strokeWidth="1.8" />
-      <path
-        d="M12 14V10m0 4 2.5 1.5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-      <path d="M9 3h6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function SurfSpotPill() {
-  return (
-    <span
-      className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-600 ring-1 ring-inset ring-slate-200/90"
-      title="Surf spot"
-    >
-      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3 w-3 shrink-0 text-slate-500">
-        <path
-          d="M6 20c1.5-4 4-7 8-9l2 2c-2 4-5 6.5-9 8l-1-1Z"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M14 11c2-1 4-1.5 5.5-1M12 13c1.5 1.5 3 2.5 5 3"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        />
-      </svg>
-      Surf spot
-    </span>
-  );
-}
-
-function CameraIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      className="h-5 w-5 text-ocean-600 transition-colors hover:text-ocean-700"
-    >
-      <path
-        d="M4 7a2 2 0 0 1 2-2h1.5l1-1.5A2 2 0 0 1 10.2 3h3.6a2 2 0 0 1 1.7.95L16.5 5H18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-      <circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
-    </svg>
-  );
 }
 
 export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
@@ -309,7 +131,7 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
     parseCoastFromQuery(coastParam)
   );
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortOption, setSortOption] = useState<SortOption>(() =>
+  const [sortOption, setSortOption] = useState<BeachBoardSortOption>(() =>
     parseSortFromQuery(sortParam)
   );
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -343,59 +165,16 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
     setSortOption("coast");
   }, [searchParams, pathname, router]);
 
-  const coastFiltered = useMemo(() => {
-    if (coastFilter === "All") {
-      return beachCards;
-    }
-    return beachCards.filter((b) => b.coast === coastFilter);
-  }, [beachCards, coastFilter]);
-
-  const searchFiltered = useMemo(
-    () => filterBeachesBySearch(coastFiltered, searchQuery),
-    [coastFiltered, searchQuery]
+  const displayedCards = useMemo(
+    () =>
+      getDisplayedBeachCards(beachCards, {
+        coastFilter,
+        searchQuery,
+        sortOption,
+        userCoords
+      }),
+    [beachCards, coastFilter, searchQuery, sortOption, userCoords]
   );
-
-  const displayedCards = useMemo(() => {
-    const list = searchFiltered;
-    switch (sortOption) {
-      case "coast":
-        return [...list].sort((a, b) => {
-          const byCoast = coastSortRank(a.coast) - coastSortRank(b.coast);
-          if (byCoast !== 0) {
-            return byCoast;
-          }
-          return a.name.localeCompare(b.name);
-        });
-      case "name":
-        return [...list].sort((a, b) => a.name.localeCompare(b.name));
-      case "swim": {
-        const swim = list.filter(
-          (b) => (b.seaState === "calm" || b.seaState === "moderate") && !b.isSurfSpot
-        );
-        return [...swim].sort(compareScoreDesc);
-      }
-      case "surf": {
-        const surf = list.filter((b) => b.isSurfSpot);
-        return [...surf].sort(compareScoreDesc);
-      }
-      case "scenic": {
-        const scenic = list.filter((b) => b.seaState === "rough");
-        return [...scenic].sort(compareScoreDesc);
-      }
-      case "nearest": {
-        if (!userCoords) {
-          return [...list];
-        }
-        return [...list].sort((a, b) => {
-          const da = haversineKm(userCoords.lat, userCoords.lng, a.latitude, a.longitude);
-          const db = haversineKm(userCoords.lat, userCoords.lng, b.latitude, b.longitude);
-          return da - db;
-        });
-      }
-      default:
-        return list;
-    }
-  }, [searchFiltered, sortOption, userCoords]);
 
   const searchActive = searchQuery.trim() !== "";
 
@@ -439,7 +218,7 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
     }
   };
 
-  const updateSortOption = (nextSort: SortOption) => {
+  const updateSortOption = (nextSort: BeachBoardSortOption) => {
     setSortOption(nextSort);
 
     const params = new URLSearchParams(searchParams.toString());
@@ -454,7 +233,7 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
   };
 
   const handleSortSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = event.target.value as SortOption;
+    const value = event.target.value as BeachBoardSortOption;
     if (value === sortOption) {
       return;
     }
@@ -623,143 +402,17 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
         ) : (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {displayedCards.map((beach) => (
-          <article
-            key={beach.slug}
-            className="group relative isolate h-full overflow-hidden rounded-2xl border border-ocean-100/70 bg-white/75 shadow-sm backdrop-blur-sm transition hover:border-ocean-300/80 hover:shadow-md focus-within:outline-none focus-within:ring-2 focus-within:ring-ocean-400 focus-within:ring-offset-2"
-          >
-            <div className={`relative h-32 w-full overflow-hidden ${beach.heroClass}`}>
-              {beach.photoUrl ? (
-                <Image
-                  src={beach.photoUrl}
-                  alt=""
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 400px"
-                  unoptimized={!isSupabaseStorageUrl(beach.photoUrl)}
-                />
-              ) : null}
-            </div>
-            <div className="space-y-4 p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start gap-2">
-                    <h2 className="text-xl font-semibold leading-snug text-slate-800">
-                      <Link
-                        href={`/beaches/${beach.slug}`}
-                        onClick={() =>
-                          trackEvent("select_beach", { beach_slug: beach.slug, beach_name: beach.name })
-                        }
-                        className="text-inherit no-underline decoration-transparent outline-none ring-0 visited:text-inherit hover:text-inherit hover:no-underline hover:decoration-transparent focus:outline-none after:absolute after:inset-0 after:z-[1] after:content-['']"
-                      >
-                        {beach.name}
-                      </Link>
-                    </h2>
-                    {beach.webcamUrl.trim() !== "" && (
-                      <button
-                        type="button"
-                        className="relative z-[2] mt-0.5 shrink-0 rounded-md p-0.5 hover:bg-ocean-50"
-                        title="Live webcam"
-                        aria-label={`Live webcam for ${beach.name}`}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          window.open(beach.webcamUrl, "_blank", "noopener,noreferrer");
-                        }}
-                      >
-                        <CameraIcon />
-                      </button>
-                    )}
-                  </div>
-                  <p className="mt-1 text-xs text-slate-500">{beach.parish}</p>
-                  {beach.photoUrl === BEACH_PHOTO_PLACEHOLDER ? (
-                    <p className="mt-0.5 text-[11px] leading-snug text-slate-400">Photo unavailable</p>
-                  ) : null}
-                </div>
-                <div className="flex shrink-0 flex-col items-end gap-1">
-                  <p
-                    className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${scoreStyles(
-                      beach.conditions.swimScore
-                    )}`}
-                  >
-                    {activityLabel(beach)} {formatScoreLabel(beach.conditions.swimScore)}
-                  </p>
-                  {sortOption === "nearest" && userCoords ? (
-                    <span className="text-xs text-slate-500">
-                      {formatDistanceKm(
+              <BeachCard
+                key={beach.slug}
+                beach={beach}
+                nearestDistanceLabel={
+                  sortOption === "nearest" && userCoords
+                    ? formatDistanceKm(
                         haversineKm(userCoords.lat, userCoords.lng, beach.latitude, beach.longitude)
-                      )}
-                    </span>
-                  ) : null}
-                </div>
-              </div>
-              {beach.conditions.swimScore === null && (
-                <p className="text-xs text-slate-500">{missingScoreReason(beach.conditions)}</p>
-              )}
-              <p className="text-sm text-slate-600">
-                <BeachProse markdown={beach.description} linkOverlayClassName="relative z-[2]" />
-              </p>
-              <p className="text-xs leading-relaxed text-slate-600">
-                <span className="font-semibold text-slate-700">Best for:</span> {beach.bestFor}
-              </p>
-
-              <div className="space-y-2.5">
-                <MetricRow
-                  icon={<WaveIcon />}
-                  label="Wave height"
-                  value={formatValue(beach.conditions.waveHeight, "m")}
-                />
-                <MetricRow
-                  icon={<TimerIcon />}
-                  label="Wave period"
-                  value={formatValue(beach.conditions.wavePeriod, "s")}
-                />
-                <MetricRow
-                  icon={<WindIcon />}
-                  label="Wind speed"
-                  value={formatValue(beach.conditions.windSpeed, "km/h")}
-                />
-                <MetricRow
-                  icon={<CompassIcon />}
-                  label="Wind direction"
-                  value={degreesToCompass(beach.conditions.windDirection)}
-                />
-              </div>
-              <div className="flex flex-wrap items-center gap-2 pt-0.5">
-                <span
-                  className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${coastChipStyles(
-                    beach.coast
-                  )}`}
-                >
-                  {beach.coast} coast
-                </span>
-                <span
-                  className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${seaStateChipStyles(
-                    beach.seaState
-                  )}`}
-                >
-                  {seaStateLabel(beach.seaState)}
-                </span>
-                {beach.isSurfSpot ? <SurfSpotPill /> : null}
-              </div>
-              {beach.sargassum && (
-                <div className="pt-1">
-                  <SargassumBadge display={beach.sargassum} subtleUnavailable />
-                </div>
-              )}
-              <p className="border-t border-slate-100 pt-3 text-xs italic leading-relaxed text-slate-500">
-                <BeachProse markdown={beach.notes} linkOverlayClassName="relative z-[2]" />
-              </p>
-              <p
-                className={`pt-1 text-xs ${
-                  isStaleTimestamp(beach.conditions.lastUpdatedAt, 2 * 60 * 60 * 1000)
-                    ? "text-amber-700"
-                    : "text-slate-500"
-                }`}
-              >
-                {formatUpdatedTime(beach.conditions.lastUpdatedAt)}
-              </p>
-            </div>
-          </article>
+                      )
+                    : undefined
+                }
+              />
             ))}
           </div>
         )}
