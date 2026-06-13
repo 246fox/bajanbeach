@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { BeachBoard } from "@/components/BeachBoard";
+import { BeachBoardFallback } from "@/components/BeachBoardFallback";
 import { JsonLd } from "@/components/JsonLd";
 import { beaches } from "@/data/beaches";
 import { buildBeachCards } from "@/lib/build-beach-cards";
@@ -54,7 +55,7 @@ export default async function Home() {
         </p>
       </section>
 
-      <Suspense fallback={null}>
+      <Suspense fallback={<BeachBoardFallback beachCards={beachCards} />}>
         <BeachBoard beachCards={beachCards} />
       </Suspense>
     </main>

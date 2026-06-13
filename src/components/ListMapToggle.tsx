@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-
-const ACTIVE =
-  "rounded-full bg-ocean-100 px-4 py-2 text-sm font-semibold text-ocean-700 ring-1 ring-ocean-200";
-const INACTIVE =
-  "rounded-full px-4 py-2 text-sm font-medium text-slate-600 ring-1 ring-slate-200 transition hover:bg-slate-50";
+import {
+  LIST_MAP_TOGGLE_ACTIVE_CLASS,
+  LIST_MAP_TOGGLE_INACTIVE_CLASS
+} from "@/components/list-map-toggle-styles";
 
 export function ListMapToggle() {
   const pathname = usePathname();
@@ -20,10 +19,18 @@ export function ListMapToggle() {
 
   return (
     <div className="flex flex-wrap justify-center gap-2">
-      <Link href={listHref} className={listActive ? ACTIVE : INACTIVE} scroll={false}>
+      <Link
+        href={listHref}
+        className={listActive ? LIST_MAP_TOGGLE_ACTIVE_CLASS : LIST_MAP_TOGGLE_INACTIVE_CLASS}
+        scroll={false}
+      >
         List
       </Link>
-      <Link href={mapHref} className={mapActive ? ACTIVE : INACTIVE} scroll={false}>
+      <Link
+        href={mapHref}
+        className={mapActive ? LIST_MAP_TOGGLE_ACTIVE_CLASS : LIST_MAP_TOGGLE_INACTIVE_CLASS}
+        scroll={false}
+      >
         Map
       </Link>
     </div>

@@ -11,6 +11,35 @@ export type BeachBoardSortOption =
   | "scenic"
   | "nearest";
 
+export const BEACH_BOARD_SORT_OPTIONS: { value: BeachBoardSortOption; label: string }[] = [
+  { value: "coast", label: "Coast" },
+  { value: "name", label: "Name (A-Z)" },
+  { value: "swim", label: "Best for swimming today" },
+  { value: "surf", label: "Best for surfing today" },
+  { value: "scenic", label: "Best for scenic visits today" },
+  { value: "nearest", label: "Nearest first" }
+];
+
+export function getBeachBoardCoastCounts(beachCards: BeachCardData[]): Record<BeachCoast, number> {
+  const counts: Record<BeachCoast, number> = {
+    North: 0,
+    West: 0,
+    South: 0,
+    Southeast: 0,
+    East: 0
+  };
+  for (const b of beachCards) {
+    counts[b.coast] += 1;
+  }
+  return counts;
+}
+
+export function getBeachBoardPhotoBySlug(
+  beachCards: BeachCardData[]
+): Map<string, string | null> {
+  return new Map(beachCards.map((beach) => [beach.slug, beach.photoUrl] as const));
+}
+
 /** Matches coast filter chip order — North first, East last. */
 function coastSortRank(coast: BeachCoast): number {
   const i = COAST_FILTERS.indexOf(coast);

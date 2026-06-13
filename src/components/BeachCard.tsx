@@ -291,12 +291,14 @@ export function BeachCard({
         <p className="border-t border-slate-100 pt-3 text-xs italic leading-relaxed text-slate-500">
           <BeachProse markdown={beach.notes} linkOverlayClassName="relative z-[2]" />
         </p>
+        {/* isStaleTimestamp uses Date.now(); suppressHydrationWarning avoids server/client text mismatch */}
         <p
           className={`pt-1 text-xs ${
             isStaleTimestamp(beach.conditions.lastUpdatedAt, 2 * 60 * 60 * 1000)
               ? "text-amber-700"
               : "text-slate-500"
           }`}
+          suppressHydrationWarning
         >
           {formatUpdatedTime(beach.conditions.lastUpdatedAt)}
         </p>
