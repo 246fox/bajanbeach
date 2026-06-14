@@ -19,6 +19,23 @@ export const beachBatch05: Beach[] = [
       "Also called  Accra Beach by locals, Rockley Beach is the formal name. The Boardwalk is at the eastern end of the beach and runs east for 1.2 kms toward Hastings."
   },
   {
+    name: "Hastings Beach",
+    slug: "hastings-beach",
+    parish: "Christ Church",
+    coast: "South",
+    seaState: "calm",
+    waveActionBaseline: "low",
+    isSurfSpot: false,
+    latitude: 13.074804151020308,
+    longitude: -59.600166103281076,
+    webcamUrl: "",
+    description:
+      "At the western end of the mile-long Richard Haynes Boardwalk, this small, well-shaded cove is a sheltered exception on a stretch of south coast that is otherwise predominantly rocky. A breakwater attenuates the swells and protects a calm, sandy-bottomed swimming area. The gentle, protected water makes it a dependable choice for families with young children.",
+    bestFor: "Families, swimming, calm-water bathing, boardwalk strolls",
+    notes:
+      "Sits at the quiet western end of the Richard Haynes Boardwalk, with free parking and restaurants nearby. The breakwater-protected cove is the sheltered swimming spot, while the open boardwalk beaches further east carry stronger currents. This beach is a turtle nesting area, so nesting females and hatchlings are occasionally seen."
+  },
+  {
     name: "Silver Sands Beach",
     slug: "silver-sands-beach",
     parish: "Christ Church",

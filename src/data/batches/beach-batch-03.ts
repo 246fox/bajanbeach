@@ -33,6 +33,23 @@ export const beachBatch03: Beach[] = [
     notes: "Good base for exploring Speightstown and its plentiful beach front bars and restaurants"
   },
   {
+    name: "Smitons Bay",
+    slug: "smitons-bay",
+    parish: "St. Peter",
+    coast: "West",
+    seaState: "calm",
+    waveActionBaseline: "low",
+    isSurfSpot: false,
+    latitude: 13.273045289418548,
+    longitude: -59.646525156393984,
+    webcamUrl: "https://iwcpinc.com/cameras/fish_pot",
+    description:
+      "A quiet stretch of sand straddling the St. Peter and St. Lucy border, near the old fishing village of Shermans just north of Speightstown. This is the low-key north-west coast at its most secluded, with little to no crowds even on weekends and clear, reef-sheltered water that makes for pristine, easy swimming. The Fish Pot restaurant anchors the southern end of the bay, set in a converted 17th-century coral-stone fort as part of the Little Good Harbour hotel.",
+    bestFor: "Seclusion, swimming, quiet escapes",
+    notes:
+      "Beach facilities are limited, so it's best to bring your own supplies. The Fish Pot offers some amenities and dining (reservations recommended). The bay sits north of the west coast's main strip, so it stays peaceful even in season."
+  },
+  {
     name: "Maycocks Bay",
     slug: "maycocks-bay",
     parish: "St. Lucy",
