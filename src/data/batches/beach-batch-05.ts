@@ -13,7 +13,7 @@ export const beachBatch05: Beach[] = [
     longitude: -59.5886427121019,
     webcamUrl: "https://v2.iwcpinc.com/cameras/ncc_accra_2",
     description:
-      "The undisputed nucleus of South Coast tourism (also known as Accra Beach). Crescent bay creating dynamic conditions: shallow rock-protected pool at the eastern tip perfect for toddlers, while the centre provides lively rolling waves ideal for boogie boarding. Anchors the western end of the South Coast Boardwalk.",
+      "The undisputed nucleus of South Coast tourism (also known as Accra Beach). Crescent bay creating dynamic conditions: shallow rock-protected pool at the eastern tip perfect for toddlers, while the centre provides lively rolling waves ideal for boogie boarding. Anchors the eastern end of the South Coast Boardwalk.",
     bestFor: "Families with toddlers, bodyboarding, boardwalk access, beach bars, watersports",
     notes:
       "Also called  Accra Beach by locals, Rockley Beach is the formal name. The Boardwalk is at the eastern end of the beach and runs east for 1.2 kms toward Hastings."
