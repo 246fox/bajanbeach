@@ -57,32 +57,64 @@ function angularDiffDeg(a: number, b: number): number {
   return Math.min(d, 360 - d);
 }
 
-/** Meteorological wind FROM (degrees). Offshore/onshore within ±60° of opposite / same as coast facing. */
-export function windDirectionModifier(coast: Beach["coast"], windDirection: number | null): number {
+const coastFacingDeg: Record<Beach["coast"], number> = {
+  North: 0,
+  East: 90,
+  South: 180,
+  Southeast: 135,
+  West: 270
+};
+
+export type WindDirectionRelation = {
+  modifier: number;
+  category: "offshore" | "onshore" | "neutral" | "unknown";
+  /** Human-readable line for score lab / explain */
+  summary: string;
+};
+
+/**
+ * Meteorological wind FROM (degrees). Offshore/onshore within ±60° of opposite / same as coast facing.
+ * Single source of truth for modifier + lab copy text.
+ */
+export function windDirectionRelation(
+  coast: Beach["coast"],
+  windDirection: number | null
+): WindDirectionRelation {
   if (windDirection === null || Number.isNaN(windDirection)) {
-    return 0;
+    return {
+      modifier: 0,
+      category: "unknown",
+      summary: "Wind direction missing or NaN — neutral (no directional adjustment)."
+    };
   }
   const w = ((windDirection % 360) + 360) % 360;
-
-  const coastFacingDeg: Record<Beach["coast"], number> = {
-    North: 0,
-    East: 90,
-    South: 180,
-    Southeast: 135,
-    West: 270
-  };
-
   const face = coastFacingDeg[coast];
   const offshoreBearing = (face + 180) % 360;
   const onshoreBearing = face;
 
   if (angularDiffDeg(w, offshoreBearing) <= 60) {
-    return 0.5;
+    return {
+      modifier: 0.5,
+      category: "offshore",
+      summary: `Offshore wind (within ±60° of offshore bearing ${offshoreBearing}° for ${coast}-facing coast) — +0.5.`
+    };
   }
   if (angularDiffDeg(w, onshoreBearing) <= 60) {
-    return -1.0;
+    return {
+      modifier: -1.0,
+      category: "onshore",
+      summary: `Onshore wind (within ±60° of onshore bearing ${onshoreBearing}° for ${coast}-facing coast) — −1.0.`
+    };
   }
-  return 0;
+  return {
+    modifier: 0,
+    category: "neutral",
+    summary: `Neither offshore (${offshoreBearing}°) nor onshore (${onshoreBearing}°) within ±60° — neutral (0).`
+  };
+}
+
+export function windDirectionModifier(coast: Beach["coast"], windDirection: number | null): number {
+  return windDirectionRelation(coast, windDirection).modifier;
 }
 
 function sargassumRoughPenalty(level: SargassumLevelForScore): number {
@@ -166,11 +198,15 @@ function swimToleranceFloor(
   return null;
 }
 
+type ScoringLogFn = (payload: Record<string, unknown>) => void;
+
 function applySeaStateWaveActionFloorsCeilings(
   beach: Pick<Beach, "slug" | "seaState" | "waveActionBaseline">,
   waveHeight: number | null,
   score: number,
-  sargassumLevel: SargassumLevelForScore
+  sargassumLevel: SargassumLevelForScore,
+  logScoring: ScoringLogFn | null,
+  pushStep: ((step: Omit<BeachScoreStep, "order">) => void) | null
 ): number {
   let s = score;
   const floorVal = swimToleranceFloor(beach, sargassumLevel);
@@ -179,22 +215,43 @@ function applySeaStateWaveActionFloorsCeilings(
     if (floorVal !== null && waveHeight !== null && waveHeight < 2.0 && s < floorVal) {
       const before = s;
       s = floorVal;
-      console.log("[scoring]", {
-        beachSlug: beach.slug,
-        rule: `floor_${floorVal}_calm_low_lt_2m`,
-        sargassumLevel: sargassumLevel ?? "low",
-        scoreBeforeFloorCeiling: before,
-        finalAfterFloorCeiling: s
+      if (logScoring) {
+        logScoring({
+          beachSlug: beach.slug,
+          rule: `floor_${floorVal}_calm_low_lt_2m`,
+          sargassumLevel: sargassumLevel ?? "low",
+          scoreBeforeFloorCeiling: before,
+          finalAfterFloorCeiling: s
+        });
+      }
+      pushStep?.({
+        kind: "floor",
+        title: `Swim-tolerance floor → ${floorVal}`,
+        detail: `Rule floor_${floorVal}_calm_low_lt_2m. Triggered because wave height < 2 m, score ${before.toFixed(3)} was below floor ${floorVal} (calm sea, low wave baseline; sargassum tier treated as ${sargassumLevel ?? "low"}).`,
+        valueBefore: before,
+        valueAfter: s,
+        delta: s - before
       });
     }
     if (s > 10) {
       const before = s;
       s = 10;
-      console.log("[scoring]", {
-        beachSlug: beach.slug,
-        rule: "ceiling_10_calm_low",
-        scoreBeforeFloorCeiling: before,
-        finalAfterFloorCeiling: s
+      if (logScoring) {
+        logScoring({
+          beachSlug: beach.slug,
+          rule: "ceiling_10_calm_low",
+          scoreBeforeFloorCeiling: before,
+          finalAfterFloorCeiling: s
+        });
+      }
+      pushStep?.({
+        kind: "ceiling",
+        title: "Ceiling at 10 (calm / low baseline)",
+        detail:
+          "Rule ceiling_10_calm_low. Triggered because score exceeded 10 after prior steps for calm sea with low wave baseline.",
+        valueBefore: before,
+        valueAfter: s,
+        delta: s - before
       });
     }
     return s;
@@ -204,22 +261,43 @@ function applySeaStateWaveActionFloorsCeilings(
     if (floorVal !== null && waveHeight !== null && waveHeight < 2.0 && s < floorVal) {
       const before = s;
       s = floorVal;
-      console.log("[scoring]", {
-        beachSlug: beach.slug,
-        rule: `floor_${floorVal}_moderate_medium_lt_2m`,
-        sargassumLevel: sargassumLevel ?? "low",
-        scoreBeforeFloorCeiling: before,
-        finalAfterFloorCeiling: s
+      if (logScoring) {
+        logScoring({
+          beachSlug: beach.slug,
+          rule: `floor_${floorVal}_moderate_medium_lt_2m`,
+          sargassumLevel: sargassumLevel ?? "low",
+          scoreBeforeFloorCeiling: before,
+          finalAfterFloorCeiling: s
+        });
+      }
+      pushStep?.({
+        kind: "floor",
+        title: `Swim-tolerance floor → ${floorVal}`,
+        detail: `Rule floor_${floorVal}_moderate_medium_lt_2m. Triggered because wave height < 2 m, score ${before.toFixed(3)} was below floor ${floorVal} (moderate sea, medium wave baseline; sargassum tier treated as ${sargassumLevel ?? "low"}).`,
+        valueBefore: before,
+        valueAfter: s,
+        delta: s - before
       });
     }
     if (s > 9) {
       const before = s;
       s = 9;
-      console.log("[scoring]", {
-        beachSlug: beach.slug,
-        rule: "ceiling_9_moderate_medium",
-        scoreBeforeFloorCeiling: before,
-        finalAfterFloorCeiling: s
+      if (logScoring) {
+        logScoring({
+          beachSlug: beach.slug,
+          rule: "ceiling_9_moderate_medium",
+          scoreBeforeFloorCeiling: before,
+          finalAfterFloorCeiling: s
+        });
+      }
+      pushStep?.({
+        kind: "ceiling",
+        title: "Ceiling at 9 (moderate / medium baseline)",
+        detail:
+          "Rule ceiling_9_moderate_medium. Triggered because score exceeded 9 for moderate sea with medium wave baseline.",
+        valueBefore: before,
+        valueAfter: s,
+        delta: s - before
       });
     }
     return s;
@@ -229,22 +307,43 @@ function applySeaStateWaveActionFloorsCeilings(
     if (floorVal !== null && waveHeight !== null && waveHeight < 2.0 && s < floorVal) {
       const before = s;
       s = floorVal;
-      console.log("[scoring]", {
-        beachSlug: beach.slug,
-        rule: `floor_${floorVal}_moderate_high_lt_2m`,
-        sargassumLevel: sargassumLevel ?? "low",
-        scoreBeforeFloorCeiling: before,
-        finalAfterFloorCeiling: s
+      if (logScoring) {
+        logScoring({
+          beachSlug: beach.slug,
+          rule: `floor_${floorVal}_moderate_high_lt_2m`,
+          sargassumLevel: sargassumLevel ?? "low",
+          scoreBeforeFloorCeiling: before,
+          finalAfterFloorCeiling: s
+        });
+      }
+      pushStep?.({
+        kind: "floor",
+        title: `Swim-tolerance floor → ${floorVal}`,
+        detail: `Rule floor_${floorVal}_moderate_high_lt_2m. Triggered because wave height < 2 m, score ${before.toFixed(3)} was below floor ${floorVal} (moderate sea, high wave baseline; sargassum tier treated as ${sargassumLevel ?? "low"}).`,
+        valueBefore: before,
+        valueAfter: s,
+        delta: s - before
       });
     }
     if (s > 8) {
       const before = s;
       s = 8;
-      console.log("[scoring]", {
-        beachSlug: beach.slug,
-        rule: "ceiling_8_moderate_high",
-        scoreBeforeFloorCeiling: before,
-        finalAfterFloorCeiling: s
+      if (logScoring) {
+        logScoring({
+          beachSlug: beach.slug,
+          rule: "ceiling_8_moderate_high",
+          scoreBeforeFloorCeiling: before,
+          finalAfterFloorCeiling: s
+        });
+      }
+      pushStep?.({
+        kind: "ceiling",
+        title: "Ceiling at 8 (moderate / high baseline)",
+        detail:
+          "Rule ceiling_8_moderate_high. Triggered because score exceeded 8 for moderate sea with high wave baseline.",
+        valueBefore: before,
+        valueAfter: s,
+        delta: s - before
       });
     }
     return s;
@@ -253,7 +352,731 @@ function applySeaStateWaveActionFloorsCeilings(
   return s;
 }
 
-function computeBeachScore(
+export type BeachScoreStepKind =
+  | "null_guard"
+  | "base"
+  | "wave_height"
+  | "period"
+  | "wind_speed"
+  | "wind_direction"
+  | "sargassum"
+  | "floor"
+  | "ceiling"
+  | "clamp"
+  | "round";
+
+export type BeachScoreStep = {
+  order: number;
+  kind: BeachScoreStepKind;
+  title: string;
+  detail?: string;
+  valueBefore: number | null;
+  valueAfter: number | null;
+  /** Additive change where applicable */
+  delta?: number | null;
+};
+
+export type ExplainBeachScoreResult = {
+  score: number | null;
+  steps: BeachScoreStep[];
+};
+
+type RunMode = {
+  emitLogs: boolean;
+  recordSteps: boolean;
+};
+
+function runBeachScore(
+  beach: Pick<Beach, "slug" | "seaState" | "waveActionBaseline" | "coast">,
+  waveHeight: number | null,
+  wavePeriod: number | null,
+  windSpeed: number | null,
+  windDirection: number | null,
+  sargassumLevel: SargassumLevelForScore,
+  mode: RunMode
+): ExplainBeachScoreResult {
+  const steps: BeachScoreStep[] = [];
+  let order = 0;
+  const push = mode.recordSteps
+    ? (step: Omit<BeachScoreStep, "order">) => {
+        order += 1;
+        steps.push({ ...step, order });
+      }
+    : null;
+
+  const logScoring: ScoringLogFn | null = mode.emitLogs
+    ? (payload) => {
+        console.log("[scoring]", payload);
+      }
+    : null;
+
+  if (waveHeight === null || windSpeed === null) {
+    push?.({
+      kind: "null_guard",
+      title: "No score (missing inputs)",
+      detail:
+        waveHeight === null && windSpeed === null
+          ? "Both wave height and wind speed are required; both were null."
+          : waveHeight === null
+            ? "Wave height is null — cannot score."
+            : "Wind speed is null — cannot score.",
+      valueBefore: null,
+      valueAfter: null,
+      delta: null
+    });
+    return { score: null, steps: mode.recordSteps ? steps : [] };
+  }
+
+  if (beach.seaState === "rough") {
+    let roughScore = 7;
+    push?.({
+      kind: "base",
+      title: "Rough / scenic base",
+      detail: "Rough sea state starts from base 7 before wave, wind, period, direction, and sargassum adjustments.",
+      valueBefore: null,
+      valueAfter: roughScore,
+      delta: null
+    });
+
+    if (waveHeight > 3.5) {
+      const before = roughScore;
+      roughScore -= 2;
+      push?.({
+        kind: "wave_height",
+        title: "Wave height (rough)",
+        detail: `Wave height ${waveHeight} m > 3.5 m — apply −2.`,
+        valueBefore: before,
+        valueAfter: roughScore,
+        delta: -2
+      });
+    } else if (waveHeight > 2.5) {
+      const before = roughScore;
+      roughScore -= 1;
+      push?.({
+        kind: "wave_height",
+        title: "Wave height (rough)",
+        detail: `Wave height ${waveHeight} m > 2.5 m — apply −1.`,
+        valueBefore: before,
+        valueAfter: roughScore,
+        delta: -1
+      });
+    } else {
+      push?.({
+        kind: "wave_height",
+        title: "Wave height (rough)",
+        detail: `Wave height ${waveHeight} m ≤ 2.5 m — no wave-height tier penalty.`,
+        valueBefore: roughScore,
+        valueAfter: roughScore,
+        delta: 0
+      });
+    }
+
+    if (windSpeed > 45) {
+      const before = roughScore;
+      roughScore -= 2.5;
+      push?.({
+        kind: "wind_speed",
+        title: "Wind speed (rough)",
+        detail: `Wind ${windSpeed} km/h > 45 — apply −2.5.`,
+        valueBefore: before,
+        valueAfter: roughScore,
+        delta: -2.5
+      });
+    } else if (windSpeed > 35) {
+      const before = roughScore;
+      roughScore -= 1.5;
+      push?.({
+        kind: "wind_speed",
+        title: "Wind speed (rough)",
+        detail: `Wind ${windSpeed} km/h > 35 — apply −1.5.`,
+        valueBefore: before,
+        valueAfter: roughScore,
+        delta: -1.5
+      });
+    } else {
+      push?.({
+        kind: "wind_speed",
+        title: "Wind speed (rough)",
+        detail: `Wind ${windSpeed} km/h ≤ 35 — no rough wind-speed tier penalty.`,
+        valueBefore: roughScore,
+        valueAfter: roughScore,
+        delta: 0
+      });
+    }
+
+    if (wavePeriod !== null && !Number.isNaN(wavePeriod) && wavePeriod >= 8) {
+      const before = roughScore;
+      roughScore += 0.3;
+      push?.({
+        kind: "period",
+        title: "Wave period (rough)",
+        detail: `Period ${wavePeriod} s ≥ 8 s — apply +0.3.`,
+        valueBefore: before,
+        valueAfter: roughScore,
+        delta: 0.3
+      });
+    } else {
+      push?.({
+        kind: "period",
+        title: "Wave period (rough)",
+        detail: "Period null/NaN or < 8 s — no period bump on rough path.",
+        valueBefore: roughScore,
+        valueAfter: roughScore,
+        delta: 0
+      });
+    }
+
+    const wd = windDirectionRelation(beach.coast, windDirection);
+    {
+      const before = roughScore;
+      roughScore += wd.modifier;
+      push?.({
+        kind: "wind_direction",
+        title: "Wind direction vs coast",
+        detail: wd.summary,
+        valueBefore: before,
+        valueAfter: roughScore,
+        delta: wd.modifier
+      });
+    }
+
+    {
+      const pen = sargassumRoughPenalty(sargassumLevel);
+      const before = roughScore;
+      roughScore += pen;
+      push?.({
+        kind: "sargassum",
+        title: "Sargassum (rough / scenic)",
+        detail: `Level ${String(sargassumLevel)} — penalty ${pen}.`,
+        valueBefore: before,
+        valueAfter: roughScore,
+        delta: pen
+      });
+    }
+
+    if (waveHeight < 3.0 && windSpeed < 40 && roughScore < 4) {
+      const before = roughScore;
+      roughScore = 4;
+      if (logScoring) {
+        logScoring({
+          beachSlug: beach.slug,
+          rule: "floor_4_rough_visit_window",
+          scoreBeforeFloorCeiling: before,
+          finalAfterFloorCeiling: roughScore
+        });
+      }
+      push?.({
+        kind: "floor",
+        title: "Floor at 4 (rough visit window)",
+        detail:
+          "Rule floor_4_rough_visit_window. Triggered because wave height < 3 m, wind speed < 40 km/h, and score was below 4.",
+        valueBefore: before,
+        valueAfter: roughScore,
+        delta: roughScore - before
+      });
+    }
+
+    if (roughScore > 9) {
+      const before = roughScore;
+      roughScore = 9;
+      if (logScoring) {
+        logScoring({
+          beachSlug: beach.slug,
+          rule: "ceiling_9_rough",
+          scoreBeforeFloorCeiling: before,
+          finalAfterFloorCeiling: roughScore
+        });
+      }
+      push?.({
+        kind: "ceiling",
+        title: "Ceiling at 9 (rough)",
+        detail: "Rule ceiling_9_rough. Triggered because rough-path score exceeded 9 before final clamp/round.",
+        valueBefore: before,
+        valueAfter: roughScore,
+        delta: roughScore - before
+      });
+    }
+
+    const clamped = clampToRange(roughScore, 1, 10);
+    if (clamped !== roughScore) {
+      push?.({
+        kind: "clamp",
+        title: "Clamp to 1–10",
+        detail: `Raw value ${roughScore.toFixed(4)} was outside [1, 10].`,
+        valueBefore: roughScore,
+        valueAfter: clamped,
+        delta: clamped - roughScore
+      });
+    } else {
+      push?.({
+        kind: "clamp",
+        title: "Clamp to 1–10",
+        detail: "Value already inside [1, 10] — no change.",
+        valueBefore: roughScore,
+        valueAfter: clamped,
+        delta: 0
+      });
+    }
+    const finalRounded = Math.round(clamped);
+    if (finalRounded !== clamped) {
+      push?.({
+        kind: "round",
+        title: "Round to integer score",
+        detail: `Rounded ${clamped.toFixed(4)} to nearest integer.`,
+        valueBefore: clamped,
+        valueAfter: finalRounded,
+        delta: finalRounded - clamped
+      });
+    } else {
+      push?.({
+        kind: "round",
+        title: "Round to integer score",
+        detail: "Value already an integer — no rounding change.",
+        valueBefore: clamped,
+        valueAfter: finalRounded,
+        delta: 0
+      });
+    }
+
+    return { score: finalRounded, steps: mode.recordSteps ? steps : [] };
+  }
+
+  let score: number;
+
+  if (beach.waveActionBaseline === "low") {
+    score = 9.5;
+    push?.({
+      kind: "base",
+      title: "Swim base (low wave baseline)",
+      detail: "Low wave-action baseline starts at 9.5.",
+      valueBefore: null,
+      valueAfter: score,
+      delta: null
+    });
+    if (waveHeight > 0.8) {
+      const delta = -Math.min((waveHeight - 0.8) ** 2 * 5, 5);
+      const before = score;
+      score += delta;
+      push?.({
+        kind: "wave_height",
+        title: "Wave height penalty (low baseline)",
+        detail: `Wave ${waveHeight} m > 0.8 m — subtract min((h−0.8)²×5, 5).`,
+        valueBefore: before,
+        valueAfter: score,
+        delta
+      });
+    } else {
+      push?.({
+        kind: "wave_height",
+        title: "Wave height (low baseline)",
+        detail: `Wave ${waveHeight} m ≤ 0.8 m — no wave-height penalty.`,
+        valueBefore: score,
+        valueAfter: score,
+        delta: 0
+      });
+    }
+    {
+      const d = periodModifierSwimBeaches("low", wavePeriod);
+      const before = score;
+      score += d;
+      push?.({
+        kind: "period",
+        title: "Wave period (low baseline)",
+        detail: "Swim-beach period curve for low baseline (high baseline branch not used).",
+        valueBefore: before,
+        valueAfter: score,
+        delta: d
+      });
+    }
+    {
+      const wd = windDirectionRelation(beach.coast, windDirection);
+      const before = score;
+      score += wd.modifier;
+      push?.({
+        kind: "wind_direction",
+        title: "Wind direction vs coast",
+        detail: wd.summary,
+        valueBefore: before,
+        valueAfter: score,
+        delta: wd.modifier
+      });
+    }
+    if (windSpeed > 25 && windSpeed <= 30) {
+      const before = score;
+      score -= 1;
+      push?.({
+        kind: "wind_speed",
+        title: "Wind speed (low baseline)",
+        detail: `Wind ${windSpeed} km/h in (25, 30] — −1.`,
+        valueBefore: before,
+        valueAfter: score,
+        delta: -1
+      });
+    } else if (windSpeed > 30 && windSpeed <= 35) {
+      const before = score;
+      score -= 1.5;
+      push?.({
+        kind: "wind_speed",
+        title: "Wind speed (low baseline)",
+        detail: `Wind ${windSpeed} km/h in (30, 35] — −1.5.`,
+        valueBefore: before,
+        valueAfter: score,
+        delta: -1.5
+      });
+    } else if (windSpeed > 35) {
+      const before = score;
+      score -= 2;
+      push?.({
+        kind: "wind_speed",
+        title: "Wind speed (low baseline)",
+        detail: `Wind ${windSpeed} km/h > 35 — −2.`,
+        valueBefore: before,
+        valueAfter: score,
+        delta: -2
+      });
+    } else {
+      push?.({
+        kind: "wind_speed",
+        title: "Wind speed (low baseline)",
+        detail: `Wind ${windSpeed} km/h ≤ 25 — no wind-speed penalty on low baseline.`,
+        valueBefore: score,
+        valueAfter: score,
+        delta: 0
+      });
+    }
+    {
+      const d = sargassumSwimPenalty(beach.seaState, sargassumLevel);
+      const before = score;
+      score += d;
+      push?.({
+        kind: "sargassum",
+        title: "Sargassum (swim)",
+        detail: `Level ${String(sargassumLevel)} — adjustment ${d}.`,
+        valueBefore: before,
+        valueAfter: score,
+        delta: d
+      });
+    }
+  } else if (beach.waveActionBaseline === "medium") {
+    score = 7.5;
+    push?.({
+      kind: "base",
+      title: "Swim base (medium wave baseline)",
+      detail: "Medium wave-action baseline starts at 7.5.",
+      valueBefore: null,
+      valueAfter: score,
+      delta: null
+    });
+    if (waveHeight > 1.25) {
+      const penalty = Math.min((waveHeight - 1.25) ** 2 * 4, 5);
+      const before = score;
+      score -= penalty;
+      push?.({
+        kind: "wave_height",
+        title: "Wave height penalty (medium baseline)",
+        detail: `Wave ${waveHeight} m > 1.25 m — subtract min((h−1.25)²×4, 5).`,
+        valueBefore: before,
+        valueAfter: score,
+        delta: -penalty
+      });
+    } else {
+      push?.({
+        kind: "wave_height",
+        title: "Wave height (medium baseline)",
+        detail: `Wave ${waveHeight} m ≤ 1.25 m — no wave-height penalty.`,
+        valueBefore: score,
+        valueAfter: score,
+        delta: 0
+      });
+    }
+    {
+      const d = periodModifierSwimBeaches("medium", wavePeriod);
+      const before = score;
+      score += d;
+      push?.({
+        kind: "period",
+        title: "Wave period (medium baseline)",
+        detail: "Swim-beach period curve for medium baseline.",
+        valueBefore: before,
+        valueAfter: score,
+        delta: d
+      });
+    }
+    {
+      const wd = windDirectionRelation(beach.coast, windDirection);
+      const before = score;
+      score += wd.modifier;
+      push?.({
+        kind: "wind_direction",
+        title: "Wind direction vs coast",
+        detail: wd.summary,
+        valueBefore: before,
+        valueAfter: score,
+        delta: wd.modifier
+      });
+    }
+    if (windSpeed > 30 && windSpeed <= 35) {
+      const before = score;
+      score -= 1;
+      push?.({
+        kind: "wind_speed",
+        title: "Wind speed (medium baseline)",
+        detail: `Wind ${windSpeed} km/h in (30, 35] — −1.`,
+        valueBefore: before,
+        valueAfter: score,
+        delta: -1
+      });
+    } else if (windSpeed > 35 && windSpeed <= 40) {
+      const before = score;
+      score -= 1.5;
+      push?.({
+        kind: "wind_speed",
+        title: "Wind speed (medium baseline)",
+        detail: `Wind ${windSpeed} km/h in (35, 40] — −1.5.`,
+        valueBefore: before,
+        valueAfter: score,
+        delta: -1.5
+      });
+    } else if (windSpeed > 40) {
+      const before = score;
+      score -= 2;
+      push?.({
+        kind: "wind_speed",
+        title: "Wind speed (medium baseline)",
+        detail: `Wind ${windSpeed} km/h > 40 — −2.`,
+        valueBefore: before,
+        valueAfter: score,
+        delta: -2
+      });
+    } else {
+      push?.({
+        kind: "wind_speed",
+        title: "Wind speed (medium baseline)",
+        detail: `Wind ${windSpeed} km/h ≤ 30 — no wind-speed penalty on medium baseline.`,
+        valueBefore: score,
+        valueAfter: score,
+        delta: 0
+      });
+    }
+    {
+      const d = sargassumSwimPenalty(beach.seaState, sargassumLevel);
+      const before = score;
+      score += d;
+      push?.({
+        kind: "sargassum",
+        title: "Sargassum (swim)",
+        detail: `Level ${String(sargassumLevel)} — adjustment ${d}.`,
+        valueBefore: before,
+        valueAfter: score,
+        delta: d
+      });
+    }
+  } else {
+    score = 5.5;
+    push?.({
+      kind: "base",
+      title: "Swim base (high wave baseline)",
+      detail: "High wave-action baseline starts at 5.5.",
+      valueBefore: null,
+      valueAfter: score,
+      delta: null
+    });
+    if (waveHeight < 0.55) {
+      const before = score;
+      score -= 1.2;
+      push?.({
+        kind: "wave_height",
+        title: "Wave height (high baseline)",
+        detail: `Wave ${waveHeight} m < 0.55 m — −1.2.`,
+        valueBefore: before,
+        valueAfter: score,
+        delta: -1.2
+      });
+    } else if (waveHeight <= 3.0) {
+      const add = (waveHeight - 0.55) * 1.35;
+      const before = score;
+      score += add;
+      push?.({
+        kind: "wave_height",
+        title: "Wave height (high baseline)",
+        detail: `Wave ${waveHeight} m in [0.55, 3.0] — add (h − 0.55) × 1.35.`,
+        valueBefore: before,
+        valueAfter: score,
+        delta: add
+      });
+    } else if (waveHeight <= 4.2) {
+      const before = score;
+      score += 2.5;
+      push?.({
+        kind: "wave_height",
+        title: "Wave height (high baseline)",
+        detail: `Wave ${waveHeight} m in (3.0, 4.2] — +2.5.`,
+        valueBefore: before,
+        valueAfter: score,
+        delta: 2.5
+      });
+    } else {
+      const before = score;
+      score -= 0.8;
+      push?.({
+        kind: "wave_height",
+        title: "Wave height (high baseline)",
+        detail: `Wave ${waveHeight} m > 4.2 m — −0.8.`,
+        valueBefore: before,
+        valueAfter: score,
+        delta: -0.8
+      });
+    }
+    {
+      const d = periodModifierHighTolerance(wavePeriod);
+      const before = score;
+      score += d;
+      push?.({
+        kind: "period",
+        title: "Wave period (high-tolerance curve)",
+        detail: "Period modifier for high wave-action baseline.",
+        valueBefore: before,
+        valueAfter: score,
+        delta: d
+      });
+    }
+    {
+      const wd = windDirectionRelation(beach.coast, windDirection);
+      const before = score;
+      score += wd.modifier;
+      push?.({
+        kind: "wind_direction",
+        title: "Wind direction vs coast",
+        detail: wd.summary,
+        valueBefore: before,
+        valueAfter: score,
+        delta: wd.modifier
+      });
+    }
+    if (windSpeed > 35 && windSpeed <= 45) {
+      const before = score;
+      score -= 0.5;
+      push?.({
+        kind: "wind_speed",
+        title: "Wind speed (high baseline)",
+        detail: `Wind ${windSpeed} km/h in (35, 45] — −0.5.`,
+        valueBefore: before,
+        valueAfter: score,
+        delta: -0.5
+      });
+    } else if (windSpeed > 45) {
+      const before = score;
+      score -= 1;
+      push?.({
+        kind: "wind_speed",
+        title: "Wind speed (high baseline)",
+        detail: `Wind ${windSpeed} km/h > 45 — −1.`,
+        valueBefore: before,
+        valueAfter: score,
+        delta: -1
+      });
+    } else {
+      push?.({
+        kind: "wind_speed",
+        title: "Wind speed (high baseline)",
+        detail: `Wind ${windSpeed} km/h ≤ 35 — no wind-speed penalty on high baseline.`,
+        valueBefore: score,
+        valueAfter: score,
+        delta: 0
+      });
+    }
+    {
+      const d = sargassumSwimPenalty(beach.seaState, sargassumLevel);
+      const before = score;
+      score += d;
+      push?.({
+        kind: "sargassum",
+        title: "Sargassum (swim)",
+        detail: `Level ${String(sargassumLevel)} — adjustment ${d}.`,
+        valueBefore: before,
+        valueAfter: score,
+        delta: d
+      });
+    }
+  }
+
+  score = applySeaStateWaveActionFloorsCeilings(
+    beach,
+    waveHeight,
+    score,
+    sargassumLevel,
+    logScoring,
+    push
+  );
+
+  if (beach.seaState === "moderate" && beach.waveActionBaseline === "high" && score > 6) {
+    const before = score;
+    score = Math.min(score, 6);
+    if (logScoring) {
+      logScoring({
+        beachSlug: beach.slug,
+        rule: "ceiling_6_moderate_high_swim",
+        scoreBeforeSwimCeiling: before,
+        finalAfterSwimCeiling: score
+      });
+    }
+    push?.({
+      kind: "ceiling",
+      title: "Swim ceiling at 6 (moderate / high baseline)",
+      detail:
+        "Rule ceiling_6_moderate_high_swim. Triggered because moderate sea with high wave baseline and score exceeded 6 after floor/ceiling pass.",
+      valueBefore: before,
+      valueAfter: score,
+      delta: score - before
+    });
+  }
+
+  const clamped = clampToRange(score, 1, 10);
+  if (clamped !== score) {
+    push?.({
+      kind: "clamp",
+      title: "Clamp to 1–10",
+      detail: `Raw value ${score.toFixed(4)} was outside [1, 10].`,
+      valueBefore: score,
+      valueAfter: clamped,
+      delta: clamped - score
+    });
+  } else {
+    push?.({
+      kind: "clamp",
+      title: "Clamp to 1–10",
+      detail: "Value already inside [1, 10] — no change.",
+      valueBefore: score,
+      valueAfter: clamped,
+      delta: 0
+    });
+  }
+  const finalRounded = Math.round(clamped);
+  if (finalRounded !== clamped) {
+    push?.({
+      kind: "round",
+      title: "Round to integer score",
+      detail: `Rounded ${clamped.toFixed(4)} to nearest integer.`,
+      valueBefore: clamped,
+      valueAfter: finalRounded,
+      delta: finalRounded - clamped
+    });
+  } else {
+    push?.({
+      kind: "round",
+      title: "Round to integer score",
+      detail: "Value already an integer — no rounding change.",
+      valueBefore: clamped,
+      valueAfter: finalRounded,
+      delta: 0
+    });
+  }
+
+  return { score: finalRounded, steps: mode.recordSteps ? steps : [] };
+}
+
+/** Production score — identical to historical behaviour; emits [scoring] logs only here. */
+export function computeBeachScore(
   beach: Pick<Beach, "slug" | "seaState" | "waveActionBaseline" | "coast">,
   waveHeight: number | null,
   wavePeriod: number | null,
@@ -261,125 +1084,43 @@ function computeBeachScore(
   windDirection: number | null,
   sargassumLevel: SargassumLevelForScore
 ): number | null {
-  if (waveHeight === null || windSpeed === null) {
-    return null;
-  }
+  return runBeachScore(beach, waveHeight, wavePeriod, windSpeed, windDirection, sargassumLevel, {
+    emitLogs: true,
+    recordSteps: false
+  }).score;
+}
 
-  if (beach.seaState === "rough") {
-    let roughScore = 7;
+/**
+ * Same numeric result as {@link computeBeachScore} with no console output and no step list.
+ * For client-side batch use (e.g. score lab table); production Open-Meteo path uses {@link computeBeachScore}.
+ */
+export function computeBeachScoreQuiet(
+  beach: Pick<Beach, "slug" | "seaState" | "waveActionBaseline" | "coast">,
+  waveHeight: number | null,
+  wavePeriod: number | null,
+  windSpeed: number | null,
+  windDirection: number | null,
+  sargassumLevel: SargassumLevelForScore
+): number | null {
+  return runBeachScore(beach, waveHeight, wavePeriod, windSpeed, windDirection, sargassumLevel, {
+    emitLogs: false,
+    recordSteps: false
+  }).score;
+}
 
-    if (waveHeight > 3.5) {
-      roughScore -= 2;
-    } else if (waveHeight > 2.5) {
-      roughScore -= 1;
-    }
-
-    if (windSpeed > 45) {
-      roughScore -= 2.5;
-    } else if (windSpeed > 35) {
-      roughScore -= 1.5;
-    }
-
-    if (wavePeriod !== null && !Number.isNaN(wavePeriod) && wavePeriod >= 8) {
-      roughScore += 0.3;
-    }
-
-    roughScore += windDirectionModifier(beach.coast, windDirection);
-    roughScore += sargassumRoughPenalty(sargassumLevel);
-
-    if (waveHeight < 3.0 && windSpeed < 40 && roughScore < 4) {
-      const before = roughScore;
-      roughScore = 4;
-      console.log("[scoring]", {
-        beachSlug: beach.slug,
-        rule: "floor_4_rough_visit_window",
-        scoreBeforeFloorCeiling: before,
-        finalAfterFloorCeiling: roughScore
-      });
-    }
-
-    if (roughScore > 9) {
-      const before = roughScore;
-      roughScore = 9;
-      console.log("[scoring]", {
-        beachSlug: beach.slug,
-        rule: "ceiling_9_rough",
-        scoreBeforeFloorCeiling: before,
-        finalAfterFloorCeiling: roughScore
-      });
-    }
-
-    return roundBeachScore(roughScore);
-  }
-
-  let score: number;
-
-  if (beach.waveActionBaseline === "low") {
-    score = 9.5;
-    if (waveHeight > 0.8) {
-      score -= Math.min((waveHeight - 0.8) ** 2 * 5, 5);
-    }
-    score += periodModifierSwimBeaches("low", wavePeriod);
-    score += windDirectionModifier(beach.coast, windDirection);
-    if (windSpeed > 25 && windSpeed <= 30) {
-      score -= 1;
-    } else if (windSpeed > 30 && windSpeed <= 35) {
-      score -= 1.5;
-    } else if (windSpeed > 35) {
-      score -= 2;
-    }
-    score += sargassumSwimPenalty(beach.seaState, sargassumLevel);
-  } else if (beach.waveActionBaseline === "medium") {
-    score = 7.5;
-    if (waveHeight > 1.25) {
-      const penalty = Math.min((waveHeight - 1.25) ** 2 * 4, 5);
-      score -= penalty;
-    }
-    score += periodModifierSwimBeaches("medium", wavePeriod);
-    score += windDirectionModifier(beach.coast, windDirection);
-    if (windSpeed > 30 && windSpeed <= 35) {
-      score -= 1;
-    } else if (windSpeed > 35 && windSpeed <= 40) {
-      score -= 1.5;
-    } else if (windSpeed > 40) {
-      score -= 2;
-    }
-    score += sargassumSwimPenalty(beach.seaState, sargassumLevel);
-  } else {
-    score = 5.5;
-    if (waveHeight < 0.55) {
-      score -= 1.2;
-    } else if (waveHeight <= 3.0) {
-      score += (waveHeight - 0.55) * 1.35;
-    } else if (waveHeight <= 4.2) {
-      score += 2.5;
-    } else {
-      score -= 0.8;
-    }
-    score += periodModifierHighTolerance(wavePeriod);
-    score += windDirectionModifier(beach.coast, windDirection);
-    if (windSpeed > 35 && windSpeed <= 45) {
-      score -= 0.5;
-    } else if (windSpeed > 45) {
-      score -= 1;
-    }
-    score += sargassumSwimPenalty(beach.seaState, sargassumLevel);
-  }
-
-  score = applySeaStateWaveActionFloorsCeilings(beach, waveHeight, score, sargassumLevel);
-
-  if (beach.seaState === "moderate" && beach.waveActionBaseline === "high" && score > 6) {
-    const before = score;
-    score = Math.min(score, 6);
-    console.log("[scoring]", {
-      beachSlug: beach.slug,
-      rule: "ceiling_6_moderate_high_swim",
-      scoreBeforeSwimCeiling: before,
-      finalAfterSwimCeiling: score
-    });
-  }
-
-  return roundBeachScore(score);
+/** Same scoring as {@link computeBeachScore} with an ordered step list; never writes to console. */
+export function explainBeachScore(
+  beach: Pick<Beach, "slug" | "seaState" | "waveActionBaseline" | "coast">,
+  waveHeight: number | null,
+  wavePeriod: number | null,
+  windSpeed: number | null,
+  windDirection: number | null,
+  sargassumLevel: SargassumLevelForScore
+): ExplainBeachScoreResult {
+  return runBeachScore(beach, waveHeight, wavePeriod, windSpeed, windDirection, sargassumLevel, {
+    emitLogs: false,
+    recordSteps: true
+  });
 }
 
 export type FetchBeachConditionsOptions = {
