@@ -19,7 +19,8 @@ export default function ScoreLabPage() {
     coast: b.coast,
     seaState: b.seaState,
     waveActionBaseline: b.waveActionBaseline,
-    isSurfSpot: b.isSurfSpot
+    isSurfSpot: b.isSurfSpot,
+    sargassumZone: b.sargassumZone
   }));
 
   return (

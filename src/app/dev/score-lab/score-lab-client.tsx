@@ -1,22 +1,39 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
-import type { Beach } from "@/types/beach";
-import type { SargassumLevelForScore } from "@/lib/sargassum";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { Beach, BeachCoast } from "@/types/beach";
+import {
+  coastForSargassumLookup,
+  type SargassumLevelForScore
+} from "@/lib/sargassum";
 import { activityLabel } from "@/lib/beach-format";
 import { computeBeachScoreQuiet, explainBeachScore } from "@/lib/beach-conditions";
 import type { CoastFilter } from "@/lib/coast-filter";
 import { CoastPills } from "@/components/CoastPills";
 import type { ScoreLabBeach } from "./types";
-import { loadLiveBeachConditions } from "./actions";
+import {
+  loadLiveBeachConditions,
+  loadSargassumLevelsForLab,
+  type CoastSargassumMeta
+} from "./actions";
 
 type SortKey = "score" | "coast" | "name";
+type SargassumMode = "uniform" | "per-coast";
+
+const ALL_COASTS: BeachCoast[] = ["North", "West", "South", "Southeast", "East"];
 
 type TableRow = {
   beach: ScoreLabBeach;
   score: number | null;
   label: string;
+  appliedSargassum: SargassumLevelForScore;
+  sargassumLookupCoast: BeachCoast;
+  zoneOverride: boolean;
 };
+
+function emptyPerCoastLevels(): Record<BeachCoast, SargassumLevelForScore> {
+  return { North: null, West: null, South: null, Southeast: null, East: null };
+}
 
 function beachScorePick(b: ScoreLabBeach): Pick<Beach, "slug" | "seaState" | "waveActionBaseline" | "coast"> {
   return {
@@ -25,6 +42,10 @@ function beachScorePick(b: ScoreLabBeach): Pick<Beach, "slug" | "seaState" | "wa
     waveActionBaseline: b.waveActionBaseline,
     coast: b.coast
   };
+}
+
+function formatSargassumLevel(level: SargassumLevelForScore): string {
+  return level === null ? "null" : level;
 }
 
 function formatNum(n: number, decimals: number): string {
@@ -39,6 +60,19 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
   const [windDirectionDeg, setWindDirectionDeg] = useState(270);
   const [windDirectionNull, setWindDirectionNull] = useState(false);
   const [sargassumLevel, setSargassumLevel] = useState<SargassumLevelForScore>("low");
+  const [sargassumMode, setSargassumMode] = useState<SargassumMode>("uniform");
+  const [manualPerCoast, setManualPerCoast] =
+    useState<Record<BeachCoast, SargassumLevelForScore>>(emptyPerCoastLevels);
+  const [sargassumSource, setSargassumSource] = useState<"supabase" | "manual" | null>(null);
+  const [sargassumByCoast, setSargassumByCoast] =
+    useState<Record<BeachCoast, SargassumLevelForScore> | null>(null);
+  const [sargassumMeta, setSargassumMeta] = useState<Record<BeachCoast, CoastSargassumMeta> | null>(
+    null
+  );
+  const [sargassumLoadError, setSargassumLoadError] = useState<string | null>(null);
+  const [sargassumLoading, setSargassumLoading] = useState(false);
+  const [loadLiveUniformWarning, setLoadLiveUniformWarning] = useState(false);
+  const [loadLivePerCoastNote, setLoadLivePerCoastNote] = useState<string | null>(null);
   const [swellHeight, setSwellHeight] = useState(1.0);
   const [swellDirection, setSwellDirection] = useState(60);
   const [tableCoastFilter, setTableCoastFilter] = useState<CoastFilter>("All");
@@ -57,8 +91,67 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
 
   const windDirection = windDirectionNull ? null : windDirectionDeg;
 
+  const perCoastLevels = useMemo((): Record<BeachCoast, SargassumLevelForScore> => {
+    if (sargassumSource === "supabase" && sargassumByCoast) {
+      return sargassumByCoast;
+    }
+    return manualPerCoast;
+  }, [sargassumSource, sargassumByCoast, manualPerCoast]);
+
+  const resolveSargassumForBeach = useCallback(
+    (beach: ScoreLabBeach): SargassumLevelForScore => {
+      if (sargassumMode === "uniform") {
+        return sargassumLevel;
+      }
+      const zone = coastForSargassumLookup(beach);
+      return perCoastLevels[zone];
+    },
+    [sargassumMode, sargassumLevel, perCoastLevels]
+  );
+
+  const refreshSargassum = useCallback(async () => {
+    setSargassumLoading(true);
+    setSargassumLoadError(null);
+    try {
+      const res = await loadSargassumLevelsForLab();
+      if (!res.ok) {
+        setSargassumLoadError(res.error);
+        setSargassumSource("manual");
+        setSargassumByCoast(null);
+        setSargassumMeta(null);
+        return res;
+      }
+      if (res.source === "supabase") {
+        setSargassumSource("supabase");
+        setSargassumByCoast(res.byCoast);
+        setSargassumMeta(res.meta);
+      } else {
+        setSargassumSource("manual");
+        setSargassumByCoast(null);
+        setSargassumMeta(null);
+        if (res.reason) {
+          setSargassumLoadError(res.reason);
+        }
+      }
+      return res;
+    } finally {
+      setSargassumLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (sargassumMode === "per-coast" && sargassumSource === null) {
+      void refreshSargassum();
+    }
+  }, [sargassumMode, sargassumSource, refreshSargassum]);
+
+  const selectedSargassumLevel = useMemo(() => {
+    if (!selected) return null;
+    return resolveSargassumForBeach(selected);
+  }, [selected, resolveSargassumForBeach]);
+
   const explain = useMemo(() => {
-    if (!selected) {
+    if (!selected || selectedSargassumLevel === undefined) {
       return null;
     }
     return explainBeachScore(
@@ -67,24 +160,30 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
       wavePeriod,
       windSpeed,
       windDirection,
-      sargassumLevel
+      selectedSargassumLevel
     );
-  }, [selected, waveHeight, wavePeriod, windSpeed, windDirection, sargassumLevel]);
+  }, [selected, waveHeight, wavePeriod, windSpeed, windDirection, selectedSargassumLevel]);
 
   const tableRows = useMemo(() => {
     const rows: TableRow[] = beaches.map((b) => {
+      const appliedSargassum = resolveSargassumForBeach(b);
+      const sargassumLookupCoast = coastForSargassumLookup(b);
+      const zoneOverride = b.sargassumZone !== undefined && b.sargassumZone !== b.coast;
       const score = computeBeachScoreQuiet(
         beachScorePick(b),
         waveHeight,
         wavePeriod,
         windSpeed,
         windDirection,
-        sargassumLevel
+        appliedSargassum
       );
       return {
         beach: b,
         score,
-        label: activityLabel({ seaState: b.seaState })
+        label: activityLabel({ seaState: b.seaState }),
+        appliedSargassum,
+        sargassumLookupCoast,
+        zoneOverride
       };
     });
 
@@ -123,7 +222,7 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
     wavePeriod,
     windSpeed,
     windDirection,
-    sargassumLevel,
+    resolveSargassumForBeach,
     tableCoastFilter,
     tableSearch,
     sortKey,
@@ -134,10 +233,17 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
 
   const copyScenario = useCallback(() => {
     if (!selected || !explain) return;
+    const lookupCoast = coastForSargassumLookup(selected);
+    const zoneNote =
+      selected.sargassumZone !== undefined && selected.sargassumZone !== selected.coast
+        ? ` (zone override: geographic ${selected.coast} → lookup ${lookupCoast})`
+        : ` (lookup coast ${lookupCoast})`;
     const lines: string[] = [
       `Beach: ${selected.name} (${selected.slug})`,
       `Static: coast=${selected.coast}, seaState=${selected.seaState}, waveActionBaseline=${selected.waveActionBaseline}, isSurfSpot=${selected.isSurfSpot}`,
-      `Inputs: waveHeight_m=${waveHeight}, wavePeriod_s=${wavePeriod === null ? "null" : wavePeriod}, windSpeed_kmh=${windSpeed}, windDirection_deg=${windDirection === null ? "null" : windDirection}, sargassumLevel=${String(sargassumLevel)}`,
+      `Sargassum mode: ${sargassumMode}`,
+      `Sargassum level applied: ${formatSargassumLevel(selectedSargassumLevel)}${zoneNote}`,
+      `Inputs: waveHeight_m=${waveHeight}, wavePeriod_s=${wavePeriod === null ? "null" : wavePeriod}, windSpeed_kmh=${windSpeed}, windDirection_deg=${windDirection === null ? "null" : windDirection}`,
       `Swell (Phase 3, not scored): swellHeight_m=${swellHeight}, swellDirection_deg=${swellDirection}`,
       "",
       `Final score: ${explain.score === null ? "null" : explain.score}`,
@@ -159,29 +265,41 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
   }, [
     selected,
     explain,
+    selectedSargassumLevel,
+    sargassumMode,
     waveHeight,
     wavePeriod,
     windSpeed,
     windDirection,
-    sargassumLevel,
     swellHeight,
     swellDirection
   ]);
 
   const copyAllTable = useCallback(() => {
-    const header =
-      "| Beach | Coast | Sea state | Wave baseline | Score | Label |\n|-------|-------|-----------|---------------|-------|-------|";
+    const sargCol = sargassumMode === "per-coast";
+    const header = sargCol
+      ? "| Beach | Coast | Sea state | Wave baseline | Sargassum | Score | Label |\n|-------|-------|-----------|---------------|-----------|-------|-------|"
+      : "| Beach | Coast | Sea state | Wave baseline | Score | Label |\n|-------|-------|-----------|---------------|-------|-------|";
     const body = tableRows
       .map((r) => {
         const sc = r.score === null ? "null" : String(r.score);
+        const sargCell = `${formatSargassumLevel(r.appliedSargassum)}${r.zoneOverride ? " ↗zone" : ""}`;
+        if (sargCol) {
+          return `| ${r.beach.name} | ${r.beach.coast} | ${r.beach.seaState} | ${r.beach.waveActionBaseline} | ${sargCell} | ${sc} | ${r.label} |`;
+        }
         return `| ${r.beach.name} | ${r.beach.coast} | ${r.beach.seaState} | ${r.beach.waveActionBaseline} | ${sc} | ${r.label} |`;
       })
       .join("\n");
+    const sargassumPreamble =
+      sargassumMode === "uniform"
+        ? `Sargassum mode: uniform — level ${formatSargassumLevel(sargassumLevel)} applied to all beaches`
+        : `Sargassum mode: per-coast (production) — source: ${sargassumSource === "supabase" ? "Supabase" : "manual entry"}`;
     const pre = [
       "## Score lab — all beaches",
       "",
       `Beaches: ${tableRows.length} of ${beaches.length}`,
-      `Inputs: waveHeight_m=${waveHeight}, wavePeriod_s=${wavePeriod === null ? "null" : wavePeriod}, windSpeed_kmh=${windSpeed}, windDirection_deg=${windDirection === null ? "null" : windDirection}, sargassumLevel=${String(sargassumLevel)}`,
+      sargassumPreamble,
+      `Inputs: waveHeight_m=${waveHeight}, wavePeriod_s=${wavePeriod === null ? "null" : wavePeriod}, windSpeed_kmh=${windSpeed}, windDirection_deg=${windDirection === null ? "null" : windDirection}`,
       `Swell (not scored): swellHeight_m=${swellHeight}, swellDirection_deg=${swellDirection}`,
       "",
       header,
@@ -192,11 +310,13 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
   }, [
     tableRows,
     beaches.length,
+    sargassumMode,
+    sargassumLevel,
+    sargassumSource,
     waveHeight,
     wavePeriod,
     windSpeed,
     windDirection,
-    sargassumLevel,
     swellHeight,
     swellDirection
   ]);
@@ -204,6 +324,8 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
   const onLoadLive = async () => {
     if (!selected) return;
     setLiveError(null);
+    setLoadLiveUniformWarning(false);
+    setLoadLivePerCoastNote(null);
     setLiveLoading(true);
     try {
       const res = await loadLiveBeachConditions(selected.slug);
@@ -224,6 +346,28 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
         const d = ((res.windDirection % 360) + 360) % 360;
         setWindDirectionDeg(d);
         setWindDirectionNull(false);
+      }
+
+      if (sargassumMode === "uniform") {
+        setLoadLiveUniformWarning(true);
+      } else {
+        const sargRes = await refreshSargassum();
+        const zone = coastForSargassumLookup(selected);
+        let level: SargassumLevelForScore;
+        let src: string;
+        if (sargRes?.ok && sargRes.source === "supabase") {
+          level = sargRes.byCoast[zone];
+          src = "Supabase";
+        } else {
+          level = manualPerCoast[zone];
+          src = "manual";
+        }
+        setLoadLivePerCoastNote(
+          `Sargassum applied: ${formatSargassumLevel(level)} from ${zone} zone (${src})` +
+            (selected.sargassumZone !== undefined && selected.sargassumZone !== selected.coast
+              ? ` — geographic coast ${selected.coast}, zone override → ${zone}`
+              : "")
+        );
       }
     } finally {
       setLiveLoading(false);
@@ -289,6 +433,138 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
             {liveLoading ? "Loading live…" : "Load live conditions"}
           </button>
           {liveError ? <span className="text-sm text-red-400">{liveError}</span> : null}
+        </div>
+        {loadLiveUniformWarning ? (
+          <p className="rounded border border-amber-800/60 bg-amber-950/40 px-3 py-2 text-sm text-amber-200">
+            Wave and wind were loaded from Open-Meteo, but sargassum is still your uniform manual value (
+            {formatSargassumLevel(sargassumLevel)}). This score will <strong>not</strong> match production until
+            you switch to Per-coast (production) sargassum mode.
+          </p>
+        ) : null}
+        {loadLivePerCoastNote ? (
+          <p className="text-sm text-emerald-400/90">{loadLivePerCoastNote}</p>
+        ) : null}
+
+        <div className="space-y-3 rounded border border-zinc-800 bg-zinc-950/60 p-3 text-sm">
+          <div className="font-medium text-zinc-200">Sargassum mode</div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className={`rounded px-3 py-1.5 ${sargassumMode === "uniform" ? "bg-zinc-700 text-white" : "text-zinc-400 hover:text-white"}`}
+              onClick={() => {
+                setSargassumMode("uniform");
+                setLoadLiveUniformWarning(false);
+                setLoadLivePerCoastNote(null);
+              }}
+            >
+              Uniform scenario
+            </button>
+            <button
+              type="button"
+              className={`rounded px-3 py-1.5 ${sargassumMode === "per-coast" ? "bg-zinc-700 text-white" : "text-zinc-400 hover:text-white"}`}
+              onClick={() => setSargassumMode("per-coast")}
+            >
+              Per-coast (production)
+            </button>
+          </div>
+
+          {sargassumMode === "uniform" ? (
+            <label className="block space-y-1">
+              <span className="text-zinc-400">Sargassum level (all beaches)</span>
+              <select
+                className="w-full max-w-xs rounded border border-zinc-700 bg-zinc-900 px-2 py-2 text-zinc-100"
+                value={sargassumLevel === null ? "null" : sargassumLevel}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setSargassumLevel(v === "null" ? null : (v as SargassumLevelForScore));
+                }}
+              >
+                <option value="low">low</option>
+                <option value="medium">medium</option>
+                <option value="high">high</option>
+                <option value="null">null</option>
+              </select>
+            </label>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-zinc-400">
+                  Data source:{" "}
+                  <span className="text-zinc-200">
+                    {sargassumSource === null
+                      ? "loading…"
+                      : sargassumSource === "supabase"
+                        ? "Supabase (live)"
+                        : "Manual entry"}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  className="rounded border border-zinc-600 px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-800 disabled:opacity-50"
+                  disabled={sargassumLoading}
+                  onClick={() => void refreshSargassum()}
+                >
+                  {sargassumLoading ? "Refreshing…" : "Refresh from Supabase"}
+                </button>
+              </div>
+              {sargassumLoadError ? (
+                <p className="text-xs text-amber-300/90">{sargassumLoadError}</p>
+              ) : null}
+
+              {sargassumSource === "supabase" && sargassumMeta ? (
+                <ul className="space-y-1 font-mono text-xs text-zinc-400">
+                  {ALL_COASTS.map((coast) => {
+                    const m = sargassumMeta[coast];
+                    const statusLabel =
+                      m.status === "ok"
+                        ? `${formatSargassumLevel(m.levelForScore)} (row ${m.rowLevel}, updated ${m.updatedAt ?? "?"})`
+                        : m.status === "stale"
+                          ? `stale — row was ${m.rowLevel ?? "?"} (${m.updatedAt ?? "?"}); scoring as null`
+                          : "unavailable — no row; scoring as null";
+                    return (
+                      <li key={coast}>
+                        <span className="text-zinc-300">{coast}:</span> {statusLabel}
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : sargassumSource === "manual" ? (
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {ALL_COASTS.map((coast) => (
+                    <label key={coast} className="block space-y-1 text-xs">
+                      <span className="text-zinc-500">{coast}</span>
+                      <select
+                        className="w-full rounded border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-zinc-100"
+                        value={manualPerCoast[coast] === null ? "null" : manualPerCoast[coast]}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setManualPerCoast((prev) => ({
+                            ...prev,
+                            [coast]: v === "null" ? null : (v as SargassumLevelForScore)
+                          }));
+                        }}
+                      >
+                        <option value="low">low</option>
+                        <option value="medium">medium</option>
+                        <option value="high">high</option>
+                        <option value="null">null</option>
+                      </select>
+                    </label>
+                  ))}
+                </div>
+              ) : null}
+
+              {selected && selectedSargassumLevel !== undefined ? (
+                <p className="text-zinc-300">
+                  Selected beach: <span className="font-mono">{formatSargassumLevel(selectedSargassumLevel)}</span>{" "}
+                  via {coastForSargassumLookup(selected)} zone
+                  {selected.sargassumZone !== undefined && selected.sargassumZone !== selected.coast
+                    ? ` (↗zone: geographic ${selected.coast})`
+                    : ""}
+                </p>
+              ) : null}
+            </div>
+          )}
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
@@ -371,22 +647,6 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
               </label>
             </div>
           </div>
-          <label className="block space-y-1 text-sm">
-            <span className="text-zinc-400">Sargassum (scoring level)</span>
-            <select
-              className="w-full rounded border border-zinc-700 bg-zinc-900 px-2 py-2 text-zinc-100"
-              value={sargassumLevel === null ? "null" : sargassumLevel}
-              onChange={(e) => {
-                const v = e.target.value;
-                setSargassumLevel(v === "null" ? null : (v as SargassumLevelForScore));
-              }}
-            >
-              <option value="low">low</option>
-              <option value="medium">medium</option>
-              <option value="high">high</option>
-              <option value="null">null</option>
-            </select>
-          </label>
         </div>
 
         <div className="rounded border border-dashed border-amber-900/60 bg-amber-950/20 p-3 text-sm text-amber-200/90">
@@ -528,6 +788,7 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
                   <th className="py-2 pr-2">Coast</th>
                   <th className="py-2 pr-2">Sea state</th>
                   <th className="py-2 pr-2">Wave baseline</th>
+                  {sargassumMode === "per-coast" ? <th className="py-2 pr-2">Sargassum</th> : null}
                   <th className="py-2 pr-2">Score</th>
                   <th className="py-2">Label</th>
                 </tr>
@@ -539,6 +800,16 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
                     <td className="py-1.5 pr-2">{r.beach.coast}</td>
                     <td className="py-1.5 pr-2">{r.beach.seaState}</td>
                     <td className="py-1.5 pr-2">{r.beach.waveActionBaseline}</td>
+                    {sargassumMode === "per-coast" ? (
+                      <td className="py-1.5 pr-2 font-mono text-zinc-300">
+                        {formatSargassumLevel(r.appliedSargassum)}
+                        {r.zoneOverride ? (
+                          <span className="ml-1 text-xs text-amber-400/90" title={`Lookup zone: ${r.sargassumLookupCoast}`}>
+                            ↗zone
+                          </span>
+                        ) : null}
+                      </td>
+                    ) : null}
                     <td className="py-1.5 pr-2 font-mono">{r.score === null ? "—" : r.score}</td>
                     <td className="py-1.5 text-sky-400/90">{r.label}</td>
                   </tr>
