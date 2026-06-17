@@ -498,7 +498,7 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
         <CoastPills
           activeCoast={tableCoastFilter}
           onChange={setTableCoastFilter}
-          className="justify-start !mt-0"
+          className="my-4 justify-start"
         />
 
         <div className="flex flex-wrap items-center justify-between gap-3">
