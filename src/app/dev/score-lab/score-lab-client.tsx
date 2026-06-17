@@ -5,10 +5,18 @@ import type { Beach } from "@/types/beach";
 import type { SargassumLevelForScore } from "@/lib/sargassum";
 import { activityLabel } from "@/lib/beach-format";
 import { computeBeachScoreQuiet, explainBeachScore } from "@/lib/beach-conditions";
+import type { CoastFilter } from "@/lib/coast-filter";
+import { CoastPills } from "@/components/CoastPills";
 import type { ScoreLabBeach } from "./types";
 import { loadLiveBeachConditions } from "./actions";
 
-type SortKey = "score" | "coast";
+type SortKey = "score" | "coast" | "name";
+
+type TableRow = {
+  beach: ScoreLabBeach;
+  score: number | null;
+  label: string;
+};
 
 function beachScorePick(b: ScoreLabBeach): Pick<Beach, "slug" | "seaState" | "waveActionBaseline" | "coast"> {
   return {
@@ -33,9 +41,12 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
   const [sargassumLevel, setSargassumLevel] = useState<SargassumLevelForScore>("low");
   const [swellHeight, setSwellHeight] = useState(1.0);
   const [swellDirection, setSwellDirection] = useState(60);
+  const [tableCoastFilter, setTableCoastFilter] = useState<CoastFilter>("All");
+  const [tableSearch, setTableSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("score");
   const [sortCoastAsc, setSortCoastAsc] = useState(true);
   const [sortScoreDesc, setSortScoreDesc] = useState(true);
+  const [sortNameAsc, setSortNameAsc] = useState(true);
   const [liveLoading, setLiveLoading] = useState(false);
   const [liveError, setLiveError] = useState<string | null>(null);
 
@@ -61,7 +72,7 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
   }, [selected, waveHeight, wavePeriod, windSpeed, windDirection, sargassumLevel]);
 
   const tableRows = useMemo(() => {
-    const rows = beaches.map((b) => {
+    const rows: TableRow[] = beaches.map((b) => {
       const score = computeBeachScoreQuiet(
         beachScorePick(b),
         waveHeight,
@@ -76,10 +87,29 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
         label: activityLabel({ seaState: b.seaState })
       };
     });
-    const sorted = [...rows].sort((a, b) => {
+
+    const searchLower = tableSearch.trim().toLowerCase();
+    const filtered = rows.filter((row) => {
+      if (tableCoastFilter !== "All" && row.beach.coast !== tableCoastFilter) {
+        return false;
+      }
+      if (searchLower !== "" && !row.beach.name.toLowerCase().includes(searchLower)) {
+        return false;
+      }
+      return true;
+    });
+
+    return [...filtered].sort((a, b) => {
       if (sortKey === "coast") {
         const c = a.beach.coast.localeCompare(b.beach.coast);
         if (c !== 0) return sortCoastAsc ? c : -c;
+      } else if (sortKey === "name") {
+        const n = a.beach.name.localeCompare(b.beach.name);
+        if (n !== 0) return sortNameAsc ? n : -n;
+        const as = a.score ?? -1;
+        const bs = b.score ?? -1;
+        if (as !== bs) return bs - as;
+        return 0;
       } else {
         const as = a.score ?? -1;
         const bs = b.score ?? -1;
@@ -87,8 +117,20 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
       }
       return a.beach.name.localeCompare(b.beach.name);
     });
-    return sorted;
-  }, [beaches, waveHeight, wavePeriod, windSpeed, windDirection, sargassumLevel, sortKey, sortCoastAsc, sortScoreDesc]);
+  }, [
+    beaches,
+    waveHeight,
+    wavePeriod,
+    windSpeed,
+    windDirection,
+    sargassumLevel,
+    tableCoastFilter,
+    tableSearch,
+    sortKey,
+    sortCoastAsc,
+    sortScoreDesc,
+    sortNameAsc
+  ]);
 
   const copyScenario = useCallback(() => {
     if (!selected || !explain) return;
@@ -138,7 +180,7 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
     const pre = [
       "## Score lab — all beaches",
       "",
-      `Beaches: ${beaches.length}`,
+      `Beaches: ${tableRows.length} of ${beaches.length}`,
       `Inputs: waveHeight_m=${waveHeight}, wavePeriod_s=${wavePeriod === null ? "null" : wavePeriod}, windSpeed_kmh=${windSpeed}, windDirection_deg=${windDirection === null ? "null" : windDirection}, sargassumLevel=${String(sargassumLevel)}`,
       `Swell (not scored): swellHeight_m=${swellHeight}, swellDirection_deg=${swellDirection}`,
       "",
@@ -435,6 +477,16 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
             </button>
             <button
               type="button"
+              className={`rounded px-2 py-1 ${sortKey === "name" ? "bg-zinc-700 text-white" : "text-zinc-400 hover:text-white"}`}
+              onClick={() => {
+                setSortKey("name");
+                setSortNameAsc((d) => !d);
+              }}
+            >
+              Name (A–Z) {sortKey === "name" ? (sortNameAsc ? "A→Z" : "Z→A") : ""}
+            </button>
+            <button
+              type="button"
               className="rounded border border-zinc-600 px-2 py-1 text-zinc-200 hover:bg-zinc-800"
               onClick={copyAllTable}
             >
@@ -443,32 +495,58 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] border-collapse text-left text-sm">
-            <thead>
-              <tr className="border-b border-zinc-700 text-zinc-400">
-                <th className="py-2 pr-2">Name</th>
-                <th className="py-2 pr-2">Coast</th>
-                <th className="py-2 pr-2">Sea state</th>
-                <th className="py-2 pr-2">Wave baseline</th>
-                <th className="py-2 pr-2">Score</th>
-                <th className="py-2">Label</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tableRows.map((r) => (
-                <tr key={r.beach.slug} className="border-b border-zinc-800/80 hover:bg-zinc-800/40">
-                  <td className="py-1.5 pr-2 text-zinc-200">{r.beach.name}</td>
-                  <td className="py-1.5 pr-2">{r.beach.coast}</td>
-                  <td className="py-1.5 pr-2">{r.beach.seaState}</td>
-                  <td className="py-1.5 pr-2">{r.beach.waveActionBaseline}</td>
-                  <td className="py-1.5 pr-2 font-mono">{r.score === null ? "—" : r.score}</td>
-                  <td className="py-1.5 text-sky-400/90">{r.label}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <CoastPills
+          activeCoast={tableCoastFilter}
+          onChange={setTableCoastFilter}
+          className="justify-start !mt-0"
+        />
+
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <label className="block min-w-[200px] flex-1 text-sm">
+            <span className="sr-only">Search beaches by name</span>
+            <input
+              type="search"
+              placeholder="Search beaches…"
+              value={tableSearch}
+              onChange={(e) => setTableSearch(e.target.value)}
+              className="w-full max-w-md rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-zinc-100 placeholder:text-zinc-500"
+            />
+          </label>
+          <p className="text-sm text-zinc-400">
+            Showing {tableRows.length} of {beaches.length}
+          </p>
         </div>
+
+        {tableRows.length === 0 ? (
+          <p className="text-sm text-zinc-500">No beaches match</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px] border-collapse text-left text-sm">
+              <thead>
+                <tr className="border-b border-zinc-700 text-zinc-400">
+                  <th className="py-2 pr-2">Name</th>
+                  <th className="py-2 pr-2">Coast</th>
+                  <th className="py-2 pr-2">Sea state</th>
+                  <th className="py-2 pr-2">Wave baseline</th>
+                  <th className="py-2 pr-2">Score</th>
+                  <th className="py-2">Label</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tableRows.map((r) => (
+                  <tr key={r.beach.slug} className="border-b border-zinc-800/80 hover:bg-zinc-800/40">
+                    <td className="py-1.5 pr-2 text-zinc-200">{r.beach.name}</td>
+                    <td className="py-1.5 pr-2">{r.beach.coast}</td>
+                    <td className="py-1.5 pr-2">{r.beach.seaState}</td>
+                    <td className="py-1.5 pr-2">{r.beach.waveActionBaseline}</td>
+                    <td className="py-1.5 pr-2 font-mono">{r.score === null ? "—" : r.score}</td>
+                    <td className="py-1.5 text-sky-400/90">{r.label}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </div>
   );
