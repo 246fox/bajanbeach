@@ -26,7 +26,10 @@ const BEACH_SLUGS = [
 
 const WAVE_HEIGHTS = [0, 0.5, 0.8, 1.0, 1.25, 2, 2.5, 3, 3.5, 4, 4.5, 6] as const;
 const WAVE_PERIODS: (number | null)[] = [null, 0, 4.9, 5, 7, 8, 9.9, 10, 20];
-const WIND_SPEEDS = [0, 24, 26, 31, 33, 36, 39, 41, 44, 46, 50, 119] as const;
+/** Includes band-edge samples for HIGH_WIND_SAFETY_CAP (49, 50–61, 62–74, 75–88, 89+). */
+const WIND_SPEEDS = [
+  0, 24, 26, 31, 33, 36, 39, 41, 44, 46, 49, 50, 52, 60, 62, 70, 75, 80, 88, 89, 95, 119
+] as const;
 const WIND_DIRECTIONS: (number | null)[] = [null, 0, 45, 90, 135, 180, 225, 270, 315];
 const SARGASSUM_LEVELS: SargassumLevelForScore[] = ["low", "medium", "high", null];
 
