@@ -73,8 +73,6 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
   const [sargassumLoading, setSargassumLoading] = useState(false);
   const [loadLiveUniformWarning, setLoadLiveUniformWarning] = useState(false);
   const [loadLivePerCoastNote, setLoadLivePerCoastNote] = useState<string | null>(null);
-  const [swellHeight, setSwellHeight] = useState(1.0);
-  const [swellDirection, setSwellDirection] = useState(60);
   const [tableCoastFilter, setTableCoastFilter] = useState<CoastFilter>("All");
   const [tableSearch, setTableSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("score");
@@ -244,7 +242,6 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
       `Sargassum mode: ${sargassumMode}`,
       `Sargassum level applied: ${formatSargassumLevel(selectedSargassumLevel)}${zoneNote}`,
       `Inputs: waveHeight_m=${waveHeight}, wavePeriod_s=${wavePeriod === null ? "null" : wavePeriod}, windSpeed_kmh=${windSpeed}, windDirection_deg=${windDirection === null ? "null" : windDirection}`,
-      `Swell (Phase 3, not scored): swellHeight_m=${swellHeight}, swellDirection_deg=${swellDirection}`,
       "",
       `Final score: ${explain.score === null ? "null" : explain.score}`,
       `Label: ${activityLabel({ seaState: selected.seaState })}`,
@@ -270,9 +267,7 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
     waveHeight,
     wavePeriod,
     windSpeed,
-    windDirection,
-    swellHeight,
-    swellDirection
+    windDirection
   ]);
 
   const copyAllTable = useCallback(() => {
@@ -300,7 +295,6 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
       `Beaches: ${tableRows.length} of ${beaches.length}`,
       sargassumPreamble,
       `Inputs: waveHeight_m=${waveHeight}, wavePeriod_s=${wavePeriod === null ? "null" : wavePeriod}, windSpeed_kmh=${windSpeed}, windDirection_deg=${windDirection === null ? "null" : windDirection}`,
-      `Swell (not scored): swellHeight_m=${swellHeight}, swellDirection_deg=${swellDirection}`,
       "",
       header,
       body,
@@ -316,9 +310,7 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
     waveHeight,
     wavePeriod,
     windSpeed,
-    windDirection,
-    swellHeight,
-    swellDirection
+    windDirection
   ]);
 
   const onLoadLive = async () => {
@@ -646,24 +638,6 @@ export function ScoreLabClient({ beaches }: { beaches: ScoreLabBeach[] }) {
                 null
               </label>
             </div>
-          </div>
-        </div>
-
-        <div className="rounded border border-dashed border-amber-900/60 bg-amber-950/20 p-3 text-sm text-amber-200/90">
-          <div className="font-medium text-amber-100">Swell — not yet scored (Phase 3)</div>
-          <p className="mt-1 text-xs text-amber-200/70">
-            These controls do not affect the score; they are placeholders for future swell wiring.
-          </p>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <SliderField label="Swell height (m)" min={0} max={6} step={0.05} value={swellHeight} onChange={setSwellHeight} />
-            <SliderField
-              label="Swell direction (°)"
-              min={0}
-              max={359}
-              step={1}
-              value={swellDirection}
-              onChange={setSwellDirection}
-            />
           </div>
         </div>
 
