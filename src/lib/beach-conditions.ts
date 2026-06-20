@@ -48,6 +48,100 @@ function clampToRange(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
+/** Stepped high-wind safety ceiling — applied last, after [1, 10] clamp, before round. */
+export const HIGH_WIND_SAFETY_CAP = {
+  /** Sustained wind below this (km/h) — no safety cap. */
+  noCapBelowKmh: 50,
+  /** Bands in ascending minKmh; each applies when minKmh ≤ wind ≤ maxKmh. */
+  bands: [
+    { minKmh: 50, maxKmh: 61, cap: 4, label: "high wind" },
+    { minKmh: 62, maxKmh: 74, cap: 3, label: "gale" },
+    { minKmh: 75, maxKmh: 88, cap: 2, label: "storm force" },
+    { minKmh: 89, maxKmh: Number.POSITIVE_INFINITY, cap: 1, label: "hurricane force" }
+  ] as const
+} as const;
+
+type HighWindSafetyCapBand = (typeof HIGH_WIND_SAFETY_CAP.bands)[number];
+
+function highWindSafetyCapBand(windSpeed: number): HighWindSafetyCapBand | null {
+  if (windSpeed < HIGH_WIND_SAFETY_CAP.noCapBelowKmh) {
+    return null;
+  }
+  for (const band of HIGH_WIND_SAFETY_CAP.bands) {
+    if (windSpeed >= band.minKmh && windSpeed <= band.maxKmh) {
+      return band;
+    }
+  }
+  return null;
+}
+
+function highWindSafetyCapBandRangeLabel(band: HighWindSafetyCapBand): string {
+  if (!Number.isFinite(band.maxKmh)) {
+    return `${band.minKmh}+ km/h`;
+  }
+  return `${band.minKmh}–${band.maxKmh} km/h`;
+}
+
+function finalizeClampedScore(
+  beachSlug: string,
+  clamped: number,
+  windSpeed: number,
+  logScoring: ScoringLogFn | null,
+  push: ((step: Omit<BeachScoreStep, "order">) => void) | null
+): number {
+  let score = clamped;
+  const band = highWindSafetyCapBand(windSpeed);
+  if (band !== null) {
+    const capped = Math.min(score, band.cap);
+    if (capped < score) {
+      const before = score;
+      score = capped;
+      if (logScoring) {
+        logScoring({
+          beachSlug,
+          rule: "high_wind_safety_cap",
+          windSpeedKmh: windSpeed,
+          bandLabel: band.label,
+          cap: band.cap,
+          scoreBeforeCap: before,
+          finalAfterCap: score
+        });
+      }
+      push?.({
+        kind: "wind_safety_cap",
+        title: `Wind ${windSpeed} km/h (${band.label}) — score capped at ${band.cap} (high-wind safety).`,
+        detail: `High-wind safety cap (${highWindSafetyCapBandRangeLabel(band)} band). Score ${before.toFixed(4)} lowered to ${band.cap}; wind direction does not affect this cap.`,
+        valueBefore: before,
+        valueAfter: score,
+        delta: score - before
+      });
+    }
+  }
+
+  const finalRounded = Math.round(score);
+  if (finalRounded !== score) {
+    push?.({
+      kind: "round",
+      title: "Round to integer score",
+      detail: `Rounded ${score.toFixed(4)} to nearest integer.`,
+      valueBefore: score,
+      valueAfter: finalRounded,
+      delta: finalRounded - score
+    });
+  } else {
+    push?.({
+      kind: "round",
+      title: "Round to integer score",
+      detail: "Value already an integer — no rounding change.",
+      valueBefore: score,
+      valueAfter: finalRounded,
+      delta: 0
+    });
+  }
+
+  return finalRounded;
+}
+
 function roundBeachScore(value: number): number {
   return Math.round(clampToRange(value, 1, 10));
 }
@@ -363,6 +457,7 @@ export type BeachScoreStepKind =
   | "floor"
   | "ceiling"
   | "clamp"
+  | "wind_safety_cap"
   | "round";
 
 export type BeachScoreStep = {
@@ -617,26 +712,13 @@ function runBeachScore(
         delta: 0
       });
     }
-    const finalRounded = Math.round(clamped);
-    if (finalRounded !== clamped) {
-      push?.({
-        kind: "round",
-        title: "Round to integer score",
-        detail: `Rounded ${clamped.toFixed(4)} to nearest integer.`,
-        valueBefore: clamped,
-        valueAfter: finalRounded,
-        delta: finalRounded - clamped
-      });
-    } else {
-      push?.({
-        kind: "round",
-        title: "Round to integer score",
-        detail: "Value already an integer — no rounding change.",
-        valueBefore: clamped,
-        valueAfter: finalRounded,
-        delta: 0
-      });
-    }
+    const finalRounded = finalizeClampedScore(
+      beach.slug,
+      clamped,
+      windSpeed,
+      logScoring,
+      push
+    );
 
     return { score: finalRounded, steps: mode.recordSteps ? steps : [] };
   }
@@ -1051,26 +1133,13 @@ function runBeachScore(
       delta: 0
     });
   }
-  const finalRounded = Math.round(clamped);
-  if (finalRounded !== clamped) {
-    push?.({
-      kind: "round",
-      title: "Round to integer score",
-      detail: `Rounded ${clamped.toFixed(4)} to nearest integer.`,
-      valueBefore: clamped,
-      valueAfter: finalRounded,
-      delta: finalRounded - clamped
-    });
-  } else {
-    push?.({
-      kind: "round",
-      title: "Round to integer score",
-      detail: "Value already an integer — no rounding change.",
-      valueBefore: clamped,
-      valueAfter: finalRounded,
-      delta: 0
-    });
-  }
+  const finalRounded = finalizeClampedScore(
+    beach.slug,
+    clamped,
+    windSpeed,
+    logScoring,
+    push
+  );
 
   return { score: finalRounded, steps: mode.recordSteps ? steps : [] };
 }
