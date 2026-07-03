@@ -1,0 +1,28 @@
+---
+description: Standing workflow rules for this repository
+alwaysApply: true
+---
+# How to work in this repository
+## Method
+- Answer investigation questions by reading source files: open files, search
+  text, follow imports. Do not use the built-in browser, browser actions,
+  CDP/Runtime.evaluate, or MCP tools unless the prompt explicitly asks for
+  them. Do not inspect compiled output or a running page when the answer
+  exists in source.
+- Do not start dev servers or run builds unless the prompt asks. When asked
+  to verify, use npm run start (production parity), not npm run dev.
+## Plan gate
+- When a prompt says it is a diagnostic or asks for a plan: report findings
+  with quoted code and file+line references, propose a plan, then STOP and
+  wait for explicit approval. Never begin implementing during a diagnostic.
+- Keep diffs minimal and strictly within the stated scope. Never touch
+  out-of-scope files.
+## Git discipline
+- Never run git push. Commits are local-only, one commit per logical change,
+  with the exact commit message given in the prompt. A single push happens
+  only at end of session and only when explicitly instructed.
+- Never open pull requests, never use cloud agents, never work on branches
+  unless explicitly instructed. All work is local on the current branch.
+## General
+- If any instruction in a prompt conflicts with these rules, follow the
+  prompt and note the conflict in your report.
