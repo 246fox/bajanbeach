@@ -70,7 +70,7 @@ export function BeachBoardView({
         <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-6">
           {VIBE_CARDS.map((card, index) => {
             const photoUrl = photoBySlug.get(card.slug) ?? null;
-            const desktopSpanClass = index < 3 ? "md:col-span-2" : "md:col-span-3";
+            const desktopSpanClass = index < 2 ? "md:col-span-3" : "md:col-span-2";
             return (
               <a
                 key={card.coast}
