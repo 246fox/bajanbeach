@@ -40,7 +40,7 @@ export function getBeachBoardPhotoBySlug(
   return new Map(beachCards.map((beach) => [beach.slug, beach.photoUrl] as const));
 }
 
-/** Matches coast filter chip order — North first, East last. */
+/** Matches coast filter chip order: West first, North last. */
 function coastSortRank(coast: BeachCoast): number {
   const i = COAST_FILTERS.indexOf(coast);
   return i > 0 ? i - 1 : 0;

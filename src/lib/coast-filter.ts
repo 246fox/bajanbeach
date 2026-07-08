@@ -1,4 +1,4 @@
-export const COAST_FILTERS = ["All", "North", "West", "South", "Southeast", "East"] as const;
+export const COAST_FILTERS = ["All", "West", "South", "East", "Southeast", "North"] as const;
 
 export type CoastFilter = (typeof COAST_FILTERS)[number];
 
