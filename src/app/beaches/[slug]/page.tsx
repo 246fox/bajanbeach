@@ -279,6 +279,12 @@ export default async function BeachDetailPage({ params }: PageProps) {
               <span>{beach.coast} coast</span>
               <span className="text-white/50">·</span>
               <span>{seaStateLabel(beach.seaState)}</span>
+              {beach.hasLifeguard ? (
+                <>
+                  <span className="text-white/50">·</span>
+                  <span>Lifeguard station</span>
+                </>
+              ) : null}
               {beach.isSurfSpot ? (
                 <>
                   <span className="text-white/50">·</span>
