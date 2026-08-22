@@ -281,6 +281,11 @@ export function BeachCard({
           >
             {seaStateLabel(beach.seaState)}
           </span>
+          {beach.hasLifeguard ? (
+            <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700 ring-1 ring-inset ring-amber-200">
+              Lifeguard
+            </span>
+          ) : null}
           {beach.isSurfSpot ? <SurfSpotPill /> : null}
         </div>
         {beach.sargassum && (
