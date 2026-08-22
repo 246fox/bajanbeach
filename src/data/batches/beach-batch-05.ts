@@ -94,7 +94,7 @@ export const beachBatch05: Beach[] = [
     isSurfSpot: false,
     latitude: 13.0711,
     longitude: -59.5828,
-    webcamUrl: "https://v2.iwcpinc.com/cameras/ncc_worthing_1",
+    webcamUrl: "https://iwcpinc.com/cameras/ncc_worthing_2",
     description:
       "Lagoon-style environment protected by a dense, continuous nearshore coral reef. Water depth rarely exceeds waist-height within the reef line, creating a vast natural swimming pool that is often visited by foraging sea turtles.",
     bestFor: "Snorkelling with turtles, families, shallow safe swimming, eco-tourism",
