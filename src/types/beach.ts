@@ -20,6 +20,8 @@ export type Beach = {
   seaState: SeaState;
   waveActionBaseline: WaveActionBaseline;
   isSurfSpot: boolean;
+  /** Presence of an NCC lifeguard station building — not a claim about staffing hours. */
+  hasLifeguard?: boolean;
   webcamUrl: string;
   description: string;
   bestFor: string;
