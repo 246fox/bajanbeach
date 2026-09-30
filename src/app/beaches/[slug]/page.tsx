@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BeachConditionPanel } from "@/components/BeachConditionPanel";
 import BeachShareRow from "@/components/BeachShareRow";
+import { BeachStayLinks } from "@/components/BeachStayLinks";
 import { BeachTidePanel } from "@/components/BeachTidePanel";
 import { WaveForecastChart } from "@/components/WaveForecastChart";
 import { beaches, getBeachBySlug } from "@/data/beaches";
@@ -428,6 +429,10 @@ export default async function BeachDetailPage({ params }: PageProps) {
               <BeachProse markdown={beach.notes} />
             </p>
           </section>
+        )}
+
+        {beach.stayLinks && beach.stayLinks.length > 0 && (
+          <BeachStayLinks beachName={beach.name} slug={beach.slug} links={beach.stayLinks} />
         )}
 
         <BeachShareRow beachName={beach.name} slug={beach.slug} />
