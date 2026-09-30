@@ -4,6 +4,12 @@ export type SeaState = "calm" | "moderate" | "rough";
 
 export type WaveActionBaseline = "low" | "medium" | "high";
 
+export type BeachStayLink = {
+  kind: "hotels" | "villas" | "activities";
+  provider: "Expedia" | "Vrbo";
+  url: string;
+};
+
 export type Beach = {
   name: string;
   slug: string;
@@ -31,6 +37,8 @@ export type Beach = {
    * Include location context (e.g. end with `Barbados`). When unset, we use `{name} Barbados`.
    */
   photoSearchName?: string;
+  /** Affiliate "stay near this beach" links. Omit on beaches with no suitable nearby stays. The provider is stored explicitly because affiliate short links do not reveal it in the URL. */
+  stayLinks?: BeachStayLink[];
   /** Set at runtime from Supabase by coast — never in static JSON. */
   sargassum?: SargassumDisplay;
 };
