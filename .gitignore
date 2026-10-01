@@ -31,6 +31,9 @@ next-env.d.ts
 # derived editorial export (regenerate with npm run beaches:export)
 BajanBeach_Master_List.xlsx
 
+# stay-links fill-in sheet (regenerate with npm run beaches:staylinks-sheet)
+BajanBeach_Stay_Links.xlsx
+
 # one-off diagnostic dump / local-only historical projection script
 score-dump-output.md
 scripts/project-sargassum-floors.ts

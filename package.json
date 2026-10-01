@@ -10,6 +10,7 @@
     "lint": "next lint",
     "beaches:export": "tsx scripts/export-beaches.ts",
     "beaches:import": "tsx scripts/import-beaches.ts",
+    "beaches:staylinks-sheet": "tsx scripts/export-stay-links-sheet.ts",
     "score:parity:write": "tsx scripts/beach-score-parity.ts --write",
     "score:parity:verify": "tsx scripts/beach-score-parity.ts --verify"
   },
