@@ -100,7 +100,15 @@ export const beachBatch07: Beach[] = [
     description:
       "Small rocky inlet south of [Bathsheba](/beaches/bathsheba-beach) serving as the precarious launch point for the local day-boat fishing fleet. Navigating the narrow twisting reef channel requires immense generational local knowledge.",
     bestFor: "Surfing, fishing culture, photography, East Coast drive stop",
-    notes: "Working fishing inlet — boats launch through the reef channel daily. Part of the scenic East Coast road."
+    notes: "Working fishing inlet — boats launch through the reef channel daily. Part of the scenic East Coast road.",
+    stayLinks: [
+      {
+        kind: "hotels",
+        provider: "Expedia",
+        url: "https://expedia.com/affiliates/bajan_beach/atlantishistoricinn",
+        hotelName: "Atlantis Historic Inn"
+      }
+    ]
   },
   {
     name: "Drill Hall Beach",
@@ -149,7 +157,15 @@ export const beachBatch07: Beach[] = [
     description:
       "Rugged wind-exposed promontory where the confluence of open ocean swell and unimpeded trade winds generates chaotic but highly sought-after conditions for beginner to intermediate surfing, advanced kitesurfing and windsurfing.",
     bestFor: "Advanced kitesurfing, windsurfing, surfing, photography",
-    notes: "Adjacent to [Long Beach](/beaches/long-beach). Chaotic conditions command respect — exercise caution."
+    notes: "Adjacent to [Long Beach](/beaches/long-beach). Chaotic conditions command respect — exercise caution.",
+    stayLinks: [
+      {
+        kind: "hotels",
+        provider: "Expedia",
+        url: "https://expedia.com/affiliates/bajan_beach/surfersbay",
+        hotelName: "Surfers Bay Resort"
+      }
+    ]
   },
   {
     name: "Prospect Beach",
@@ -166,7 +182,15 @@ export const beachBatch07: Beach[] = [
       "Small west coast bay to the south of [Fitts Village Beach](/beaches/fitts-village-beach). The beach is compact, essentially a single curve of sand in front of Waves Hotel & Spa, which dominates the bay. A short walk north brings you to the more expansive Fitts Village Beach. Calm, clear Caribbean water typical of the Platinum Coast, with the same gentle slope into the sea that the rest of the west coast is known for.",
     bestFor: "Quiet swimming, west coast sunsets, beach walking",
     notes:
-      "Public beach access is on the right of Waves Hotel, opposite Prospect Road. Limited parking, many visitors park at the Good Shepherd Church in Fitts Village and walk south along the sand. The bay can feel busier when the hotel is at capacity in season."
+      "Public beach access is on the right of Waves Hotel, opposite Prospect Road. Limited parking, many visitors park at the Good Shepherd Church in Fitts Village and walk south along the sand. The bay can feel busier when the hotel is at capacity in season.",
+    stayLinks: [
+      {
+        kind: "hotels",
+        provider: "Expedia",
+        url: "https://expedia.com/affiliates/bajan_beach/waveshotel",
+        hotelName: "Waves Resort & Spa"
+      }
+    ]
   },
   {
     name: "Godings Bay",

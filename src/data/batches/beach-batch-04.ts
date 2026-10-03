@@ -49,7 +49,14 @@ export const beachBatch04: Beach[] = [
     description:
       "Broad expansive beach with massive carrying capacity. Busiest on the eastern end of the beach with much smaller crowds on the western end. Lack of continuous protective reef allows for tumbling waves, creating a lively but manageable surf zone.",
     bestFor: "Beach volleyball, energetic swimming, families, locals on weekends, watersports",
-    notes: "One of the wider South Coast beaches with easy parking."
+    notes: "One of the wider South Coast beaches with easy parking.",
+    stayLinks: [
+      {
+        kind: "hotels",
+        provider: "Expedia",
+        url: "https://expedia.com/affiliates/bajan_beach/doverbeach"
+      }
+    ]
   },
   {
     name: "Enterprise Beach",
@@ -117,7 +124,15 @@ export const beachBatch04: Beach[] = [
     description:
       "Quieter enclave populated by hotels and condominiums. Coastal alignment perfectly catches prevailing trade winds, establishing it as the premier hub for Hobie Cat sailing and windsurfing.",
     bestFor: "Hobie Cat sailing, windsurfing, swimming, condo holiday base",
-    notes: "One of the best wind angles on the South Coast for sailing. Quieter than [Dover](/beaches/dover-beach) or [St. Lawrence](/beaches/st-lawrence-beach)."
+    notes: "One of the best wind angles on the South Coast for sailing. Quieter than [Dover](/beaches/dover-beach) or [St. Lawrence](/beaches/st-lawrence-beach).",
+    stayLinks: [
+      {
+        kind: "hotels",
+        provider: "Expedia",
+        url: "https://expedia.com/affiliates/bajan_beach/bougainvilleabarbados",
+        hotelName: "Bougainvillea Barbados"
+      }
+    ]
   },
   {
     name: "Miami Beach",

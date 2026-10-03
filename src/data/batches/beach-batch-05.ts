@@ -17,7 +17,15 @@ export const beachBatch05: Beach[] = [
       "The undisputed nucleus of South Coast tourism (also known as Accra Beach). Crescent bay creating dynamic conditions: shallow rock-protected pool at the eastern tip perfect for toddlers, while the centre provides lively rolling waves ideal for boogie boarding. Anchors the eastern end of the South Coast Boardwalk.",
     bestFor: "Families with toddlers, bodyboarding, boardwalk access, beach bars, watersports",
     notes:
-      "Also called  Accra Beach by locals, Rockley Beach is the formal name. The Boardwalk is at the eastern end of the beach and runs east for 1.2 kms toward Hastings."
+      "Also called  Accra Beach by locals, Rockley Beach is the formal name. The Boardwalk is at the eastern end of the beach and runs east for 1.2 kms toward Hastings.",
+    stayLinks: [
+      {
+        kind: "hotels",
+        provider: "Expedia",
+        url: "https://expedia.com/affiliates/bajan_beach/accrabeachhotel",
+        hotelName: "Accra Beach Hotel"
+      }
+    ]
   },
   {
     name: "Hastings Beach",
@@ -34,7 +42,15 @@ export const beachBatch05: Beach[] = [
       "At the western end of the mile-long Richard Haynes Boardwalk, this small, well-shaded cove is a sheltered exception on a stretch of south coast that is otherwise predominantly rocky. A breakwater attenuates the swells and protects a calm, sandy-bottomed swimming area. The gentle, protected water in this cove makes it a dependable choice for families with young children.",
     bestFor: "Families, swimming, calm-water bathing, boardwalk strolls",
     notes:
-      "The Richard Haynes Boardwalk is lined with easy parking, bars and restaurants. The breakwater-protected cove is the sheltered swimming spot at the western end, while the open boardwalk beaches further east carry stronger currents and more waves. This beach is a popular turtle nesting area, so nesting females and hatchlings are occasionally seen."
+      "The Richard Haynes Boardwalk is lined with easy parking, bars and restaurants. The breakwater-protected cove is the sheltered swimming spot at the western end, while the open boardwalk beaches further east carry stronger currents and more waves. This beach is a popular turtle nesting area, so nesting females and hatchlings are occasionally seen.",
+    stayLinks: [
+      {
+        kind: "hotels",
+        provider: "Expedia",
+        url: "https://expedia.com/affiliates/bajan_beach/socohotel",
+        hotelName: "The Soco Hotel"
+      }
+    ]
   },
   {
     name: "Silver Sands Beach",
@@ -67,7 +83,15 @@ export const beachBatch05: Beach[] = [
     description:
       "Narrow strip of sand integrated directly into the high-density St. Lawrence Gap entertainment district. Beach area fluctuates with tidal cycles but offers immediate ocean access right at the entrance to \"the Gap\".",
     bestFor: "Nightlife adjacent, dining, beach bars, evening swims",
-    notes: "The Gap is one of the liveliest strips in Barbados. Tide-dependent beach."
+    notes: "The Gap is one of the liveliest strips in Barbados. Tide-dependent beach.",
+    stayLinks: [
+      {
+        kind: "hotels",
+        provider: "Expedia",
+        url: "https://expedia.com/affiliates/bajan_beach/yellowbirdhotel",
+        hotelName: "Yellow Bird Hotel"
+      }
+    ]
   },
   {
     name: "Welches Beach",
@@ -99,7 +123,15 @@ export const beachBatch05: Beach[] = [
     description:
       "Lagoon-style environment protected by a dense, continuous nearshore coral reef. Water depth rarely exceeds waist-height within the reef line, creating a vast natural swimming pool that is often visited by foraging sea turtles.",
     bestFor: "Snorkelling with turtles, families, shallow safe swimming, eco-tourism",
-    notes: "One of the most reliable spots on the South coast to swim with sea turtles. Bring a snorkel."
+    notes: "One of the most reliable spots on the South coast to swim with sea turtles. Bring a snorkel.",
+    stayLinks: [
+      {
+        kind: "hotels",
+        provider: "Expedia",
+        url: "https://expedia.com/affiliates/bajan_beach/coralmisthotel",
+        hotelName: "Coral Mist Beach Hotel"
+      }
+    ]
   },
   {
     name: "Brownes Beach",
@@ -152,7 +184,15 @@ export const beachBatch05: Beach[] = [
       "Deeply sheltered, calm cove on the Hilton peninsula. Culturally famous as the site where local grooms bring racehorses for therapeutic morning seawater bathing.",
     bestFor: "Swimming, swim training, photography (early morning horses), relaxation",
     notes:
-      "Visit at dawn to see racehorses being walked into the sea — a uniquely Bajan tradition. Adjacent to Hilton."
+      "Visit at dawn to see racehorses being walked into the sea — a uniquely Bajan tradition. Adjacent to Hilton.",
+    stayLinks: [
+      {
+        kind: "hotels",
+        provider: "Expedia",
+        url: "https://expedia.com/affiliates/bajan_beach/hiltonbarbados",
+        hotelName: "Hilton Barbados Resort"
+      }
+    ]
   },
   {
     name: "Bottom Bay",

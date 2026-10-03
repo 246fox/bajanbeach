@@ -117,7 +117,15 @@ export const beachBatch01: Beach[] = [
       "Long stretch of west coast beach. Sheltered, calm, and home to iconic restaurants like Lone Star and hotels like Fairmont Royal Pavilion.",
     bestFor: "Swimming, snorkelling, relaxation, couples",
     notes:
-      "One of the gems of the St. James coast. Plentiful beachfront venues and excellent for watersports."
+      "One of the gems of the St. James coast. Plentiful beachfront venues and excellent for watersports.",
+    stayLinks: [
+      {
+        kind: "hotels",
+        provider: "Expedia",
+        url: "https://expedia.com/affiliates/bajan_beach/fairmontroyalpavillion",
+        hotelName: "Fairmont Royal Pavilion"
+      }
+    ]
   },
   {
     name: "Folkestone Beach",
@@ -152,6 +160,14 @@ export const beachBatch01: Beach[] = [
       "Quiet west coast bay near Colony Club hotel. Sheltered and sometimes busy on weekends but a short stroll north and you will find more quiet areas.",
     bestFor: "Swimming, couples, relaxation, seclusion",
     notes:
-      "Sits at the bottom of Porters with very calm conditions, and very little on it except Colony Club hotel and several exceptional villas."
+      "Sits at the bottom of Porters with very calm conditions, and very little on it except Colony Club hotel and several exceptional villas.",
+    stayLinks: [
+      {
+        kind: "hotels",
+        provider: "Expedia",
+        url: "https://expedia.com/affiliates/bajan_beach/colonyclub",
+        hotelName: "Colony Club"
+      }
+    ]
   }
 ];

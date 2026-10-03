@@ -15,7 +15,14 @@ export const beachBatch02: Beach[] = [
     description:
       "Central west coast beach in the heart of Holetown. Calm and peaceful while still close to all Holetown amenities. An easy beach walk north will bring you to [Folkestone Marine Park](/beaches/folkestone-beach) and further on to [Heron Bay](/beaches/heron-bay), exceptional for long sunset walks.",
     bestFor: "Families, swimming, dining nearby, shopping, beach walking",
-    notes: "Site of the first English settlement. Limegrove mall walking distance."
+    notes: "Site of the first English settlement. Limegrove mall walking distance.",
+    stayLinks: [
+      {
+        kind: "hotels",
+        provider: "Expedia",
+        url: "https://expedia.com/affiliates/bajan_beach/holetownbeachhotels"
+      }
+    ]
   },
   {
     name: "Paynes Bay",
@@ -30,7 +37,15 @@ export const beachBatch02: Beach[] = [
     webcamUrl: "",
     description: "Classic platinum coast beach — calm turquoise water, stunning sunsets, luxury villas.",
     bestFor: "Sunset watching, swimming, snorkelling and watersports",
-    notes: "One of the best beaches on the island with lots of watersports activities."
+    notes: "One of the best beaches on the island with lots of watersports activities.",
+    stayLinks: [
+      {
+        kind: "hotels",
+        provider: "Expedia",
+        url: "https://expedia.com/affiliates/bajan_beach/bluemonkey",
+        hotelName: "Blue Monkey Hotel & Beach Club"
+      }
+    ]
   },
   {
     name: "Reeds Bay",
@@ -65,7 +80,14 @@ export const beachBatch02: Beach[] = [
       "Exclusive stretch of beach fronting the Sandy Lane Hotel and many luxury villas. Pristine white sand, perfectly calm, and one of the best spots to anchor on the west.",
     bestFor: "Luxury experience, swimming, people-watching",
     notes:
-      "Public beach but hard to access. Difficult, tidal and seasonal access from [Paynes Bay](/beaches/paynes-bay) to the south and even at low tide, some wading may be required."
+      "Public beach but hard to access. Difficult, tidal and seasonal access from [Paynes Bay](/beaches/paynes-bay) to the south and even at low tide, some wading may be required.",
+    stayLinks: [
+      {
+        kind: "hotels",
+        provider: "Expedia",
+        url: "https://expedia.com/affiliates/bajan_beach/sandylanebeach"
+      }
+    ]
   },
   {
     name: "Freshwater Bay",

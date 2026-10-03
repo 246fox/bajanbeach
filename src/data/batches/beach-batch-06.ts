@@ -15,7 +15,15 @@ export const beachBatch06: Beach[] = [
     description:
       "Globally renowned coastal asset famous for distinctively pink-tinged sands, consisting of pulverised microscopic foraminifera shells mixing with white coral powder. Bordered by imposing 24 ft cliffs and the historic Crane Resort. Powerful rolling surf requires extreme caution and swimming is not advised on anything but the most calm days.",
     bestFor: "Photography, couples, special occasions, dramatic scenery",
-    notes: "Crane Resort sits atop the cliffs. Stairs or elevator access. Powerful undertows demand respect."
+    notes: "Crane Resort sits atop the cliffs. Stairs or elevator access. Powerful undertows demand respect.",
+    stayLinks: [
+      {
+        kind: "hotels",
+        provider: "Expedia",
+        url: "https://expedia.com/affiliates/bajan_beach/thecraneresort",
+        hotelName: "The Crane Resort"
+      }
+    ]
   },
   {
     name: "Foul Bay",
@@ -82,7 +90,15 @@ export const beachBatch06: Beach[] = [
     description:
       "Wide palm-fringed beach fronting the historic former pirate estate of Sam Lord. Constantly pounded by heavy surf. Highly romanticised and historically significant but aquatic conditions are notoriously treacherous.",
     bestFor: "Photography, history, beach walks, dramatic scenery",
-    notes: "Sam Lord was a legendary Bajan pirate. Historic context. NOT for swimming."
+    notes: "Sam Lord was a legendary Bajan pirate. Historic context. NOT for swimming.",
+    stayLinks: [
+      {
+        kind: "hotels",
+        provider: "Expedia",
+        url: "https://expedia.com/affiliates/bajan_beach/wyndhamgrand",
+        hotelName: "Wyndham Grand Sam Lords Castle Resort"
+      }
+    ]
   },
   {
     name: "Shark Hole",
@@ -132,7 +148,15 @@ export const beachBatch06: Beach[] = [
     description:
       "Quiet reef-protected corridor between [Paynes Bay](/beaches/paynes-bay) and [Fitts Village](/beaches/fitts-village-beach). Heavy nearshore reef attenuation makes this a premium beginner snorkelling site with an authentic local atmosphere away from major resort crowds.",
     bestFor: "Beginner snorkelling, swimming, local experience, relaxation",
-    notes: "Strategically positioned between luxury hub and local community. Peaceful and uncrowded. Beach access is just south of Crystal Cove hotel."
+    notes: "Strategically positioned between luxury hub and local community. Peaceful and uncrowded. Beach access is just south of Crystal Cove hotel.",
+    stayLinks: [
+      {
+        kind: "hotels",
+        provider: "Expedia",
+        url: "https://expedia.com/affiliates/bajan_beach/crystalcove",
+        hotelName: "Crystal Cove"
+      }
+    ]
   },
   {
     name: "Fitts Village Beach",
