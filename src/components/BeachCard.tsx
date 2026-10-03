@@ -286,6 +286,11 @@ export function BeachCard({
               Lifeguard
             </span>
           ) : null}
+          {beach.stayLinks && beach.stayLinks.length > 0 ? (
+            <span className="inline-flex rounded-full bg-teal-100 px-2 py-0.5 text-[11px] font-medium text-teal-700 ring-1 ring-inset ring-teal-200">
+              Hotel on beach
+            </span>
+          ) : null}
           {beach.isSurfSpot ? <SurfSpotPill /> : null}
         </div>
         {beach.sargassum && (
