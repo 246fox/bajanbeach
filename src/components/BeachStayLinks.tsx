@@ -148,7 +148,7 @@ export function BeachStayLinks({ beachName, slug, links }: BeachStayLinksProps) 
           </a>
         );
       })}
-      <p className="mt-4 text-sm text-slate-500">
+      <p className="mt-4 text-xs text-slate-500">
         We may earn a commission if you book through these links, at no extra cost to you. It never
         affects the conditions or scores on this site.
       </p>
