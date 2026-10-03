@@ -88,7 +88,7 @@ function ActivitiesIcon() {
 function titleFor(kind: BeachStayLink["kind"], beachName: string): string {
   switch (kind) {
     case "hotels":
-      return `Hotels near ${beachName}`;
+      return `Hotels on and near ${beachName}`;
     case "villas":
       return "Villas and holiday homes";
     case "activities":
@@ -115,34 +115,39 @@ export function BeachStayLinks({ beachName, slug, links }: BeachStayLinksProps) 
   return (
     <section className="rounded-2xl border border-ocean-100/80 bg-white/85 p-6 shadow-sm backdrop-blur-sm">
       <h2 className="text-lg font-semibold text-slate-800">Stay near {beachName}</h2>
-      {links.map((link) => (
-        <a
-          key={`${link.kind}-${link.provider}-${link.url}`}
-          href={link.url}
-          target="_blank"
-          rel="sponsored noopener noreferrer"
-          className="mt-4 flex items-center gap-4 rounded-xl border border-ocean-100/80 bg-slate-50/80 p-4 transition hover:border-ocean-200 hover:bg-ocean-50/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-400 focus-visible:ring-offset-2"
-          onClick={() =>
-            trackEvent("select_stay_link", {
-              beach_slug: slug,
-              link_type: link.kind,
-              provider: link.provider
-            })
-          }
-        >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-ocean-100 text-ocean-700">
-            <IconForKind kind={link.kind} />
-          </span>
-          <span className="min-w-0">
-            <span className="block font-semibold text-slate-800">
-              {titleFor(link.kind, beachName)}
+      {links.map((link) => {
+        const title = link.hotelName
+          ? `Stay at ${link.hotelName}`
+          : titleFor(link.kind, beachName);
+        const subtitle = link.hotelName
+          ? `Right on this beach · book on ${link.provider}`
+          : `Browse on ${link.provider} · opens in a new tab`;
+
+        return (
+          <a
+            key={`${link.kind}-${link.provider}-${link.url}`}
+            href={link.url}
+            target="_blank"
+            rel="sponsored noopener noreferrer"
+            className="mt-4 flex items-center gap-4 rounded-xl border border-ocean-100/80 bg-slate-50/80 p-4 transition hover:border-ocean-200 hover:bg-ocean-50/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-400 focus-visible:ring-offset-2"
+            onClick={() =>
+              trackEvent("select_stay_link", {
+                beach_slug: slug,
+                link_type: link.kind,
+                provider: link.provider
+              })
+            }
+          >
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-ocean-100 text-ocean-700">
+              <IconForKind kind={link.kind} />
             </span>
-            <span className="mt-0.5 block text-sm text-slate-500">
-              {`Browse on ${link.provider} · opens in a new tab`}
+            <span className="min-w-0">
+              <span className="block font-semibold text-slate-800">{title}</span>
+              <span className="mt-0.5 block text-sm text-slate-500">{subtitle}</span>
             </span>
-          </span>
-        </a>
-      ))}
+          </a>
+        );
+      })}
       <p className="mt-4 text-sm text-slate-500">
         We may earn a commission if you book through these links, at no extra cost to you. It never
         affects the conditions or scores on this site.

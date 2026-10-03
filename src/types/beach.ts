@@ -8,6 +8,8 @@ export type BeachStayLink = {
   kind: "hotels" | "villas" | "activities";
   provider: "Expedia" | "Vrbo";
   url: string;
+  /** Hotel name for a single on-beach property. When set on a "hotels" link, the row renders "Stay at {hotelName}" with an on-beach subtitle. */
+  hotelName?: string;
 };
 
 export type Beach = {
