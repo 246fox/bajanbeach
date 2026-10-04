@@ -120,9 +120,7 @@ export function BeachStayLinks({ beachName, slug, links }: BeachStayLinksProps) 
     <section className="rounded-2xl border border-ocean-100/80 bg-white/85 p-6 shadow-sm backdrop-blur-sm">
       <h2 className="text-lg font-semibold text-slate-800">{heading}</h2>
       {links.map((link) => {
-        const title = link.hotelName
-          ? `Stay at ${link.hotelName}`
-          : titleFor(link.kind, beachName);
+        const title = link.hotelName ? link.hotelName : titleFor(link.kind, beachName);
         const subtitle = `Book on ${link.provider} · opens in a new tab`;
 
         return (
