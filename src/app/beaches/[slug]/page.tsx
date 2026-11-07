@@ -16,7 +16,7 @@ import { fetchPhotoOverrideForSlug } from "@/lib/beach-photo-overrides";
 import { getBeachPhotoUrlsUnlessOverridden } from "@/lib/beach-photos";
 import { resolvePublicBeachHeroUrl } from "@/lib/beach-photo-resolve";
 import { fetchSevenDayWaveForecast } from "@/lib/wave-forecast";
-import { seaStateLabel } from "@/lib/beach-format";
+import { formatBarbadosShortDate, seaStateLabel } from "@/lib/beach-format";
 import {
   coastForSargassumLookup,
   fetchSargassumRowForCoast,
@@ -189,6 +189,11 @@ export default async function BeachDetailPage({ params }: PageProps) {
     sargassumDisplay = rowToDisplay(sargassumRow);
   }
 
+  const sargassumAsOf =
+    sargassumDisplay.status === "ok"
+      ? formatBarbadosShortDate(sargassumDisplay.updatedAt)
+      : null;
+
   const heroUrl = resolvePublicBeachHeroUrl(override, photoUrls);
   const hasWebcam = beach.webcamUrl.trim() !== "";
   const isWarningNote = beach.notes.includes("⚠️");
@@ -322,6 +327,9 @@ export default async function BeachDetailPage({ params }: PageProps) {
           <h2 className="text-lg font-semibold text-slate-800">Sargassum</h2>
           <div className="mt-4">
             <SargassumBadge display={sargassumDisplay} />
+            {sargassumAsOf ? (
+              <p className="mt-2 text-xs text-slate-500">as of {sargassumAsOf}</p>
+            ) : null}
           </div>
           <p className="mt-4 text-xs leading-relaxed text-slate-500">
             Sargassum levels are coast-level estimates, updated weekly. Conditions may vary along beaches — check webcams if available.
