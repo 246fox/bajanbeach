@@ -126,6 +126,42 @@ export function missingScoreReason(conditions: BeachConditions): string | null {
   return null;
 }
 
+const BARBADOS_TZ = "America/Barbados";
+
+/**
+ * Short Barbados-local calendar date, e.g. "Fri 6 Nov".
+ * Returns null for missing/invalid input.
+ */
+export function formatBarbadosShortDate(timestamp: string | null | undefined): string | null {
+  if (!timestamp) {
+    return null;
+  }
+
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: BARBADOS_TZ,
+      weekday: "short",
+      day: "numeric",
+      month: "short"
+    })
+      .formatToParts(date)
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value])
+  ) as Partial<Record<Intl.DateTimeFormatPartTypes, string>>;
+
+  const { weekday, day, month } = parts;
+  if (!weekday || !day || !month) {
+    return null;
+  }
+
+  return `${weekday} ${day} ${month}`;
+}
+
 export function formatUpdatedTime(timestamp: string | null): string {
   if (!timestamp) {
     return "Updated N/A";
@@ -136,14 +172,19 @@ export function formatUpdatedTime(timestamp: string | null): string {
     return "Updated N/A";
   }
 
-  const formatted = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Barbados",
+  const shortDate = formatBarbadosShortDate(timestamp);
+  const time = new Intl.DateTimeFormat("en-US", {
+    timeZone: BARBADOS_TZ,
     hour: "numeric",
     minute: "2-digit",
     hour12: true
   }).format(date);
 
-  return `Updated ${formatted} AST`;
+  if (!shortDate) {
+    return "Updated N/A";
+  }
+
+  return `Updated ${shortDate}, ${time} AST`;
 }
 
 export function isStaleTimestamp(timestamp: string | null, maxAgeMs: number): boolean {
