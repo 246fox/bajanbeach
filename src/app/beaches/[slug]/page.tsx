@@ -342,7 +342,7 @@ export default async function BeachDetailPage({ params }: PageProps) {
           <div className="mt-4">
             <SargassumBadge display={sargassumDisplay} />
             {sargassumAsOf ? (
-              <p className="mt-2 text-xs text-slate-500">as of {sargassumAsOf}</p>
+              <p className="mt-4 text-xs text-slate-500">as of {sargassumAsOf}</p>
             ) : null}
           </div>
           <p className="mt-4 text-xs leading-relaxed text-slate-500">
