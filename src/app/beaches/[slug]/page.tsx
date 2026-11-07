@@ -209,9 +209,12 @@ export default async function BeachDetailPage({ params }: PageProps) {
   const homePageUrl = new URL("/", METADATA_ORIGIN).href;
   const beachDescriptionLd = truncateMetaDescription(stripMarkdown(beach.description));
 
+  const beachEntityId = `${beachPageUrl}#beach`;
+
   const beachLd: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Beach",
+    "@id": beachEntityId,
     name: beach.name,
     url: beachPageUrl,
     description: beachDescriptionLd,
@@ -255,10 +258,21 @@ export default async function BeachDetailPage({ params }: PageProps) {
     ]
   };
 
+  const webPageLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    url: beachPageUrl,
+    mainEntity: { "@id": beachEntityId }
+  };
+  if (conditions.lastUpdatedAt) {
+    webPageLd.dateModified = conditions.lastUpdatedAt;
+  }
+
   return (
     <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
       <JsonLd data={beachLd} />
       <JsonLd data={breadcrumbLd} />
+      <JsonLd data={webPageLd} />
       <BackLink />
 
       <header className="overflow-hidden rounded-3xl border border-ocean-100/70 bg-white/80 shadow-sm backdrop-blur-sm">
