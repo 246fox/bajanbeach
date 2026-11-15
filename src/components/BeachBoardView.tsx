@@ -11,6 +11,7 @@ import { CoastPills } from "@/components/CoastPills";
 import type { CoastFilter } from "@/lib/coast-filter";
 import { BEACH_BOARD_SORT_OPTIONS, type BeachBoardSortOption } from "@/lib/beach-board-display";
 import { VIBE_CARDS, type VibeCard } from "@/lib/beach-board-vibe-cards";
+import { getMatchedHotelName } from "@/lib/beach-search";
 import { isSupabaseStorageUrl } from "@/lib/is-supabase-storage-url";
 import type { BeachCardData, BeachCoast } from "@/types/beach";
 
@@ -167,19 +168,25 @@ export function BeachBoardView({
           <p className="py-12 text-center text-sm text-slate-600">No beaches match your search</p>
         ) : (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {displayedCards.map((beach) => (
-              <BeachCard
-                key={beach.slug}
-                beach={beach}
-                nearestDistanceLabel={
-                  sortOption === "nearest" && userCoords
-                    ? formatDistanceKm(
-                        haversineKm(userCoords.lat, userCoords.lng, beach.latitude, beach.longitude)
-                      )
-                    : undefined
-                }
-              />
-            ))}
+            {displayedCards.map((beach) => {
+              const matchedHotelName = searchActive
+                ? getMatchedHotelName(beach, searchQuery) ?? undefined
+                : undefined;
+              return (
+                <BeachCard
+                  key={beach.slug}
+                  beach={beach}
+                  nearestDistanceLabel={
+                    sortOption === "nearest" && userCoords
+                      ? formatDistanceKm(
+                          haversineKm(userCoords.lat, userCoords.lng, beach.latitude, beach.longitude)
+                        )
+                      : undefined
+                  }
+                  matchedHotelName={matchedHotelName}
+                />
+              );
+            })}
           </div>
         )}
       </section>

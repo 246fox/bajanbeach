@@ -164,10 +164,13 @@ function CameraIcon() {
 
 export function BeachCard({
   beach,
-  nearestDistanceLabel
+  nearestDistanceLabel,
+  matchedHotelName
 }: {
   beach: BeachCardData;
   nearestDistanceLabel?: string;
+  /** When set during an active search, replaces the "Hotel on beach" pill label. */
+  matchedHotelName?: string;
 }) {
   return (
     <article
@@ -288,7 +291,7 @@ export function BeachCard({
           ) : null}
           {beach.stayLinks && beach.stayLinks.length > 0 ? (
             <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700 ring-1 ring-inset ring-amber-200">
-              Hotel on beach
+              {matchedHotelName ?? "Hotel on beach"}
             </span>
           ) : null}
           {beach.isSurfSpot ? <SurfSpotPill /> : null}
