@@ -12,7 +12,8 @@
     "beaches:import": "tsx scripts/import-beaches.ts",
     "beaches:staylinks-sheet": "tsx scripts/export-stay-links-sheet.ts",
     "score:parity:write": "tsx scripts/beach-score-parity.ts --write",
-    "score:parity:verify": "tsx scripts/beach-score-parity.ts --verify"
+    "score:parity:verify": "tsx scripts/beach-score-parity.ts --verify",
+    "search:check": "tsx scripts/beach-search-check.ts"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.16.8",
