@@ -1,4 +1,4 @@
-import { filterBeachesBySearch } from "@/lib/beach-search";
+import { filterBeachesBySearch, getSearchMatchRank } from "@/lib/beach-search";
 import { haversineKm } from "@/lib/distance";
 import { COAST_FILTERS, type CoastFilter } from "@/lib/coast-filter";
 import type { BeachCardData, BeachCoast } from "@/types/beach";
@@ -79,14 +79,31 @@ export function getDisplayedBeachCards(
 
   const list = searchFiltered;
   switch (sortOption) {
-    case "coast":
+    case "coast": {
+      if (searchQuery.trim() === "") {
+        return [...list].sort((a, b) => {
+          const byCoast = coastSortRank(a.coast) - coastSortRank(b.coast);
+          if (byCoast !== 0) {
+            return byCoast;
+          }
+          return a.name.localeCompare(b.name);
+        });
+      }
+      const rankBySlug = new Map(
+        list.map((b) => [b.slug, getSearchMatchRank(b, searchQuery) ?? 4] as const)
+      );
       return [...list].sort((a, b) => {
+        const byRank = (rankBySlug.get(a.slug) ?? 4) - (rankBySlug.get(b.slug) ?? 4);
+        if (byRank !== 0) {
+          return byRank;
+        }
         const byCoast = coastSortRank(a.coast) - coastSortRank(b.coast);
         if (byCoast !== 0) {
           return byCoast;
         }
         return a.name.localeCompare(b.name);
       });
+    }
     case "name":
       return [...list].sort((a, b) => a.name.localeCompare(b.name));
     case "swim": {
