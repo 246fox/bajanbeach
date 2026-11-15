@@ -184,6 +184,7 @@ export function BeachBoardView({
                       : undefined
                   }
                   matchedHotelName={matchedHotelName}
+                  searchQuery={searchActive ? searchQuery : undefined}
                 />
               );
             })}

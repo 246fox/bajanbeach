@@ -41,6 +41,120 @@ function wordStartsWithToken(fieldNormalized: string, token: string): boolean {
   return false;
 }
 
+export type SearchHighlightRange = {
+  /** Inclusive start index in the original text. */
+  start: number;
+  /** Exclusive end index in the original text. */
+  end: number;
+};
+
+type OriginalWord = {
+  /** Lowercase letters/digits only (apostrophes and full stops already stripped). */
+  norm: string;
+  /** Original index for each character in `norm`. */
+  origIndices: number[];
+};
+
+function isLetterOrDigit(ch: string): boolean {
+  return /\p{L}/u.test(ch) || /\p{N}/u.test(ch);
+}
+
+function isStrippedPunctuation(ch: string): boolean {
+  return ch === "'" || ch === "\u2019" || ch === ".";
+}
+
+/**
+ * Walk original text with the same stripping/separator rules as normalizeSearchText,
+ * producing one entry per normalised word and the original index of each kept char.
+ */
+function extractOriginalWords(originalText: string): OriginalWord[] {
+  const words: OriginalWord[] = [];
+  let norm = "";
+  let origIndices: number[] = [];
+
+  const flush = () => {
+    if (norm.length > 0) {
+      words.push({ norm, origIndices });
+    }
+    norm = "";
+    origIndices = [];
+  };
+
+  for (let i = 0; i < originalText.length; i++) {
+    const ch = originalText[i];
+    if (isStrippedPunctuation(ch)) {
+      continue;
+    }
+    if (isLetterOrDigit(ch)) {
+      norm += ch.toLowerCase();
+      origIndices.push(i);
+      continue;
+    }
+    flush();
+  }
+  flush();
+  return words;
+}
+
+function mergeHighlightRanges(ranges: SearchHighlightRange[]): SearchHighlightRange[] {
+  if (ranges.length === 0) {
+    return [];
+  }
+  const sorted = [...ranges].sort((a, b) => a.start - b.start || a.end - b.end);
+  const merged: SearchHighlightRange[] = [{ ...sorted[0] }];
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = merged[merged.length - 1];
+    const cur = sorted[i];
+    if (cur.start <= prev.end) {
+      prev.end = Math.max(prev.end, cur.end);
+    } else {
+      merged.push({ ...cur });
+    }
+  }
+  return merged;
+}
+
+/**
+ * Character ranges in `originalText` for query words that match as word-start
+ * prefixes (same rules as prose matching). Empty / short-mode queries → [].
+ * Each range covers only the matched leading letters (plus stripped punctuation
+ * that falls strictly between those letters, e.g. the apostrophe in Smiton's).
+ */
+export function getSearchHighlightRanges(
+  originalText: string,
+  query: string
+): SearchHighlightRange[] {
+  const trimmed = query.trim();
+  if (!trimmed) {
+    return [];
+  }
+  const normalizedQuery = normalizeSearchText(trimmed);
+  if (!normalizedQuery) {
+    return [];
+  }
+  const parsed = queryWords(normalizedQuery);
+  if (parsed.mode === "short") {
+    return [];
+  }
+
+  const ranges: SearchHighlightRange[] = [];
+  for (const word of extractOriginalWords(originalText)) {
+    for (const token of parsed.words) {
+      if (!word.norm.startsWith(token)) {
+        continue;
+      }
+      const matchedIndices = word.origIndices.slice(0, token.length);
+      if (matchedIndices.length === 0) {
+        continue;
+      }
+      const start = matchedIndices[0];
+      const end = matchedIndices[matchedIndices.length - 1] + 1;
+      ranges.push({ start, end });
+    }
+  }
+  return mergeHighlightRanges(ranges);
+}
+
 type BeachSearchIndex = {
   name: string;
   slug: string;

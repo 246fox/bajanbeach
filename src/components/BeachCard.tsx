@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { BeachProse } from "@/components/BeachProse";
+import { BeachProse, HighlightedSearchText } from "@/components/BeachProse";
 import { SargassumBadge } from "@/components/SargassumBadge";
 import {
   activityLabel,
@@ -165,12 +165,15 @@ function CameraIcon() {
 export function BeachCard({
   beach,
   nearestDistanceLabel,
-  matchedHotelName
+  matchedHotelName,
+  searchQuery
 }: {
   beach: BeachCardData;
   nearestDistanceLabel?: string;
   /** When set during an active search, replaces the "Hotel on beach" pill label. */
   matchedHotelName?: string;
+  /** When set during an active search, highlights matched prefixes in description / bestFor / notes. */
+  searchQuery?: string;
 }) {
   return (
     <article
@@ -241,10 +244,15 @@ export function BeachCard({
           <p className="text-xs text-slate-500">{missingScoreReason(beach.conditions)}</p>
         )}
         <p className="text-sm text-slate-600">
-          <BeachProse markdown={beach.description} linkOverlayClassName="relative z-[2]" />
+          <BeachProse
+            markdown={beach.description}
+            linkOverlayClassName="relative z-[2]"
+            highlightQuery={searchQuery}
+          />
         </p>
         <p className="text-xs leading-relaxed text-slate-600">
-          <span className="font-semibold text-slate-700">Best for:</span> {beach.bestFor}
+          <span className="font-semibold text-slate-700">Best for:</span>{" "}
+          <HighlightedSearchText text={beach.bestFor} query={searchQuery} />
         </p>
 
         <div className="space-y-2.5">
@@ -302,7 +310,11 @@ export function BeachCard({
           </div>
         )}
         <p className="border-t border-slate-100 pt-3 text-xs italic leading-relaxed text-slate-500">
-          <BeachProse markdown={beach.notes} linkOverlayClassName="relative z-[2]" />
+          <BeachProse
+            markdown={beach.notes}
+            linkOverlayClassName="relative z-[2]"
+            highlightQuery={searchQuery}
+          />
         </p>
         {/* isStaleTimestamp uses Date.now(); suppressHydrationWarning avoids server/client text mismatch */}
         <p

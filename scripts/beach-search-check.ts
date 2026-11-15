@@ -6,6 +6,7 @@
 import { beaches } from "../src/data/beaches";
 import {
   filterBeachesBySearch,
+  getSearchHighlightRanges,
   getSearchMatchRank,
   normalizeSearchText,
   type SearchMatchRank
@@ -240,6 +241,97 @@ printMatches("review pot", "pot");
 printMatches("review bay", "bay");
 
 console.log(`\nnormalize sample: ${JSON.stringify(normalizeSearchText("Smiton's Bay"))}`);
+
+function highlightedSubstrings(text: string, query: string): string[] {
+  return getSearchHighlightRanges(text, query).map((r) => text.slice(r.start, r.end));
+}
+
+function assertHighlights(
+  label: string,
+  text: string,
+  query: string,
+  expected: string[]
+): void {
+  const actual = highlightedSubstrings(text, query);
+  const ok =
+    actual.length === expected.length && actual.every((s, i) => s === expected[i]);
+  assert(
+    ok,
+    `${label}: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`
+  );
+}
+
+function beachBySlug(slug: string): BeachCardData {
+  const b = cards.find((c) => c.slug === slug);
+  if (!b) {
+    throw new Error(`Missing beach ${slug}`);
+  }
+  return b;
+}
+
+console.log(`\n--- highlight ranges ---`);
+
+{
+  const six = beachBySlug("six-mens-bay");
+  assertHighlights(
+    "six-mens-bay description / fish pot",
+    six.description,
+    "fish pot",
+    ["fish", "Fish", "Pot"]
+  );
+  assertHighlights(
+    "six-mens-bay bestFor / fish pot",
+    six.bestFor,
+    "fish pot",
+    ["fish"]
+  );
+}
+
+{
+  const smitons = beachBySlug("smitons-bay");
+  assertHighlights(
+    "smitons-bay description / fish pot",
+    smitons.description,
+    "fish pot",
+    ["fish", "Fish", "Pot"]
+  );
+  assertHighlights(
+    "smitons-bay description / st peter",
+    smitons.description,
+    "st peter",
+    ["Peter"]
+  );
+  assertHighlights(
+    "smitons-bay description / little good harbour",
+    smitons.description,
+    "little good harbour",
+    ["little", "Little", "Good", "Harbour"]
+  );
+}
+
+assertHighlights(`fixed "Smiton's Bay" / smitons`, "Smiton's Bay", "smitons", ["Smiton's"]);
+assertHighlights(`fixed "St. Peter" / st peter`, "St. Peter", "st peter", ["Peter"]);
+assertHighlights(
+  `fixed "reef-sheltered water" / sheltered`,
+  "reef-sheltered water",
+  "sheltered",
+  ["sheltered"]
+);
+assertHighlights(`fixed "fishing village" / fis`, "fishing village", "fis", ["fis"]);
+assertHighlights(`fixed any / empty query`, "fishing village", "", []);
+assertHighlights(`fixed any / ab short-mode`, "fishing village", "ab", []);
+
+{
+  const bayMatches = filterBeachesBySearch(cards, "bay");
+  console.log(`\n[review bay highlights] ${bayMatches.length} beach(es)`);
+  for (const b of bayMatches) {
+    const desc = highlightedSubstrings(b.description, "bay");
+    const notes = highlightedSubstrings(b.notes, "bay");
+    console.log(`  ${b.slug}`);
+    console.log(`    description: ${JSON.stringify(desc)}`);
+    console.log(`    notes: ${JSON.stringify(notes)}`);
+  }
+}
 
 if (failures > 0) {
   console.error(`\n${failures} assertion(s) failed`);
