@@ -14,6 +14,7 @@ import { OffshoreTile } from "@/components/OffshoreTile";
 import { coastToQueryParam, parseCoastFromQuery, type CoastFilter } from "@/lib/coast-filter";
 import { filterBeachesBySearch } from "@/lib/beach-search";
 import { MAP_VIEWPORT_DESKTOP_MQ } from "@/lib/map-viewport";
+import { useTrackBeachSearch } from "@/lib/use-track-beach-search";
 
 const BeachMap = dynamic(() => import("@/components/BeachMap"), { ssr: false });
 
@@ -75,6 +76,12 @@ export function MapExperience({ beachCards, offshoreConditions }: Props) {
     () => filterBeachesBySearch(coastFiltered, searchQuery),
     [coastFiltered, searchQuery]
   );
+
+  useTrackBeachSearch({
+    searchQuery,
+    resultsCount: filteredBeachCards.length,
+    searchSurface: "map"
+  });
 
   const searchActive = searchQuery.trim() !== "";
   const showEmptySearchMessage = searchActive && filteredBeachCards.length === 0;

@@ -19,6 +19,7 @@ import {
 } from "@/lib/beach-board-display";
 import type { VibeCard } from "@/lib/beach-board-vibe-cards";
 import { trackEvent } from "@/lib/analytics";
+import { useTrackBeachSearch } from "@/lib/use-track-beach-search";
 
 const SESSION_LOCATION_KEY = "bajanbeach:userLocation";
 
@@ -119,6 +120,12 @@ export function BeachBoard({ beachCards }: { beachCards: BeachCardData[] }) {
       }),
     [beachCards, coastFilter, searchQuery, sortOption, userCoords]
   );
+
+  useTrackBeachSearch({
+    searchQuery,
+    resultsCount: displayedCards.length,
+    searchSurface: "home"
+  });
 
   const countsByCoast = useMemo(() => getBeachBoardCoastCounts(beachCards), [beachCards]);
 
